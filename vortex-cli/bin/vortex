@@ -1,0 +1,278 @@
+#!/usr/bin/env node
+
+const { Command } = require('commander');
+const chalk = require('chalk');
+const { VortexCLI } = require('../dist/index');
+
+const program = new Command();
+const cli = new VortexCLI();
+
+program
+  .name('vortex')
+  .description('🔐 Vortex Secure CLI - Developer-friendly secret management')
+  .version('0.1.0')
+  .configureOutput({
+    outputError: (str, write) => write(chalk.red(str))
+  });
+
+// Authentication commands
+program
+  .command('login')
+  .description('Login to Vortex Secure')
+  .option('-u, --url <url>', 'Vortex API URL', 'https://api.vortex-secure.com')
+  .action(async (options) => {
+    try {
+      await cli.login(options.url);
+    } catch (error) {
+      console.error(chalk.red('Login failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('logout')
+  .description('Logout from Vortex Secure')
+  .action(async () => {
+    try {
+      await cli.logout();
+      console.log(chalk.green('✅ Logged out successfully'));
+    } catch (error) {
+      console.error(chalk.red('Logout failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Project management
+program
+  .command('init [project-name]')
+  .description('Initialize a new Vortex project')
+  .option('-e, --environment <env>', 'Environment (development|staging|production)', 'development')
+  .action(async (projectName, options) => {
+    try {
+      await cli.initProject(projectName, options.environment);
+    } catch (error) {
+      console.error(chalk.red('Project initialization failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Secret management commands
+program
+  .command('list')
+  .alias('ls')
+  .description('List all secrets')
+  .option('-e, --environment <env>', 'Filter by environment')
+  .option('-p, --project <project>', 'Filter by project')
+  .option('-t, --type <type>', 'Filter by secret type')
+  .option('--json', 'Output as JSON')
+  .action(async (options) => {
+    try {
+      await cli.listSecrets(options);
+    } catch (error) {
+      console.error(chalk.red('Failed to list secrets:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('get <name>')
+  .description('Get a secret value')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('--copy', 'Copy to clipboard')
+  .action(async (name, options) => {
+    try {
+      await cli.getSecret(name, options);
+    } catch (error) {
+      console.error(chalk.red('Failed to get secret:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('set <name> [value]')
+  .description('Set a secret value')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('-t, --type <type>', 'Secret type', 'api_key')
+  .option('--tags <tags>', 'Comma-separated tags')
+  .option('--generate', 'Generate a secure random value')
+  .action(async (name, value, options) => {
+    try {
+      await cli.setSecret(name, value, options);
+    } catch (error) {
+      console.error(chalk.red('Failed to set secret:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('delete <name>')
+  .alias('rm')
+  .description('Delete a secret')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('-f, --force', 'Skip confirmation')
+  .action(async (name, options) => {
+    try {
+      await cli.deleteSecret(name, options);
+    } catch (error) {
+      console.error(chalk.red('Failed to delete secret:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Rotation commands
+program
+  .command('rotate <name>')
+  .description('Rotate a specific secret')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('--immediate', 'Rotate immediately without confirmation')
+  .action(async (name, options) => {
+    try {
+      await cli.rotateSecret(name, options);
+    } catch (error) {
+      console.error(chalk.red('Rotation failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('schedule <name> <frequency>')
+  .description('Schedule automatic rotation for a secret')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('--overlap <hours>', 'Overlap period in hours', '24')
+  .action(async (name, frequency, options) => {
+    try {
+      await cli.scheduleRotation(name, frequency, options);
+    } catch (error) {
+      console.error(chalk.red('Failed to schedule rotation:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('rotations')
+  .description('Show rotation status and schedule')
+  .option('-e, --environment <env>', 'Filter by environment')
+  .option('-p, --project <project>', 'Filter by project')
+  .option('--overdue', 'Show only overdue rotations')
+  .action(async (options) => {
+    try {
+      await cli.showRotations(options);
+    } catch (error) {
+      console.error(chalk.red('Failed to show rotations:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Analytics and monitoring
+program
+  .command('usage <name>')
+  .description('Show usage analytics for a secret')
+  .option('-e, --environment <env>', 'Environment', 'development')
+  .option('-p, --project <project>', 'Project name')
+  .option('--days <days>', 'Number of days to analyze', '30')
+  .action(async (name, options) => {
+    try {
+      await cli.showUsage(name, options);
+    } catch (error) {
+      console.error(chalk.red('Failed to show usage:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('health')
+  .description('Check Vortex Secure service health')
+  .action(async () => {
+    try {
+      await cli.checkHealth();
+    } catch (error) {
+      console.error(chalk.red('Health check failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Configuration commands
+program
+  .command('config')
+  .description('Manage CLI configuration')
+  .option('--set <key=value>', 'Set configuration value')
+  .option('--get <key>', 'Get configuration value')
+  .option('--list', 'List all configuration')
+  .action(async (options) => {
+    try {
+      await cli.manageConfig(options);
+    } catch (error) {
+      console.error(chalk.red('Configuration failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Import/Export
+program
+  .command('export')
+  .description('Export secrets to file')
+  .option('-e, --environment <env>', 'Environment to export')
+  .option('-p, --project <project>', 'Project to export')
+  .option('-f, --format <format>', 'Export format (json|env|yaml)', 'json')
+  .option('-o, --output <file>', 'Output file path')
+  .action(async (options) => {
+    try {
+      await cli.exportSecrets(options);
+    } catch (error) {
+      console.error(chalk.red('Export failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('import <file>')
+  .description('Import secrets from file')
+  .option('-e, --environment <env>', 'Target environment', 'development')
+  .option('-p, --project <project>', 'Target project')
+  .option('--dry-run', 'Show what would be imported without executing')
+  .action(async (file, options) => {
+    try {
+      await cli.importSecrets(file, options);
+    } catch (error) {
+      console.error(chalk.red('Import failed:'), error.message);
+      process.exit(1);
+    }
+  });
+
+// Help customization
+program.on('--help', () => {
+  console.log('');
+  console.log(chalk.cyan('Examples:'));
+  console.log('  $ vortex login                                    # Login to Vortex');
+  console.log('  $ vortex init my-app                             # Initialize project');
+  console.log('  $ vortex set DATABASE_URL                        # Set secret interactively');
+  console.log('  $ vortex set API_KEY --generate                  # Generate secure API key');
+  console.log('  $ vortex get DATABASE_URL --copy                 # Get secret and copy to clipboard');
+  console.log('  $ vortex rotate API_KEY --immediate              # Rotate secret immediately');
+  console.log('  $ vortex schedule API_KEY 30                     # Schedule rotation every 30 days');
+  console.log('  $ vortex list --environment production           # List production secrets');
+  console.log('  $ vortex usage API_KEY --days 7                  # Show 7-day usage analytics');
+  console.log('');
+  console.log(chalk.cyan('Learn more:'));
+  console.log('  📖 Documentation: https://docs.vortex-secure.com');
+  console.log('  🐛 Report issues: https://github.com/fixer-initiative/vortex-secure/issues');
+});
+
+// Error handling
+program.exitOverride();
+
+try {
+  program.parse();
+} catch (error) {
+  if (error.code === 'commander.help' || error.code === 'commander.version') {
+    process.exit(0);
+  } else {
+    console.error(chalk.red('Unexpected error:'), error.message);
+    process.exit(1);
+  }
+}

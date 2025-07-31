@@ -1,0 +1,29 @@
+{
+  "name": "vortex-api-key-manager",
+  "version": "0.1.0",
+  "description": "Standalone API Key Manager extracted from Vortex Secure",
+  "private": false,
+  "workspaces": [
+    "packages/*",
+    "vortex-cli"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "cli": "npm run dev -w @vortex-secure/cli",
+    "sdk": "npm run build -w @vortex-secure/mcp-sdk"
+  },
+  "keywords": [
+    "api-keys",
+    "secrets",
+    "security",
+    "key-management",
+    "rotation"
+  ],
+  "author": "The Fixer Initiative",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fixer-initiative/vortex-api-key-manager"
+  }
+}
