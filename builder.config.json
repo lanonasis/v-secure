@@ -1,0 +1,6 @@
+{
+  "command": "bun run build",
+  "serverUrl": "http://localhost:4056",
+  "authenticateProxy": false,
+  "commitMode": "commits"
+}
