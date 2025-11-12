@@ -1,0 +1,22 @@
+Contact: mailto:security@lanonasis.com
+Expires: 2026-12-31T23:59:59.000Z
+Preferred-Languages: en
+Canonical: https://vortexshield.lanonasis.com/.well-known/security.txt
+Policy: https://lanonasis.com/security-policy
+Acknowledgments: https://lanonasis.com/security-acknowledgments
+Hiring: https://lanonasis.com/careers
+
+# VortexShield Security Contact
+# 
+# If you discover a security vulnerability in VortexShield,
+# please report it to our security team at security@lanonasis.com
+# 
+# We take security seriously and will respond within 24 hours.
+# 
+# Please include:
+# - Description of the vulnerability
+# - Steps to reproduce
+# - Potential impact
+# - Your contact information (optional)
+# 
+# Thank you for helping keep VortexShield secure!
