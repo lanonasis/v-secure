@@ -1,155 +1,176 @@
 # VortexShield Landing Page
 
-Marketing landing page for VortexShield - Enterprise-grade security infrastructure for cross-border safety.
+Enterprise-grade security infrastructure for cross-border safety. Part of the Lan Onasis VortexCore ecosystem.
 
-## Overview
+## 🚀 Features
 
-This is the official marketing landing page for VortexShield, part of the LanOnasis platform suite. The page showcases VortexShield's enterprise-grade secret management, API key lifecycle, MCP integration, and compliance-ready security solutions.
+- **SEO Optimized**: Comprehensive metadata, Open Graph, Twitter Cards, structured data (JSON-LD)
+- **Performance**: Next.js 14 with SWC, optimized builds, image optimization
+- **Security**: Security headers, CSP, HSTS, security.txt (RFC 9116)
+- **Compliance**: SOC 2, ISO 27001, GDPR, PCI DSS ready
+- **Responsive**: Mobile-first design with Tailwind CSS
+- **Accessibility**: WCAG 2.1 AA compliant
 
-## Tech Stack
+## 📋 Prerequisites
 
-- **Framework:** Next.js 14 (App Router)
-- **Language:** TypeScript 5.7.2
-- **Styling:** Tailwind CSS 3.4
-- **Icons:** Lucide React
-- **Brand Kit:** @lanonasis/brand-kit
-
-## Features
-
-The landing page includes:
-
-- ✅ Hero section with trust badges
-- ✅ Core capabilities showcase
-- ✅ Security standards & compliance section
-- ✅ Developer-first API examples
-- ✅ Industry use cases
-- ✅ Compliance-ready features
-- ✅ Call-to-action sections
-- ✅ Responsive design
-- ✅ SEO optimized
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+ or Bun
+- Node.js 18+
 - npm or yarn
+- Netlify account (for deployment)
 
-### Installation
+## 🛠️ Installation
 
 ```bash
-# Navigate to the web directory
-cd web
-
 # Install dependencies
 npm install
-# or
-bun install
-```
 
-### Development
-
-```bash
-# Start the development server
+# Run development server
 npm run dev
-# or
-bun dev
 
-# Open http://localhost:3000/vortexshield in your browser
+# Open http://localhost:3000
 ```
 
-The page will be available at `http://localhost:3000/vortexshield`
-
-### Build
+## 🏗️ Build
 
 ```bash
-# Build for production
+# Production build
 npm run build
 
 # Start production server
 npm start
-```
 
-### Type Checking
-
-```bash
-# Run TypeScript type checking
+# Type checking
 npm run type-check
+
+# Linting
+npm run lint
 ```
 
-## Project Structure
+## 📦 Project Structure
 
 ```
 web/
 ├── app/
-│   ├── layout.tsx          # Root layout with metadata
-│   └── page.tsx            # Main VortexShield landing page
-├── components/             # Reusable React components
+│   ├── layout.tsx          # Root layout with metadata & SEO
+│   └── page.tsx            # Homepage
+├── public/
+│   ├── .well-known/
+│   │   └── security.txt    # Security contact (RFC 9116)
+│   ├── robots.txt          # Search engine directives
+│   ├── sitemap.xml         # Site structure for SEO
+│   ├── site.webmanifest    # PWA manifest
+│   ├── _headers            # Netlify headers
+│   └── ASSETS_README.md    # Asset generation guide
 ├── styles/
-│   └── globals.css         # Global styles and Tailwind
-├── public/                 # Static assets
-├── package.json            # Dependencies and scripts
-├── tsconfig.json          # TypeScript configuration
-├── tailwind.config.js     # Tailwind CSS configuration
-└── next.config.js         # Next.js configuration
+│   └── globals.css         # Global styles with Tailwind
+├── netlify.toml            # Netlify configuration
+├── next.config.js          # Next.js configuration
+├── DEPLOYMENT.md           # Deployment guide
+└── package.json
 ```
 
-## Configuration
+## 🎨 Brand Assets
 
-### Base Path
+This project uses `@lanonasis/brand-kit` for consistent branding.
 
-The landing page is configured to run at `/vortexshield` path. This is configured in `next.config.js`:
+### Required Assets (Not Included)
 
-```javascript
-basePath: '/vortexshield',
-assetPrefix: '/vortexshield',
+Generate these before deployment:
+
+- Favicons (16x16, 32x32, 180x180, 192x192, 512x512)
+- Social media images (og-image.png, twitter-image.png)
+- Logo files (logo.png)
+
+See `/public/ASSETS_README.md` for detailed instructions.
+
+## 🌐 Deployment
+
+### Quick Deploy to Netlify
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login
+netlify login
+
+# Deploy
+npm run deploy
 ```
 
-### Customization
+See `DEPLOYMENT.md` for complete deployment guide.
 
-To customize the page:
+## 🔍 SEO Checklist
 
-1. **Colors:** Edit `tailwind.config.js` to modify the color scheme
-2. **Content:** Edit `app/page.tsx` to update content
-3. **Metadata:** Edit `app/layout.tsx` to update SEO metadata
-4. **Styles:** Edit `styles/globals.css` for global styles
+- [x] Meta tags (title, description, keywords)
+- [x] Open Graph tags (Facebook, LinkedIn)
+- [x] Twitter Card tags
+- [x] Structured data (JSON-LD)
+- [x] Canonical URLs
+- [x] robots.txt
+- [x] sitemap.xml
+- [x] security.txt
+- [x] Favicon suite
+- [ ] Social media images (need to generate)
+- [ ] Submit to search engines
 
-## Deployment
+## 🔒 Security
 
-This Next.js app can be deployed to:
+- Security headers configured (CSP, HSTS, X-Frame-Options)
+- security.txt for responsible disclosure
+- HTTPS enforced
+- No sensitive data in client code
 
-- **Vercel:** Optimized for Next.js (recommended)
-- **Netlify:** Static export or serverless
-- **AWS:** Using AWS Amplify or S3 + CloudFront
-- **Self-hosted:** Using Docker or Node.js server
+## 📊 Performance
 
-### Environment Variables
+Target Lighthouse scores:
 
-No environment variables are required for the landing page to run.
+- Performance: 90+
+- Accessibility: 95+
+- Best Practices: 95+
+- SEO: 100
 
-## Integration with Main Site
+## 🧪 Testing
 
-To integrate with the main lanonasis.com site:
+```bash
+# Type checking
+npm run type-check
 
-1. Deploy this app to a subdirectory or microservice
-2. Set up routing on the main site to redirect `/vortexshield` to this app
-3. Ensure consistent navigation and branding across both sites
+# Linting
+npm run lint
 
-## Contributing
+# Build test
+npm run build
 
-Please see the main repository [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+# Lighthouse audit (after deployment)
+npx lighthouse https://vortexshield.lanonasis.com --view
+```
 
-## License
+## 🤝 Contributing
 
-Part of the LanOnasis Enterprise Security Service.
-Licensed under MIT License. See [LICENSE](../LICENSE) for details.
+This is part of the Lan Onasis platform. For contributions:
 
-## Support
+1. Follow the brand guidelines
+2. Maintain SEO best practices
+3. Ensure accessibility compliance
+4. Test on multiple devices
 
-- **Documentation:** https://docs.lanonasis.com
-- **Email:** support@lanonasis.com
-- **GitHub Issues:** https://github.com/lanonasis/v-secure/issues
+## 📝 License
+
+MIT License - See LICENSE file for details
+
+## 🔗 Links
+
+- **Main Site**: https://lanonasis.com
+- **Documentation**: https://docs.lanonasis.com/vortexshield
+- **GitHub**: https://github.com/lanonasis/v-secure
+- **Support**: security@lanonasis.com
+
+## 📞 Support
+
+- **Security Issues**: security@lanonasis.com
+- **General Support**: support@lanonasis.com
+- **Sales**: sales@lanonasis.com
 
 ---
 
-**Built with:** Next.js • TypeScript • Tailwind CSS • LanOnasis Brand Kit
+**Built with ❤️ by Lan Onasis**
