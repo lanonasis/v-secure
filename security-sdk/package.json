@@ -1,0 +1,30 @@
+{
+  "name": "@onasis/security-sdk",
+  "version": "1.0.0",
+  "description": "Centralized security and encryption SDK for Onasis ecosystem",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "test": "vitest"
+  },
+  "keywords": [
+    "security",
+    "encryption",
+    "aes",
+    "crypto",
+    "onasis"
+  ],
+  "dependencies": {
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.0.4"
+  }
+}
