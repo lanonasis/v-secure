@@ -4,7 +4,7 @@
 [build]
   base = "web"
   command = "npm run build"
-  publish = "web/.next"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
@@ -91,11 +91,6 @@
 
 [context.branch-deploy]
   environment = { NODE_ENV = "development" }
-
-# Functions configuration (if needed in future)
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"
 
 # Dev server settings
 [dev]
