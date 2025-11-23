@@ -95,7 +95,7 @@ export class SecuritySDK {
       const iv = crypto.randomBytes(16);
 
       // Create cipher
-      const cipher = crypto.createCipheriv(algorithm, encryptionKey, iv);
+      const cipher = crypto.createCipheriv(algorithm, encryptionKey, iv) as crypto.CipherGCM;
 
       // Encrypt data
       let encrypted = cipher.update(dataString, "utf8", "hex");
@@ -134,7 +134,7 @@ export class SecuritySDK {
         encryptedData.algorithm as any,
         decryptionKey,
         Buffer.from(encryptedData.iv, "hex")
-      );
+      ) as crypto.DecipherGCM;
 
       // Set auth tag (for GCM mode)
       if (encryptedData.algorithm === "aes-256-gcm" && encryptedData.authTag) {
@@ -188,13 +188,14 @@ export class SecuritySDK {
     const salt = Buffer.from(keyId, "utf8");
     const info = Buffer.from(`onasis-security-${context}`, "utf8");
 
-    return crypto.hkdfSync(
+    const key = crypto.hkdfSync(
       "sha256",
       this.masterKey,
       salt,
       info,
       32 // 256 bits for AES-256
     );
+    return Buffer.from(key);
   }
 
   /**

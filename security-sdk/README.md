@@ -1,5 +1,10 @@
 # @onasis/security-sdk
 
+[![npm version](https://img.shields.io/npm/v/@onasis/security-sdk.svg)](https://www.npmjs.com/package/@onasis/security-sdk)
+[![License](https://img.shields.io/npm/l/@onasis/security-sdk.svg)](LICENSE)
+[![Downloads](https://img.shields.io/npm/dm/@onasis/security-sdk.svg)](https://www.npmjs.com/package/@onasis/security-sdk)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
+
 Centralized Security and Encryption SDK for the Onasis Ecosystem.
 
 ## Purpose
