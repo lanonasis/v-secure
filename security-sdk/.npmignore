@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Tests
+test/
+tests/
+*.test.ts
+*.spec.ts
+__tests__/
+
+# Configuration
+*.config.js
+*.config.ts
+tsconfig.json
+tsconfig.node.json
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+coverage/
+.nyc_output
+
+# Environment
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts (these will be included from dist/)
+src/
+scripts/

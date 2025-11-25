@@ -9,18 +9,39 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts --clean",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
-    "test": "vitest"
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "security",
     "encryption",
     "aes",
     "crypto",
-    "onasis"
+    "onasis",
+    "sdk",
+    "api-keys",
+    "secret-management",
+    "authentication"
   ],
-  "dependencies": {
-    "crypto": "^1.0.1"
+  "author": "LanOnasis",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lanonasis/security-sdk.git"
   },
+  "homepage": "https://github.com/lanonasis/security-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/lanonasis/security-sdk/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.10.0",
     "tsup": "^8.0.1",
