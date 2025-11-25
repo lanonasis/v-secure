@@ -1,0 +1,211 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - 'oauth-client-v*'
+      - 'security-sdk-v*'
+  workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish (oauth-client or security-sdk)'
+        required: true
+        type: choice
+        options:
+          - oauth-client
+          - security-sdk
+      version:
+        description: 'Version to publish (e.g., 1.0.1)'
+        required: true
+        type: string
+      registry:
+        description: 'Registry to publish to'
+        required: true
+        type: choice
+        options:
+          - npm
+          - github
+          - both
+        default: both
+
+jobs:
+  publish-npm:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.registry == 'npm' || github.event.inputs.registry == 'both'))
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Extract package name and version (from tag)
+        if: github.event_name == 'push'
+        id: extract-tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ $TAG == oauth-client-v* ]]; then
+            PACKAGE="oauth-client"
+            VERSION=${TAG#oauth-client-v}
+          elif [[ $TAG == security-sdk-v* ]]; then
+            PACKAGE="security-sdk"
+            VERSION=${TAG#security-sdk-v}
+          else
+            echo "Unknown tag format: $TAG"
+            exit 1
+          fi
+          echo "package=$PACKAGE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set package info (from workflow dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        id: extract-input
+        run: |
+          echo "package=${{ github.event.inputs.package }}" >> $GITHUB_OUTPUT
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm install
+
+      - name: Build package
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm run build
+
+      - name: Update version in package.json
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: |
+          VERSION="${{ steps.extract-tag.outputs.version || steps.extract-input.outputs.version }}"
+          npm version $VERSION --no-git-tag-version
+
+      - name: Publish to npm
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ steps.extract-tag.outputs.package }} v${{ steps.extract-tag.outputs.version }}
+          body: |
+            ## Published to npm
+
+            **Package**: `@lanonasis/${{ steps.extract-tag.outputs.package }}`
+            **Version**: `${{ steps.extract-tag.outputs.version }}`
+
+            ### Installation
+            ```bash
+            npm install @lanonasis/${{ steps.extract-tag.outputs.package }}@${{ steps.extract-tag.outputs.version }}
+            ```
+
+            ### Changes
+            See [CHANGELOG.md](https://github.com/lanonasis/v-secure/blob/main/${{ steps.extract-tag.outputs.package }}/CHANGELOG.md)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-github:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) ||
+      (github.event_name == 'workflow_dispatch' && (github.event.inputs.registry == 'github' || github.event.inputs.registry == 'both'))
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js for GitHub Packages
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@lanonasis'
+
+      - name: Extract package name and version (from tag)
+        if: github.event_name == 'push'
+        id: extract-tag
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ $TAG == oauth-client-v* ]]; then
+            PACKAGE="oauth-client"
+            VERSION=${TAG#oauth-client-v}
+          elif [[ $TAG == security-sdk-v* ]]; then
+            PACKAGE="security-sdk"
+            VERSION=${TAG#security-sdk-v}
+          else
+            echo "Unknown tag format: $TAG"
+            exit 1
+          fi
+          echo "package=$PACKAGE" >> $GITHUB_OUTPUT
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Set package info (from workflow dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        id: extract-input
+        run: |
+          echo "package=${{ github.event.inputs.package }}" >> $GITHUB_OUTPUT
+          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+
+      - name: Install dependencies
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm install
+
+      - name: Build package
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm run build
+
+      - name: Update version and registry in package.json
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: |
+          VERSION="${{ steps.extract-tag.outputs.version || steps.extract-input.outputs.version }}"
+          npm version $VERSION --no-git-tag-version
+
+          # Update publishConfig for GitHub Packages
+          node -e "
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          pkg.publishConfig = {
+            registry: 'https://npm.pkg.github.com',
+            access: 'public'
+          };
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
+
+      - name: Publish to GitHub Packages
+        working-directory: ./${{ steps.extract-tag.outputs.package || steps.extract-input.outputs.package }}
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  notify:
+    name: Notify completion
+    runs-on: ubuntu-latest
+    needs: [publish-npm, publish-github]
+    if: always()
+    steps:
+      - name: Check job status
+        run: |
+          if [[ "${{ needs.publish-npm.result }}" == "success" ]] && [[ "${{ needs.publish-github.result }}" == "success" ]]; then
+            echo "✅ All publishing jobs completed successfully"
+          elif [[ "${{ needs.publish-npm.result }}" == "success" ]] || [[ "${{ needs.publish-github.result }}" == "success" ]]; then
+            echo "⚠️ Some publishing jobs completed successfully"
+          else
+            echo "❌ All publishing jobs failed"
+            exit 1
+          fi
