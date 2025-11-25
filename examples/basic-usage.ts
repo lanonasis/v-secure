@@ -28,7 +28,9 @@ async function basicExample() {
     environment: 'development',
     projectId: 'project-uuid',
     tags: ['test'],
-    rotationFrequency: 90
+    rotationFrequency: 90,
+    accessLevel: 'team',
+    metadata: {}
   }, 'user-uuid');
 
   console.log('API Key created:', apiKey.id);
