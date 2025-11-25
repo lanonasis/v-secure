@@ -77,6 +77,37 @@ export class MCPClient {
     return tokens;
   }
 
+  private async ensureAccessToken(): Promise<void> {
+    // If already in memory, use it
+    if (this.accessToken) return;
+
+    // Try to load from storage
+    const tokens = await this.tokenStorage.retrieve();
+    if (!tokens) {
+      throw new Error('Not authenticated');
+    }
+
+    // Check if expired and try to refresh if needed
+    if (this.tokenStorage.isTokenExpired(tokens)) {
+      if (tokens.refresh_token) {
+        try {
+          const newTokens = await this.authFlow.refreshToken(tokens.refresh_token);
+          await this.tokenStorage.store(newTokens);
+          this.accessToken = newTokens.access_token;
+          return;
+        } catch (error) {
+          console.error('Token refresh failed:', error);
+          throw new Error('Token expired and refresh failed');
+        }
+      } else {
+        throw new Error('Token expired and no refresh token available');
+      }
+    }
+
+    // Token is valid, use it
+    this.accessToken = tokens.access_token;
+  }
+
   private scheduleTokenRefresh(tokens: TokenResponse): void {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
@@ -220,10 +251,13 @@ export class MCPClient {
   }
 
   async request<T = unknown>(method: string, params?: unknown): Promise<T> {
+    // Ensure we have a usable access token (reload/refresh if needed)
+    await this.ensureAccessToken();
+
     if (!this.accessToken) {
       throw new Error('Not authenticated');
     }
-    
+
     const response = await fetch(`${this.config.mcpEndpoint}/api`, {
       method: 'POST',
       headers: {

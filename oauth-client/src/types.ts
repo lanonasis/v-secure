@@ -1,9 +1,10 @@
 export interface TokenResponse {
   access_token: string;
-  token_type: string;
-  expires_in: number;
   refresh_token?: string;
-  scope: string;
+  expires_in: number;
+  token_type: string;
+  scope?: string;
+  issued_at?: number;
 }
 
 export interface DeviceCodeResponse {
