@@ -1,5 +1,5 @@
 /**
- * @onasis/security-sdk
+ * @lanonasis/security-sdk
  * Centralized Security and Encryption SDK for Onasis Ecosystem
  *
  * Used by: MCP Router, API Gateway, IDE Extensions, SDK, Dashboard
@@ -94,16 +94,25 @@ export class SecuritySDK {
       // Generate random IV (16 bytes for GCM)
       const iv = crypto.randomBytes(16);
 
-      // Create cipher
-      const cipher = crypto.createCipheriv(algorithm, encryptionKey, iv);
+      let encrypted: string;
+      let authTag: Buffer;
 
-      // Encrypt data
-      let encrypted = cipher.update(dataString, "utf8", "hex");
-      encrypted += cipher.final("hex");
+      if (algorithm === "aes-256-gcm") {
+        const cipher = crypto.createCipheriv(
+          algorithm,
+          encryptionKey,
+          iv
+        ) as crypto.CipherGCM;
 
-      // Get auth tag (for GCM mode)
-      const authTag =
-        algorithm === "aes-256-gcm" ? cipher.getAuthTag() : Buffer.alloc(0);
+        encrypted = cipher.update(dataString, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        authTag = cipher.getAuthTag();
+      } else {
+        const cipher = crypto.createCipheriv(algorithm, encryptionKey, iv);
+        encrypted = cipher.update(dataString, "utf8", "hex");
+        encrypted += cipher.final("hex");
+        authTag = Buffer.alloc(0);
+      }
 
       return {
         encrypted,
@@ -188,13 +197,17 @@ export class SecuritySDK {
     const salt = Buffer.from(keyId, "utf8");
     const info = Buffer.from(`onasis-security-${context}`, "utf8");
 
-    return crypto.hkdfSync(
+    const keyAb = crypto.hkdfSync(
       "sha256",
       this.masterKey,
       salt,
       info,
       32 // 256 bits for AES-256
     );
+
+    // hkdfSync returns an ArrayBuffer in recent Node typings;
+    // convert to a Buffer for use as a CipherKey.
+    return Buffer.from(new Uint8Array(keyAb));
   }
 
   /**

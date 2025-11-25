@@ -1,6 +1,6 @@
-# @onasis/security-sdk
+# @lanonasis/security-sdk
 
-Centralized Security and Encryption SDK for the Onasis Ecosystem.
+Centralized Security and Encryption SDK for the Lanonasis/Onasis Ecosystem.
 
 ## Purpose
 
@@ -24,11 +24,11 @@ This SDK provides a unified, secure encryption layer used across all Onasis serv
 ## Installation
 
 ```bash
-# In monorepo
-bun add @onasis/security-sdk
+# In monorepo (workspace)
+bun add @lanonasis/security-sdk
 
-# External
-npm install @onasis/security-sdk
+# External (npm registry)
+npm install @lanonasis/security-sdk
 ```
 
 ## Usage
@@ -36,7 +36,7 @@ npm install @onasis/security-sdk
 ### Basic Encryption/Decryption
 
 ```typescript
-import { SecuritySDK } from "@onasis/security-sdk";
+import { SecuritySDK } from "@lanonasis/security-sdk";
 
 // Initialize with master key
 const security = new SecuritySDK(process.env.ONASIS_MASTER_KEY);
@@ -57,7 +57,7 @@ console.log(decrypted.stripe_key); // 'sk_live_abc123'
 ### Singleton Pattern
 
 ```typescript
-import { getSecuritySDK } from "@onasis/security-sdk";
+import { getSecuritySDK } from "@lanonasis/security-sdk";
 
 // Get singleton instance
 const security = getSecuritySDK();
@@ -112,7 +112,7 @@ VSECURE_MASTER_KEY=your_64_character_hex_key
 ### Generate Master Key
 
 ```typescript
-import { SecuritySDK } from "@onasis/security-sdk";
+import { SecuritySDK } from "@lanonasis/security-sdk";
 
 // Generate a new master key (do this once, store securely)
 const masterKey = SecuritySDK.generateMasterKey();
@@ -182,7 +182,7 @@ new SecuritySDK(masterKeyHex?: string)
 ### MCP Router
 
 ```typescript
-import { getSecuritySDK } from "@onasis/security-sdk";
+import { getSecuritySDK } from "@lanonasis/security-sdk";
 
 const security = getSecuritySDK();
 
@@ -210,7 +210,7 @@ const credentials = security.decryptJSON(
 ### Key Manager Service
 
 ```typescript
-import { getSecuritySDK } from "@onasis/security-sdk";
+import { getSecuritySDK } from "@lanonasis/security-sdk";
 
 const security = getSecuritySDK();
 
