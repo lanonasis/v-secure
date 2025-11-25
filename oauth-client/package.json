@@ -1,0 +1,68 @@
+{
+  "name": "@lanonasis/oauth-client",
+  "version": "1.0.1",
+  "type": "module",
+  "description": "OAuth client for Lan Onasis MCP integration",
+  "license": "MIT",
+  "author": "Lan Onasis",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lanonasis/v-secure.git",
+    "directory": "oauth-client"
+  },
+  "bugs": {
+    "url": "https://github.com/lanonasis/v-secure/issues"
+  },
+  "homepage": "https://github.com/lanonasis/v-secure/tree/main/oauth-client",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean --external electron --external ws --external eventsource",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external electron --external ws --external eventsource",
+    "test": "bun test",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "oauth",
+    "mcp",
+    "lanonasis",
+    "supabase",
+    "api-key",
+    "cli",
+    "desktop"
+  ],
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "open": "^9.1.0",
+    "keytar": "^7.9.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^20.0.0",
+    "eslint": "^9.17.0",
+    "globals": "^16.4.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.18.1"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "access": "public"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "masking": {
+    "types": {
+      "email": "Email",
+      "phone": "Phone Number",
+      "ssn": "Social Security Number",
+      "credit_card": "Credit Card",
+      "custom": "Custom Pattern"
+    },
+    "actions": {
+      "mask": "Mask Data",
+      "unmask": "Unmask Data",
+      "validate": "Validate Pattern",
+      "detect": "Detect PII"
+    },
+    "options": {
+      "preserve_format": "Preserve Format",
+      "preserve_length": "Preserve Length",
+      "mask_character": "Mask Character"
+    }
+  },
+  "anonymization": {
+    "generate_id": "Generate Anonymous ID",
+    "hash_data": "Hash Sensitive Data",
+    "tokenize": "Tokenize Data",
+    "sanitize": "Sanitize Object"
+  },
+  "detection": {
+    "pii_found": "PII detected",
+    "no_pii": "No PII detected",
+    "scanning": "Scanning for sensitive data...",
+    "patterns": {
+      "email": "Email addresses",
+      "phone": "Phone numbers", 
+      "ssn": "Social Security Numbers",
+      "credit_card": "Credit card numbers"
+    }
+  },
+  "errors": {
+    "invalid_pattern": "Invalid masking pattern",
+    "unsupported_type": "Unsupported data type",
+    "masking_failed": "Data masking failed",
+    "detection_failed": "PII detection failed"
+  },
+  "config": {
+    "enable_masking": "Enable Data Masking",
+    "default_mask_char": "Default Mask Character",
+    "preserve_format": "Preserve Data Format",
+    "log_level": "Privacy Log Level"
+  }
+}

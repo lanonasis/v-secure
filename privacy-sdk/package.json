@@ -1,0 +1,43 @@
+{
+  "name": "@onasis/privacy-sdk",
+  "version": "1.0.0",
+  "description": "Privacy utilities and data masking SDK for Onasis ecosystem",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --external react",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "lint": "eslint src/**/*.ts",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "privacy",
+    "data-masking",
+    "anonymization",
+    "pii-protection",
+    "onasis",
+    "security"
+  ],
+  "author": "Onasis-CORE Team",
+  "license": "PROPRIETARY",
+  "dependencies": {
+    "crypto": "^1.0.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.4",
+    "tsup": "^8.5.0",
+    "eslint": "^8.40.0",
+    "@types/node": "^18.16.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
