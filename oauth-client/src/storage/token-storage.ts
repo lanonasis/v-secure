@@ -17,7 +17,13 @@ export class TokenStorage {
   }
 
   async store(tokens: TokenResponse): Promise<void> {
-    const tokenString = JSON.stringify(tokens);
+    // Persist an issued_at timestamp alongside tokens for reliable expiry checks
+    const tokensWithTimestamp = {
+      ...tokens,
+      issued_at: Date.now()
+    } as TokenResponse & { issued_at: number };
+
+    const tokenString = JSON.stringify(tokensWithTimestamp);
 
     if (this.isNode()) {
       // Terminal: Use system keychain if available
@@ -29,7 +35,7 @@ export class TokenStorage {
       }
     } else if (this.isElectron()) {
       // Desktop: Use Electron secure storage
-      await (window as any).electronAPI.secureStore.set(this.storageKey, tokens);
+      await (window as any).electronAPI.secureStore.set(this.storageKey, tokensWithTimestamp);
     } else if (this.isMobile()) {
       // Mobile: Use secure storage plugin
       await (window as any).SecureStorage.set(this.storageKey, tokenString);
@@ -91,26 +97,21 @@ export class TokenStorage {
     }
   }
 
-  isTokenExpired(tokens: TokenResponse): boolean {
+  isTokenExpired(tokens: TokenResponse & { issued_at?: number }): boolean {
     if (!tokens.expires_in) return false;
-    
-    // Assume token was issued at storage time
-    // In production, should store issued_at timestamp
-    const storedAt = this.getStoredAt(tokens);
-    if (!storedAt) return true;
-    
-    const expiresAt = storedAt + (tokens.expires_in * 1000);
+
+    if (!tokens.issued_at) {
+      console.warn('Token missing issued_at timestamp, treating as expired');
+      return true;
+    }
+
+    const expiresAt = tokens.issued_at + (tokens.expires_in * 1000);
     const now = Date.now();
-    
+
     // Consider expired if less than 5 minutes remaining
     return (expiresAt - now) < 300000;
   }
 
-  private getStoredAt(tokens: TokenResponse): number | null {
-    // In production, store this with the tokens
-    // For now, use a rough estimate
-    return Date.now() - 3600000; // Assume stored 1 hour ago
-  }
 
   private async storeToFile(tokenString: string): Promise<void> {
     if (!this.isNode()) return;
