@@ -1,11 +1,11 @@
 {
   "name": "@lanonasis/oauth-client",
-  "version": "1.0.2",
+  "version": "1.2.1",
   "type": "module",
   "description": "OAuth client for Lan Onasis MCP integration",
   "license": "MIT",
   "author": "Lan Onasis",
-  "main": "./dist/index.js",
+  "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "files": [
@@ -26,12 +26,12 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "require": "./dist/index.cjs"
     }
   },
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts --clean --external electron --external ws --external eventsource",
-    "dev": "tsup src/index.ts --format cjs,esm --dts --watch --external electron --external ws --external eventsource",
+    "build": "tsup --config tsup.config.ts",
+    "dev": "tsup --watch --config tsup.config.ts",
     "test": "bun test",
     "lint": "eslint src"
   },
@@ -62,7 +62,7 @@
     "@supabase/supabase-js": "^2.0.0"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org/",
     "access": "public"
   }
 }
