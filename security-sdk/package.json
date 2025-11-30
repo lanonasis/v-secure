@@ -1,14 +1,26 @@
 {
-  "name": "@onasis/security-sdk",
-  "version": "1.0.2",
+  "name": "@lanonasis/security-sdk",
+  "version": "1.0.3",
   "description": "Centralized security and encryption SDK for Onasis ecosystem",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./hash-utils": {
+      "types": "./dist/hash-utils.d.ts",
+      "import": "./dist/hash-utils.js",
+      "require": "./dist/hash-utils.cjs"
+    }
+  },
   "scripts": {
-    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --clean",
+    "dev": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --watch",
     "test": "vitest",
     "prepublishOnly": "npm run build"
   },
