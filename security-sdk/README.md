@@ -92,6 +92,41 @@ const apiKey = security.generateAPIKey("onasis"); // 'onasis_abc123...'
 const token = security.generateToken(32); // 64 hex characters
 ```
 
+### Hash Utilities (API Key Hashing)
+
+For SHA-256 hashing of API keys (separate from password hashing):
+
+```typescript
+import {
+  hashApiKey,
+  hashApiKeyBrowser,
+  ensureApiKeyHash,
+  ensureApiKeyHashBrowser,
+  verifyApiKey,
+  generateApiKey,
+  isSha256Hash
+} from "@lanonasis/security-sdk/hash-utils";
+
+// Hash API key (Node.js/server-side)
+const hash = hashApiKey("lns_abc123..."); // Returns 64-char hex string
+
+// Hash API key (Browser/async)
+const hash = await hashApiKeyBrowser("lns_abc123...");
+
+// Normalize (hash if needed, leave hash as-is if already hashed)
+const normalized = ensureApiKeyHash("lns_abc123..."); // Always returns hash
+const normalized = ensureApiKeyHash("a".repeat(64)); // Returns lowercase hash
+
+// Verify API key against stored hash (constant-time comparison)
+const isValid = verifyApiKey("lns_abc123...", storedHash); // true/false
+
+// Generate secure API key
+const apiKey = generateApiKey(); // 'lns_...' format
+
+// Check if value is already a hash
+const isHash = isSha256Hash(value); // true if 64-char hex string
+```
+
 ### Data Sanitization
 
 ```typescript

@@ -2,6 +2,29 @@
 
 All notable changes to the @onasis/security-sdk will be documented in this file.
 
+## [1.0.3] - 2025-11-30
+
+### Added
+- **Hash Utilities Module**: New `hash-utils` subpath export for API key hashing
+  - `hashApiKey()` - Synchronous SHA-256 hashing (Node.js)
+  - `hashApiKeyBrowser()` - Asynchronous SHA-256 hashing (Browser/Web Crypto)
+  - `ensureApiKeyHash()` - Normalize API keys to hashes (sync)
+  - `ensureApiKeyHashBrowser()` - Normalize API keys to hashes (async)
+  - `verifyApiKey()` - Constant-time API key verification
+  - `generateApiKey()` - Generate secure API keys with `lns_` prefix
+  - `isSha256Hash()` - Validate SHA-256 hash format
+- Comprehensive test suite for hash utilities
+- Updated package.json exports field for subpath imports
+
+### Changed
+- Build process now includes hash-utils as separate entry point
+- Package version bumped to 1.0.3
+
+### Usage
+```typescript
+import { hashApiKey, verifyApiKey } from "@lanonasis/security-sdk/hash-utils";
+```
+
 ## [1.0.0] - 2025-11-21
 
 ### Added
