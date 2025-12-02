@@ -98,6 +98,12 @@ export class TokenStorage {
   }
 
   isTokenExpired(tokens: TokenResponse & { issued_at?: number }): boolean {
+    // API keys never expire (expires_in === 0 or token_type === 'api-key')
+    if (tokens.token_type === 'api-key' || tokens.expires_in === 0) {
+      return false;
+    }
+
+    // OAuth tokens without expiry info are considered valid
     if (!tokens.expires_in) return false;
 
     if (!tokens.issued_at) {
