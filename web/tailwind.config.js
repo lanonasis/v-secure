@@ -18,7 +18,7 @@ module.exports = {
         vortex: {
           blue: '#3b82f6',
           indigo: '#6366f1',
-          purple: '#8b5cf6',
+          purple: '#06b6d4', // Changed to match lanonasis.com bright blue accent
           cyan: '#06b6d4',
         },
       },

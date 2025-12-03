@@ -29,11 +29,11 @@
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-vortex-blue via-vortex-indigo to-vortex-purple;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-vortex-blue via-vortex-indigo to-vortex-cyan;
   }
 
   .gradient-border {
-    @apply border border-transparent bg-clip-padding bg-gradient-to-r from-vortex-blue via-vortex-indigo to-vortex-purple;
+    @apply border border-transparent bg-clip-padding bg-gradient-to-r from-vortex-blue via-vortex-indigo to-vortex-cyan;
   }
 
   .card-hover {
