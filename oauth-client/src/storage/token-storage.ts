@@ -1,6 +1,13 @@
 import { TokenResponse } from '../types';
 
-export class TokenStorage {
+export interface TokenStorageAdapter {
+  store(tokens: TokenResponse): Promise<void>;
+  retrieve(): Promise<TokenResponse | null>;
+  clear(): Promise<void>;
+  isTokenExpired(tokens: TokenResponse & { issued_at?: number }): boolean;
+}
+
+export class TokenStorage implements TokenStorageAdapter {
   private readonly storageKey = 'lanonasis_mcp_tokens';
   private readonly webEncryptionKeyStorage = 'lanonasis_web_token_enc_key';
   private keytar: any;
@@ -223,7 +230,7 @@ export class TokenStorage {
     if (typeof window === 'undefined' || !window.crypto?.subtle) {
       const encoder = new TextEncoder();
       const data = encoder.encode(text);
-      return btoa(String.fromCharCode(...data));
+      return this.base64Encode(data);
     }
 
     const encoder = new TextEncoder();
@@ -262,27 +269,17 @@ export class TokenStorage {
     combined.set(iv, 0);
     combined.set(new Uint8Array(encrypted), iv.length);
 
-    return btoa(String.fromCharCode(...combined));
+    return this.base64Encode(combined);
   }
 
   private async decrypt(encrypted: string): Promise<string> {
     if (typeof window === 'undefined' || !window.crypto?.subtle) {
-      const binary = atob(encrypted);
-      const bytes = new Uint8Array(binary.length);
-      
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      
+      const bytes = this.base64Decode(encrypted);
       const decoder = new TextDecoder();
       return decoder.decode(bytes);
     }
 
-    const binary = atob(encrypted);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) {
-      bytes[i] = binary.charCodeAt(i);
-    }
+    const bytes = this.base64Decode(encrypted);
 
     const iv = bytes.slice(0, 12);
     const data = bytes.slice(12);
@@ -338,6 +335,33 @@ export class TokenStorage {
            (window as any).SecureStorage !== undefined;
   }
 
+  private base64Encode(bytes: Uint8Array): string {
+    if (typeof btoa !== 'undefined') {
+      let binary = '';
+      bytes.forEach((b) => { binary += String.fromCharCode(b); });
+      return btoa(binary);
+    }
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(bytes).toString('base64');
+    }
+    throw new Error('No base64 encoder available');
+  }
+
+  private base64Decode(value: string): Uint8Array {
+    if (typeof atob !== 'undefined') {
+      const binary = atob(value);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+    if (typeof Buffer !== 'undefined') {
+      return new Uint8Array(Buffer.from(value, 'base64'));
+    }
+    throw new Error('No base64 decoder available');
+  }
+
   private async getWebEncryptionKey(): Promise<string> {
     const existing = typeof localStorage !== 'undefined'
       ? localStorage.getItem(this.webEncryptionKeyStorage)
@@ -353,7 +377,8 @@ export class TokenStorage {
       window.crypto.getRandomValues(buf);
       raw = Array.from(buf).map((b) => b.toString(16).padStart(2, '0')).join('');
     } else {
-      raw = `${navigator.userAgent}-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'node';
+      raw = `${ua}-${Math.random().toString(36).slice(2)}-${Date.now()}`;
     }
 
     if (typeof localStorage !== 'undefined') {

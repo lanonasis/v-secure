@@ -1,3 +1,4 @@
+import fetch from 'cross-fetch';
 import { BaseOAuthFlow } from './base-flow';
 import { TokenResponse } from '../types';
 

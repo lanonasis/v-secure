@@ -1,4 +1,6 @@
-import { TokenStorage } from '../storage/token-storage';
+import fetch from 'cross-fetch';
+import { TokenStorage, TokenStorageAdapter } from '../storage/token-storage';
+import { TokenStorageWeb } from '../storage/token-storage-web';
 import { TerminalOAuthFlow } from '../flows/terminal-flow';
 import { DesktopOAuthFlow } from '../flows/desktop-flow';
 import { APIKeyFlow } from '../flows/apikey-flow';
@@ -9,10 +11,11 @@ export interface MCPClientConfig extends Partial<OAuthConfig> {
   mcpEndpoint?: string;
   autoRefresh?: boolean;
   apiKey?: string;  // ← NEW: Support API key authentication
+  tokenStorage?: TokenStorageAdapter;
 }
 
 export class MCPClient {
-  private tokenStorage: TokenStorage;
+  private tokenStorage: TokenStorageAdapter;
   private authFlow: BaseOAuthFlow;
   private config: MCPClientConfig;
   private authMode: 'oauth' | 'apikey';  // ← NEW: Track auth mode
@@ -28,7 +31,8 @@ export class MCPClient {
       ...config
     };
 
-    this.tokenStorage = new TokenStorage();
+    const defaultStorage = typeof window !== 'undefined' ? new TokenStorageWeb() : new TokenStorage();
+    this.tokenStorage = config.tokenStorage || defaultStorage;
 
     // ← NEW: Detect auth mode
     this.authMode = config.apiKey ? 'apikey' : 'oauth';

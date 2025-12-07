@@ -1,3 +1,4 @@
+import fetch from 'cross-fetch';
 import { TokenResponse, OAuthConfig, AuthError } from '../types';
 
 export abstract class BaseOAuthFlow {
@@ -8,7 +9,7 @@ export abstract class BaseOAuthFlow {
   constructor(config: OAuthConfig) {
     this.clientId = config.clientId;
     this.authBaseUrl = config.authBaseUrl || 'https://auth.lanonasis.com';
-    this.scope = config.scope || 'mcp:read mcp:write api_keys:manage';
+    this.scope = config.scope || 'memories:read memories:write memories:delete profile';
   }
 
   abstract authenticate(): Promise<TokenResponse>;
@@ -31,12 +32,10 @@ export abstract class BaseOAuthFlow {
 
   protected generateState(): string {
     const array = new Uint8Array(32);
-    if (typeof window !== 'undefined' && window.crypto) {
-      window.crypto.getRandomValues(array);
+    if (typeof crypto !== 'undefined' && (crypto as Crypto).getRandomValues) {
+      (crypto as Crypto).getRandomValues(array);
     } else {
-      // Node.js environment
-      const crypto = require('crypto');
-      crypto.randomFillSync(array);
+      throw new Error('Secure random generation is not available');
     }
     return this.base64URLEncode(array);
   }
@@ -47,7 +46,10 @@ export abstract class BaseOAuthFlow {
     bytes.forEach((byte) => {
       binary += String.fromCharCode(byte);
     });
-    return btoa(binary)
+    const base64 = typeof btoa !== 'undefined'
+      ? btoa(binary)
+      : Buffer.from(bytes).toString('base64');
+    return base64
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=/g, '');

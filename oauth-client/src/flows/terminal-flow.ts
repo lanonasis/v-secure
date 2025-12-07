@@ -1,6 +1,6 @@
+import fetch from 'cross-fetch';
 import { BaseOAuthFlow } from './base-flow';
 import { TokenResponse, DeviceCodeResponse, OAuthConfig } from '../types';
-import open from 'open';
 
 export class TerminalOAuthFlow extends BaseOAuthFlow {
   private pollInterval: number = 5;
@@ -62,6 +62,7 @@ export class TerminalOAuthFlow extends BaseOAuthFlow {
 
   private async openBrowser(url: string): Promise<void> {
     try {
+      const { default: open } = await import('open');
       // Wait for user to press Enter or timeout after 2 seconds
       await Promise.race([
         this.waitForEnter(),

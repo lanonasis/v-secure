@@ -406,7 +406,7 @@ export class ApiKeyStorage {
       // Fallback to base64 (not secure, but better than nothing)
       const encoder = new TextEncoder();
       const data = encoder.encode(text);
-      return btoa(String.fromCharCode(...data));
+      return this.base64Encode(data);
     }
 
     try {
@@ -455,18 +455,14 @@ export class ApiKeyStorage {
       // Fallback to base64
       const encoder = new TextEncoder();
       const data = encoder.encode(text);
-      return btoa(String.fromCharCode(...data));
+      return this.base64Encode(data);
     }
   }
 
   private async decrypt(encrypted: string): Promise<string> {
     if (typeof window === 'undefined' || !window.crypto || !window.crypto.subtle) {
       // Fallback from base64
-      const binary = atob(encrypted);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
+      const bytes = this.base64Decode(encrypted);
       const decoder = new TextDecoder();
       return decoder.decode(bytes);
     }
@@ -520,11 +516,7 @@ export class ApiKeyStorage {
     } catch (error) {
       console.error('Web decryption failed:', error);
       // Fallback from base64
-      const binary = atob(encrypted);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
+      const bytes = this.base64Decode(encrypted);
       const decoder = new TextDecoder();
       return decoder.decode(bytes);
     }
@@ -546,7 +538,8 @@ export class ApiKeyStorage {
       raw = Array.from(buf).map((b) => b.toString(16).padStart(2, '0')).join('');
     } else {
       // Fallback: pseudo-random seed
-      raw = `${navigator.userAgent}-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : 'node';
+      raw = `${ua}-${Math.random().toString(36).slice(2)}-${Date.now()}`;
     }
 
     if (typeof localStorage !== 'undefined') {
@@ -572,6 +565,33 @@ export class ApiKeyStorage {
   private isMobile(): boolean {
     return typeof window !== 'undefined' && 
            (window as any).SecureStorage !== undefined;
+  }
+
+  private base64Encode(bytes: Uint8Array): string {
+    if (typeof btoa !== 'undefined') {
+      let binary = '';
+      bytes.forEach((b) => { binary += String.fromCharCode(b); });
+      return btoa(binary);
+    }
+    if (typeof Buffer !== 'undefined') {
+      return Buffer.from(bytes).toString('base64');
+    }
+    throw new Error('No base64 encoder available');
+  }
+
+  private base64Decode(value: string): Uint8Array {
+    if (typeof atob !== 'undefined') {
+      const binary = atob(value);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return bytes;
+    }
+    if (typeof Buffer !== 'undefined') {
+      return new Uint8Array(Buffer.from(value, 'base64'));
+    }
+    throw new Error('No base64 decoder available');
   }
 
   /**
