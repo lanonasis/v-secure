@@ -3,5 +3,7 @@ export * from './flows/desktop-flow';
 export * from './flows/base-flow';
 export * from './storage/token-storage';
 export * from './storage/api-key-storage';
+export * from './storage/token-storage-web';
+export * from './storage/api-key-storage-web';
 export * from './client/mcp-client';
 export * from './types';

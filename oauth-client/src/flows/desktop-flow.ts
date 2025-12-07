@@ -39,28 +39,24 @@ export class DesktopOAuthFlow extends BaseOAuthFlow {
 
   private generateCodeVerifier(): string {
     const array = new Uint8Array(32);
-    if (typeof window !== 'undefined' && window.crypto) {
-      window.crypto.getRandomValues(array);
+    if (typeof crypto !== 'undefined' && (crypto as Crypto).getRandomValues) {
+      (crypto as Crypto).getRandomValues(array);
     } else {
-      const crypto = require('crypto');
-      crypto.randomFillSync(array);
+      throw new Error('Secure random generation is not available in this environment');
     }
     return this.base64URLEncode(array);
   }
 
   private async generateCodeChallenge(verifier: string): Promise<string> {
-    if (typeof window !== 'undefined' && window.crypto?.subtle) {
-      // Browser environment
-      const encoder = new TextEncoder();
-      const data = encoder.encode(verifier);
-      const hash = await window.crypto.subtle.digest('SHA-256', data);
-      return this.base64URLEncode(hash);
-    } else {
-      // Node.js environment
-      const crypto = require('crypto');
-      const hash = crypto.createHash('sha256').update(verifier).digest();
-      return this.base64URLEncode(hash);
+    const subtle = typeof crypto !== 'undefined' ? (crypto as Crypto).subtle : undefined;
+    if (!subtle) {
+      throw new Error('Web Crypto is required to generate PKCE code challenge');
     }
+
+    const encoder = new TextEncoder();
+    const data = encoder.encode(verifier);
+    const hash = await subtle.digest('SHA-256', data);
+    return this.base64URLEncode(hash);
   }
 
   private buildAuthorizationUrl(codeChallenge: string, state: string): string {

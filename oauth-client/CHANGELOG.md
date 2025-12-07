@@ -5,6 +5,23 @@ All notable changes to `@lanonasis/oauth-client` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.2] - 2025-12-07
+
+### Added
+- Browser-first bundle and conditional exports (`./browser`) to avoid pulling Node-only deps into web builds
+- Web-only token and API key storage implementations backed by Web Crypto + localStorage
+
+### Changed
+- Default OAuth scope now matches platform standard: `memories:read memories:write memories:delete profile`
+- MCPClient auto-selects browser storage when `window` is available and accepts custom `tokenStorage`
+- `fetch` calls now use `cross-fetch` for compatibility on older Node runtimes
+- PKCE/state generation relies on Web Crypto/global crypto (no Node `require` paths)
+
+### Fixed
+- Node-only modules (`open`, `keytar`, `fs`, `os`, `crypto`) are now behind dynamic imports/externals to keep browser builds working
+- Base64 fallbacks use `Buffer` in non-window environments to prevent runtime crashes
+- Resolved package.json merge conflict and published clean version metadata
+
 ## [1.1.0] - 2025-01-25
 
 ### Added

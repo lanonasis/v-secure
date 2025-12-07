@@ -1,10 +1,6 @@
 {
   "name": "@lanonasis/oauth-client",
-<<<<<<< HEAD
-  "version": "1.2.1",
-=======
-  "version": "1.2.0",
->>>>>>> 38218e2 (security-sdk)
+  "version": "1.2.2",
   "type": "module",
   "description": "OAuth and API Key authentication client for Lan Onasis MCP integration",
   "license": "MIT",
@@ -12,6 +8,7 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "browser": "./dist/browser.mjs",
   "files": [
     "dist",
     "README.md",
@@ -28,9 +25,14 @@
   "homepage": "https://github.com/lanonasis/v-secure/tree/main/oauth-client",
   "exports": {
     ".": {
+      "browser": "./dist/browser.mjs",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.mjs"
     }
   },
   "scripts": {
@@ -49,9 +51,9 @@
     "desktop"
   ],
   "dependencies": {
-    "node-fetch": "^3.3.2",
-    "open": "^9.1.0",
-    "keytar": "^7.9.0"
+    "cross-fetch": "^3.2.0",
+    "keytar": "^7.9.0",
+    "open": "^9.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
@@ -66,10 +68,7 @@
     "@supabase/supabase-js": "^2.0.0"
   },
   "publishConfig": {
-<<<<<<< HEAD
     "registry": "https://registry.npmjs.org/",
-=======
->>>>>>> 38218e2 (security-sdk)
     "access": "public"
   }
 }
