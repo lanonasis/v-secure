@@ -5,6 +5,15 @@ All notable changes to `@lanonasis/oauth-client` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.3] - 2025-12-13
+
+### Fixed
+- **Browser Build**: Fixed browser bundle to exclude Node.js-only dependencies (`open`, `eventsource`, `child_process`, etc.)
+  - Created separate `mcp-client-browser.ts` that excludes `TerminalOAuthFlow` (which requires Node.js `open` package)
+  - Browser build now only includes `DesktopOAuthFlow` for OAuth (browser popups/Electron windows)
+  - Resolves "Module not found: Can't resolve 'child_process'" errors in Next.js/React builds
+  - Package now works seamlessly in browser environments without bundler errors
+
 ## [1.2.2] - 2025-12-07
 
 ### Added
