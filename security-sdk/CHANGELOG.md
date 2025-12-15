@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the @onasis/security-sdk will be documented in this file.
+All notable changes to the @lanonasis/security-sdk will be documented in this file.
 
 ## [1.0.3] - 2025-11-30
 

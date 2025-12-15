@@ -1,45 +1,31 @@
 {
   "name": "@lanonasis/security-sdk",
   "version": "1.0.3",
-<<<<<<< HEAD
-  "description": "Centralized security and encryption SDK for Onasis ecosystem",
-=======
   "description": "Centralized security and encryption SDK for LanOnasis ecosystem",
->>>>>>> 38218e2 (security-sdk)
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "type": "module",
-<<<<<<< HEAD
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    },
-    "./hash-utils": {
-      "types": "./dist/hash-utils.d.ts",
-      "import": "./dist/hash-utils.js",
-      "require": "./dist/hash-utils.cjs"
-    }
-  },
-=======
-  "publishConfig": {
-    "access": "public"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./hash-utils": {
+      "types": "./dist/hash-utils.d.ts",
+      "import": "./dist/hash-utils.mjs",
+      "require": "./dist/hash-utils.js"
     }
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
     "dist/**/*",
     "README.md",
     "LICENSE"
   ],
->>>>>>> 38218e2 (security-sdk)
   "scripts": {
     "build": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --clean",
     "dev": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --watch",
