@@ -24,6 +24,7 @@ import {
   Star
 } from 'lucide-react'
 import Link from 'next/link'
+import { AiDemo } from './components/ai-demo'
 
 export default function VortexShieldPage() {
   return (
@@ -749,6 +750,9 @@ const result = await abstraction.executeAbstractedCall(
           </div>
         </div>
       </section>
+
+      {/* Live AI Orchestrator Demo */}
+      <AiDemo />
 
       {/* CTA Section */}
       <section className="py-20 bg-gradient-to-r from-vortex-blue via-vortex-indigo to-vortex-cyan text-white">
