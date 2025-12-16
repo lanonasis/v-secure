@@ -1,7 +1,7 @@
 {
-  "name": "@lanonasis/privacy-sdk",
+  "name": "@lanonasis/shared-types",
   "version": "1.0.0",
-  "description": "Privacy utilities and data masking SDK for Onasis ecosystem",
+  "description": "Shared TypeScript types and interfaces for Onasis ecosystem",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
@@ -13,31 +13,26 @@
     }
   },
   "scripts": {
-    "prebuild": "cd ../shared-types && bun run build",
     "build": "tsup src/index.ts --format esm,cjs --dts --external react",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit"
   },
   "keywords": [
-    "privacy",
-    "data-masking",
-    "anonymization",
-    "pii-protection",
+    "types",
+    "typescript",
+    "shared",
     "onasis",
-    "security"
+    "privacy",
+    "lanonasis"
   ],
   "author": "Onasis-CORE Team",
   "license": "PROPRIETARY",
-  "dependencies": {
-    "@lanonasis/shared-types": "workspace:*",
-    "crypto": "^1.0.1"
-  },
   "devDependencies": {
+    "@types/react": "^19.0.0",
     "typescript": "^5.0.4",
     "tsup": "^8.5.0",
-    "eslint": "^8.40.0",
-    "@types/node": "^18.16.3"
+    "eslint": "^8.40.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
