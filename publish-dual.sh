@@ -50,9 +50,9 @@ dual_publish() {
         return 1
     fi
 
-    # Publish to GitHub Packages
+    # Publish to GitHub Packages (requires PAT with write:packages in ~/.npmrc)
     echo -e "${BLUE}   Publishing to GitHub Packages...${NC}"
-    if npm publish --access public --registry https://npm.pkg.github.com; then
+    if npm publish --registry https://npm.pkg.github.com; then
         echo -e "${GREEN}   ✅ Published to GitHub Packages${NC}"
     else
         echo -e "${RED}   ⚠️  GitHub Packages publish failed (may need auth)${NC}"
@@ -70,10 +70,10 @@ ROOT_DIR="$SCRIPT_DIR"
 dual_publish "$ROOT_DIR/oauth-client" "@lanonasis/oauth-client"
 cd "$ROOT_DIR"
 
-dual_publish "$ROOT_DIR/security-sdk" "@onasis/security-sdk"
+dual_publish "$ROOT_DIR/security-sdk" "@lanonasis/security-sdk"
 cd "$ROOT_DIR"
 
-dual_publish "$ROOT_DIR/privacy-sdk" "@onasis/privacy-sdk"
+dual_publish "$ROOT_DIR/privacy-sdk" "@lanonasis/privacy-sdk"
 cd "$ROOT_DIR"
 
 echo -e "${GREEN}🎉 Dual publishing complete!${NC}"

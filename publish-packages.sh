@@ -83,18 +83,18 @@ fi
 cd "$ROOT_DIR"
 
 # Publish security-sdk
-if publish_package "$ROOT_DIR/security-sdk" "@onasis/security-sdk"; then
-    PUBLISHED+=("@onasis/security-sdk")
+if publish_package "$ROOT_DIR/security-sdk" "@lanonasis/security-sdk"; then
+    PUBLISHED+=("@lanonasis/security-sdk")
 else
-    FAILED+=("@onasis/security-sdk")
+    FAILED+=("@lanonasis/security-sdk")
 fi
 cd "$ROOT_DIR"
 
 # Publish privacy-sdk
-if publish_package "$ROOT_DIR/privacy-sdk" "@onasis/privacy-sdk"; then
-    PUBLISHED+=("@onasis/privacy-sdk")
+if publish_package "$ROOT_DIR/privacy-sdk" "@lanonasis/privacy-sdk"; then
+    PUBLISHED+=("@lanonasis/privacy-sdk")
 else
-    FAILED+=("@onasis/privacy-sdk")
+    FAILED+=("@lanonasis/privacy-sdk")
 fi
 cd "$ROOT_DIR"
 
