@@ -1,7 +1,7 @@
 // Privacy SDK for Onasis ecosystem - Data masking and anonymization utilities
 
 import * as crypto from 'crypto';
-import type { MaskingOptions, PrivacyConfig } from '@onasis/shared-types';
+import type { MaskingOptions, PrivacyConfig } from '@lanonasis/shared-types';
 
 // Default privacy configuration
 const DEFAULT_CONFIG: PrivacyConfig = {
@@ -186,5 +186,5 @@ export class PrivacySDK {
 export const privacy = new PrivacySDK();
 
 // Export types and utilities
-export type { MaskingOptions, PrivacyConfig } from '@onasis/shared-types';
+export type { MaskingOptions, PrivacyConfig } from '@lanonasis/shared-types';
 export { DEFAULT_CONFIG };
