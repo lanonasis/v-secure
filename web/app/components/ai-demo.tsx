@@ -78,76 +78,190 @@ You're running in VortexShield, a security platform demo. The user may ask about
 Remember: You are VortexShield AI. Introduce yourself briefly on first interaction.`
 
 export function AiDemo() {
-  const sdk = useMemo(() => new AiSDK(), [])
-  const [state, setState] = useState<State>('idle')
-  const [output, setOutput] = useState<string>('')
+  // Send to AI with full conversation history for context
+  const sendToAI = async (conversationHistory: ChatMessage[]): Promise<string> => {
+    // Build prompt with conversation context
+    const contextPrompt = conversationHistory
+      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+      .join('\n\n')
+    
+    const response = await fetch(SUPABASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'apikey': SUPABASE_ANON_KEY,
+      },
+      body: JSON.stringify({
+        prompt: contextPrompt,
+        system_prompt: SYSTEM_PROMPT,
+        messages: conversationHistory.map(m => ({ role: m.role, content: m.content })),
+      }),
+    })
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`)
+    }
+    
+    const data = await response.json()
+    return data.response || 'No response'
+  }
+  
+  const [messages, setMessages] = useState<ChatMessage[]>([])
+  const [input, setInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string>('')
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  async function runDemo() {
-    setState('loading')
-    setOutput('')
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  async function sendMessage(e?: React.FormEvent) {
+    e?.preventDefault()
+    if (!input.trim() || isLoading) return
+
+    const userMessage = input.trim()
+    setInput('')
     setError('')
+    
+    // Add user message to history
+    const updatedMessages: ChatMessage[] = [...messages, { role: 'user', content: userMessage }]
+    setMessages(updatedMessages)
+    setIsLoading(true)
+
     try {
-      const res = await sdk.orchestrate('generate a security hardening checklist for a Next.js app', {
-        format: 'text',
-      })
-      const message = res.message || 'Received response'
-      const detail = res.workflow?.length ? res.workflow.join('\n') : ''
-      setOutput([message, detail].filter(Boolean).join('\n\n'))
-      setState('done')
+      // Send full conversation history for context
+      const response = await sendToAI(updatedMessages)
+      setMessages(prev => [...prev, { role: 'assistant', content: response || 'No response received' }])
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unexpected error')
-      setState('error')
+      const errorMsg = err instanceof Error ? err.message : 'Failed to get response'
+      setError(errorMsg)
+      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${errorMsg}` }])
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const isLoading = state === 'loading'
+  function clearChat() {
+    setMessages([])
+    setError('')
+  }
 
   return (
     <section className="py-16 bg-slate-900/60">
       <div className="container-custom">
-        <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-8 shadow-xl">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-slate-800 rounded-lg border border-slate-700">
-              <ShieldCheck className="w-6 h-6 text-vortex-cyan" />
+        <div className="max-w-4xl mx-auto bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-slate-800 rounded-lg border border-slate-700">
+                <ShieldCheck className="w-6 h-6 text-vortex-cyan" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-gray-100">VortexShield AI Chat</h3>
+                <p className="text-sm text-gray-400">
+                  Powered by @lanonasis/ai-sdk — interactive security assistant
+                </p>
+              </div>
             </div>
-            <div>
-              <h3 className="text-2xl font-bold text-gray-100">AI Security Orchestrator (Live)</h3>
-              <p className="text-sm text-gray-400">
-                Powered by @lanonasis/ai-sdk — browser-safe, running directly in this page.
-              </p>
-            </div>
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className="p-2 text-gray-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition"
+                title="Clear chat"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
 
-          <div className="flex flex-col md:flex-row gap-4">
-            <button
-              onClick={runDemo}
+          {/* Chat Messages */}
+          <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 h-[400px] overflow-y-auto mb-4">
+            {messages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <LanonasisIcon className="w-16 h-16 mb-3" />
+                <p className="text-center">Hi! I'm <span className="text-vortex-cyan font-semibold">VortexShield AI</span></p>
+                <p className="text-sm text-center mt-1">Your security-focused assistant. Ask me anything!</p>
+                <div className="flex flex-wrap gap-2 mt-4 justify-center">
+                  {['Who are you?', 'Secure my Next.js app', 'OWASP Top 10'].map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      onClick={() => setInput(suggestion)}
+                      className="px-3 py-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-gray-300 rounded-full border border-slate-700 transition"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {messages.map((msg, i) => (
+                  <div key={i} className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    {msg.role === 'assistant' && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-vortex-cyan/20 flex items-center justify-center">
+                        <LanonasisIcon className="w-6 h-6" />
+                      </div>
+                    )}
+                    <div className={`max-w-[80%] rounded-xl px-4 py-2 ${
+                      msg.role === 'user' 
+                        ? 'bg-vortex-blue text-white' 
+                        : 'bg-slate-800 text-gray-100'
+                    }`}>
+                      <pre className="whitespace-pre-wrap text-sm font-sans">{msg.content}</pre>
+                    </div>
+                    {msg.role === 'user' && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-vortex-blue/20 flex items-center justify-center">
+                        <User className="w-4 h-4 text-vortex-blue" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-vortex-cyan/20 flex items-center justify-center">
+                      <LanonasisIcon className="w-6 h-6" />
+                    </div>
+                    <div className="bg-slate-800 rounded-xl px-4 py-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-vortex-cyan" />
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            )}
+          </div>
+
+          {/* Input Form */}
+          <form onSubmit={sendMessage} className="flex gap-3">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Ask about security, best practices, or development..."
+              className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:border-vortex-cyan focus:ring-1 focus:ring-vortex-cyan"
               disabled={isLoading}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-lg bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-60"
+            />
+            <button
+              type="submit"
+              disabled={isLoading || !input.trim()}
+              className="px-5 py-3 rounded-xl bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white font-semibold shadow-lg hover:shadow-xl transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Running...
-                </>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                'Run AI security check'
+                <Send className="w-5 h-5" />
               )}
             </button>
-            <p className="text-sm text-gray-400">
-              Returns a security-hardening checklist for this landing page stack (Next.js, React 18).
-            </p>
-          </div>
+          </form>
 
-          <div className="mt-6">
-            <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 min-h-[160px]">
-              {state === 'idle' && <p className="text-gray-500">Click “Run AI security check” to see a live response.</p>}
-              {isLoading && <p className="text-gray-300">Orchestrating...</p>}
-              {state === 'done' && (
-                <pre className="whitespace-pre-wrap text-sm text-gray-100 leading-relaxed">{output}</pre>
-              )}
-              {state === 'error' && <p className="text-red-400 text-sm">Error: {error}</p>}
-            </div>
-          </div>
+          {error && (
+            <p className="mt-3 text-red-400 text-sm">Debug: {error}</p>
+          )}
         </div>
       </div>
     </section>
