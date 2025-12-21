@@ -244,12 +244,66 @@ ALTER TABLE vps_metrics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vps_services ENABLE ROW LEVEL SECURITY;
 
 -- Projects policies
-CREATE POLICY "Users can only see their own projects" ON projects
-  FOR ALL USING (auth.uid() = owner_id OR auth.uid() = ANY(team_members));
+DROP POLICY IF EXISTS "Users can only see their own projects" ON projects;
+DROP POLICY IF EXISTS "Projects: read own or team" ON projects;
+DROP POLICY IF EXISTS "Projects: insert own" ON projects;
+DROP POLICY IF EXISTS "Projects: update own" ON projects;
+DROP POLICY IF EXISTS "Projects: delete own" ON projects;
+
+CREATE POLICY "Projects: read own or team" ON projects
+  FOR SELECT USING (auth.uid() = owner_id OR auth.uid() = ANY(team_members));
+
+CREATE POLICY "Projects: insert own" ON projects
+  FOR INSERT WITH CHECK (auth.uid() = owner_id);
+
+CREATE POLICY "Projects: update own" ON projects
+  FOR UPDATE
+  USING (auth.uid() = owner_id)
+  WITH CHECK (auth.uid() = owner_id);
+
+CREATE POLICY "Projects: delete own" ON projects
+  FOR DELETE USING (auth.uid() = owner_id);
 
 -- Secrets policies  
-CREATE POLICY "Users can only see secrets from their projects" ON secrets
-  FOR ALL USING (
+DROP POLICY IF EXISTS "Users can only see secrets from their projects" ON secrets;
+DROP POLICY IF EXISTS "Secrets: read project members" ON secrets;
+DROP POLICY IF EXISTS "Secrets: insert project members" ON secrets;
+DROP POLICY IF EXISTS "Secrets: update project members" ON secrets;
+DROP POLICY IF EXISTS "Secrets: delete project members" ON secrets;
+
+CREATE POLICY "Secrets: read project members" ON secrets
+  FOR SELECT USING (
+    project_id IN (
+      SELECT id FROM projects 
+      WHERE owner_id = auth.uid() OR auth.uid() = ANY(team_members)
+    )
+  );
+
+CREATE POLICY "Secrets: insert project members" ON secrets
+  FOR INSERT WITH CHECK (
+    project_id IN (
+      SELECT id FROM projects 
+      WHERE owner_id = auth.uid() OR auth.uid() = ANY(team_members)
+    )
+  );
+
+CREATE POLICY "Secrets: update project members" ON secrets
+  FOR UPDATE
+  USING (
+    project_id IN (
+      SELECT id FROM projects 
+      WHERE owner_id = auth.uid() OR auth.uid() = ANY(team_members)
+    )
+  )
+  WITH CHECK (
+    project_id IN (
+      SELECT id FROM projects 
+      WHERE owner_id = auth.uid() OR auth.uid() = ANY(team_members)
+    )
+  );
+
+CREATE POLICY "Secrets: delete project members" ON secrets
+  FOR DELETE USING (
     project_id IN (
       SELECT id FROM projects 
       WHERE owner_id = auth.uid() OR auth.uid() = ANY(team_members)
@@ -257,8 +311,49 @@ CREATE POLICY "Users can only see secrets from their projects" ON secrets
   );
 
 -- Rotation policies
-CREATE POLICY "Users can only see rotation policies for their secrets" ON rotation_policies
-  FOR ALL USING (
+DROP POLICY IF EXISTS "Users can only see rotation policies for their secrets" ON rotation_policies;
+DROP POLICY IF EXISTS "Rotation policies: read project members" ON rotation_policies;
+DROP POLICY IF EXISTS "Rotation policies: insert project members" ON rotation_policies;
+DROP POLICY IF EXISTS "Rotation policies: update project members" ON rotation_policies;
+DROP POLICY IF EXISTS "Rotation policies: delete project members" ON rotation_policies;
+
+CREATE POLICY "Rotation policies: read project members" ON rotation_policies
+  FOR SELECT USING (
+    secret_id IN (
+      SELECT s.id FROM secrets s
+      JOIN projects p ON s.project_id = p.id
+      WHERE p.owner_id = auth.uid() OR auth.uid() = ANY(p.team_members)
+    )
+  );
+
+CREATE POLICY "Rotation policies: insert project members" ON rotation_policies
+  FOR INSERT WITH CHECK (
+    secret_id IN (
+      SELECT s.id FROM secrets s
+      JOIN projects p ON s.project_id = p.id
+      WHERE p.owner_id = auth.uid() OR auth.uid() = ANY(p.team_members)
+    )
+  );
+
+CREATE POLICY "Rotation policies: update project members" ON rotation_policies
+  FOR UPDATE
+  USING (
+    secret_id IN (
+      SELECT s.id FROM secrets s
+      JOIN projects p ON s.project_id = p.id
+      WHERE p.owner_id = auth.uid() OR auth.uid() = ANY(p.team_members)
+    )
+  )
+  WITH CHECK (
+    secret_id IN (
+      SELECT s.id FROM secrets s
+      JOIN projects p ON s.project_id = p.id
+      WHERE p.owner_id = auth.uid() OR auth.uid() = ANY(p.team_members)
+    )
+  );
+
+CREATE POLICY "Rotation policies: delete project members" ON rotation_policies
+  FOR DELETE USING (
     secret_id IN (
       SELECT s.id FROM secrets s
       JOIN projects p ON s.project_id = p.id
@@ -267,8 +362,23 @@ CREATE POLICY "Users can only see rotation policies for their secrets" ON rotati
   );
 
 -- Usage metrics
-CREATE POLICY "Users can only see usage metrics for their secrets" ON usage_metrics
-  FOR ALL USING (
+DROP POLICY IF EXISTS "Users can only see usage metrics for their secrets" ON usage_metrics;
+DROP POLICY IF EXISTS "Usage metrics: read project members" ON usage_metrics;
+
+CREATE POLICY "Usage metrics: read project members" ON usage_metrics
+  FOR SELECT USING (
+    secret_id IN (
+      SELECT s.id FROM secrets s
+      JOIN projects p ON s.project_id = p.id
+      WHERE p.owner_id = auth.uid() OR auth.uid() = ANY(p.team_members)
+    )
+  );
+
+-- Security events (read-only to project members; write via backend/service role)
+DROP POLICY IF EXISTS "Security events: read project members" ON security_events;
+
+CREATE POLICY "Security events: read project members" ON security_events
+  FOR SELECT USING (
     secret_id IN (
       SELECT s.id FROM secrets s
       JOIN projects p ON s.project_id = p.id
@@ -277,12 +387,29 @@ CREATE POLICY "Users can only see usage metrics for their secrets" ON usage_metr
   );
 
 -- MCP tools - users can only see their own tools
-CREATE POLICY "Users can only see their own MCP tools" ON mcp_tools
-  FOR ALL USING (created_by = auth.uid());
+DROP POLICY IF EXISTS "Users can only see their own MCP tools" ON mcp_tools;
+DROP POLICY IF EXISTS "MCP tools: read own" ON mcp_tools;
+DROP POLICY IF EXISTS "MCP tools: insert own" ON mcp_tools;
+DROP POLICY IF EXISTS "MCP tools: update own" ON mcp_tools;
+DROP POLICY IF EXISTS "MCP tools: delete own" ON mcp_tools;
+
+CREATE POLICY "MCP tools: read own" ON mcp_tools
+  FOR SELECT USING (created_by = auth.uid());
+
+CREATE POLICY "MCP tools: insert own" ON mcp_tools
+  FOR INSERT WITH CHECK (created_by = auth.uid());
+
+CREATE POLICY "MCP tools: update own" ON mcp_tools
+  FOR UPDATE
+  USING (created_by = auth.uid())
+  WITH CHECK (created_by = auth.uid());
+
+CREATE POLICY "MCP tools: delete own" ON mcp_tools
+  FOR DELETE USING (created_by = auth.uid());
 
 -- VPS servers - users can see all servers (admin access)
-CREATE POLICY "Admin users can see all VPS servers" ON vps_servers
-  FOR ALL USING (true); -- Adjust based on your admin role system
+DROP POLICY IF EXISTS "Admin users can see all VPS servers" ON vps_servers;
+-- No default policies are created for VPS tables; keep access restricted unless you add explicit admin-only policies.
 
 -- =============================================
 -- FUNCTIONS AND TRIGGERS
@@ -348,38 +475,10 @@ CREATE TRIGGER trigger_secrets_updated_at
   EXECUTE FUNCTION update_updated_at();
 
 -- =============================================
--- DEMO DATA
+-- OPTIONAL DEMO DATA
 -- =============================================
 
--- Insert demo project
-INSERT INTO projects (id, name, description, owner_id, team_members) 
-VALUES (
-  'demo-project-uuid', 
-  'Demo Project', 
-  'Demonstration project for admin.connectionpoint.tech',
-  (SELECT id FROM auth.users LIMIT 1),
-  ARRAY[]::UUID[]
-) ON CONFLICT DO NOTHING;
-
--- Insert demo secrets
-INSERT INTO secrets (name, environment, project_id, encrypted_value, secret_type, tags, usage_count, last_rotated) VALUES
-('stripe_api_key', 'production', 'demo-project-uuid', 'encrypted_demo_value_1', 'api_key', ARRAY['payment', 'critical'], 156, NOW() - INTERVAL '10 days'),
-('database_url', 'production', 'demo-project-uuid', 'encrypted_demo_value_2', 'database_url', ARRAY['database', 'backend'], 243, NOW() - INTERVAL '45 days'),
-('openai_api_key', 'staging', 'demo-project-uuid', 'encrypted_demo_value_3', 'api_key', ARRAY['ai', 'development'], 89, NOW() - INTERVAL '5 days'),
-('webhook_secret', 'development', 'demo-project-uuid', 'encrypted_demo_value_4', 'webhook_secret', ARRAY['webhook', 'integration'], 34, NOW() - INTERVAL '2 days')
-ON CONFLICT DO NOTHING;
-
--- Insert demo MCP tool
-INSERT INTO mcp_tools (tool_id, tool_name, permissions, auto_approve, risk_level, created_by) VALUES
-('stripe-payment-processor', 'AI Payment Processor', '{"secrets": ["stripe_api_key"], "environments": ["production"], "maxConcurrentSessions": 3, "maxSessionDuration": 600}', false, 'high', (SELECT id FROM auth.users LIMIT 1)),
-('database-manager', 'Database Manager AI', '{"secrets": ["database_url"], "environments": ["staging", "production"], "maxConcurrentSessions": 2, "maxSessionDuration": 300}', true, 'medium', (SELECT id FROM auth.users LIMIT 1))
-ON CONFLICT DO NOTHING;
-
--- Insert demo VPS servers
-INSERT INTO vps_servers (name, ip_address, location, status, ssh_status) VALUES
-('connection-point-main', '45.123.456.789', 'New York, US', 'online', 'timeout'),
-('backup-server', '45.123.456.790', 'London, UK', 'online', 'connected')
-ON CONFLICT DO NOTHING;
+-- Demo/seed data is intentionally omitted to avoid shipping knowable IDs or placeholder secrets into production.
 
 -- =============================================
 -- COMPLETION MESSAGE
@@ -398,7 +497,6 @@ BEGIN
   RAISE NOTICE '🖥️ VPS management tables: vps_servers, vps_metrics, vps_services';
   RAISE NOTICE '🔒 Row Level Security enabled for all tables';
   RAISE NOTICE '⚡ Indexes and triggers configured for optimal performance';
-  RAISE NOTICE '🎯 Demo data inserted for testing';
   RAISE NOTICE '';
-  RAISE NOTICE '🚀 Your Vortex Secure instance is ready at admin.connectionpoint.tech!';
+  RAISE NOTICE '🚀 Your Vortex Secure instance is ready!';
 END $$;

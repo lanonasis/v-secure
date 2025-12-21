@@ -3,12 +3,21 @@
 import axios, { AxiosInstance } from 'axios';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
+import https from 'https';
 import ora from 'ora';
 import Conf from 'conf';
 import { table } from 'table';
 import * as keytar from 'keytar';
 import * as fs from 'fs';
 import * as path from 'path';
+import {
+  generateSecureValue,
+  normalizeApiUrl,
+  parseAllowedHosts,
+  parseSpkiPins,
+  resolveTlsOptions,
+  type TlsConfig
+} from './security';
 
 interface VortexConfig {
   apiUrl: string;
@@ -42,8 +51,36 @@ export class VortexCLI {
   private config: Conf<VortexConfig>;
   private api: AxiosInstance;
   private spinner: any;
+  private allowInsecureHttp: boolean;
+  private allowedHosts: string[];
+  private tlsConfig: TlsConfig;
 
-  constructor() {
+  constructor(
+    options: {
+      allowInsecureHttp?: boolean;
+      allowedHosts?: string[];
+      tls?: TlsConfig;
+    } = {}
+  ) {
+    const envAllowInsecureHttp =
+      process.env.VORTEX_ALLOW_INSECURE_HTTP === '1' ||
+      process.env.VORTEX_ALLOW_INSECURE_HTTP?.toLowerCase() === 'true';
+    this.allowInsecureHttp = options.allowInsecureHttp ?? envAllowInsecureHttp;
+
+    const envAllowedHosts = parseAllowedHosts(process.env.VORTEX_ALLOWED_HOSTS);
+    this.allowedHosts = Array.from(
+      new Set([...(options.allowedHosts ?? []), ...envAllowedHosts].map((h) => h.trim()).filter(Boolean))
+    );
+
+    const envTlsPins = parseSpkiPins(process.env.VORTEX_TLS_PINNED_SPKI_SHA256);
+    this.tlsConfig = {
+      caFile: options.tls?.caFile ?? process.env.VORTEX_TLS_CA_FILE,
+      ca: options.tls?.ca ?? process.env.VORTEX_TLS_CA,
+      pinnedSpkiSha256: Array.from(
+        new Set([...(options.tls?.pinnedSpkiSha256 ?? []), ...envTlsPins].map((p) => p.trim()).filter(Boolean))
+      )
+    };
+
     this.config = new Conf<VortexConfig>({
       projectName: 'vortex-secure',
       defaults: {
@@ -51,9 +88,27 @@ export class VortexCLI {
       }
     });
 
+    const configuredApiUrl = this.config.get('apiUrl') || 'https://api.vortex-secure.com';
+    const normalizedApiUrl = normalizeApiUrl(configuredApiUrl, {
+      allowInsecureHttp: this.allowInsecureHttp,
+      allowedHosts: this.allowedHosts
+    });
+    if (normalizedApiUrl !== configuredApiUrl) {
+      this.config.set('apiUrl', normalizedApiUrl);
+    }
+
+    const apiUrl = new URL(normalizedApiUrl);
+    const tlsOptions = resolveTlsOptions(this.tlsConfig);
+    if (apiUrl.protocol !== 'https:' && Object.keys(tlsOptions).length > 0) {
+      throw new Error('TLS options (CA/pins) require an https:// API URL');
+    }
+    const httpsAgent = apiUrl.protocol === 'https:' && Object.keys(tlsOptions).length > 0 ? new https.Agent(tlsOptions) : undefined;
+
     this.api = axios.create({
-      baseURL: this.config.get('apiUrl'),
+      baseURL: normalizedApiUrl,
       timeout: 30000,
+      maxRedirects: 0,
+      httpsAgent,
       headers: {
         'User-Agent': 'vortex-cli/0.1.0',
         'Content-Type': 'application/json'
@@ -63,7 +118,7 @@ export class VortexCLI {
     // Add request interceptor for authentication
     this.api.interceptors.request.use(async (config) => {
       const token = await this.getStoredToken();
-      if (token) {
+      if (token && !config.headers?.Authorization && !config.headers?.authorization) {
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
@@ -84,8 +139,19 @@ export class VortexCLI {
   // Authentication methods
   async login(apiUrl?: string): Promise<void> {
     if (apiUrl) {
-      this.config.set('apiUrl', apiUrl);
-      this.api.defaults.baseURL = apiUrl;
+      const normalizedApiUrl = normalizeApiUrl(apiUrl, {
+        allowInsecureHttp: this.allowInsecureHttp,
+        allowedHosts: this.allowedHosts
+      });
+
+      const newApiUrl = new URL(normalizedApiUrl);
+      const tlsOptions = resolveTlsOptions(this.tlsConfig);
+      if (newApiUrl.protocol !== 'https:' && Object.keys(tlsOptions).length > 0) {
+        throw new Error('TLS options (CA/pins) require an https:// API URL');
+      }
+
+      this.config.set('apiUrl', normalizedApiUrl);
+      this.api.defaults.baseURL = normalizedApiUrl;
     }
 
     console.log(chalk.cyan('🔐 Vortex Secure CLI Login'));
@@ -161,7 +227,7 @@ export class VortexCLI {
 
     try {
       // Validate token
-      const { data } = await axios.get(`${this.config.get('apiUrl')}/auth/me`, {
+      const { data } = await this.api.get('/auth/me', {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -335,7 +401,7 @@ export class VortexCLI {
     let secretValue = value;
 
     if (options.generate) {
-      secretValue = this.generateSecureValue(options.type);
+      secretValue = generateSecureValue(options.type);
     } else if (!secretValue) {
       const response = await inquirer.prompt([
         {
@@ -501,29 +567,6 @@ export class VortexCLI {
     if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
     
     return date.toLocaleDateString();
-  }
-
-  private generateSecureValue(type: string): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    
-    switch (type) {
-      case 'api_key':
-        return `vx_${Date.now().toString(36)}_${this.randomString(40, chars)}`;
-      case 'oauth_token':
-        return this.randomString(64, chars);
-      case 'webhook_secret':
-        return this.randomString(32, chars);
-      default:
-        return this.randomString(32, chars);
-    }
-  }
-
-  private randomString(length: number, charset: string): string {
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return result;
   }
 
   // Additional placeholder methods for completeness

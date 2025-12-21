@@ -117,6 +117,15 @@ vortex --help
 node test-sdk.js
 ```
 
+## 🔒 Security & Configuration
+
+See `PROJECT_GUIDE.md` for:
+
+- Endpoint allow-list (`VORTEX_ALLOWED_HOSTS`) and HTTPS enforcement
+- TLS hardening for axios + ws (custom CA and SPKI pinning)
+- Publishing guidance (ensuring `dist/` is included in tarballs)
+- Supabase RLS notes and schema constraints
+
 ## 📁 Project Structure
 
 ```

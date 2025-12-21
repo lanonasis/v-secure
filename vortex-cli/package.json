@@ -6,30 +6,35 @@
     "vortex": "./bin/vortex"
   },
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/",
+    "bin/"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
-    "test": "jest",
+    "test": "npm run build && jest",
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "commander": "^11.1.0",
+    "axios": "1.13.2",
     "chalk": "^4.1.2",
-    "inquirer": "^8.2.6",
-    "axios": "^1.6.0",
-    "keytar": "^7.9.0",
-    "ora": "^5.4.1",
+    "commander": "^11.1.0",
     "conf": "^10.2.0",
     "dotenv": "^16.3.1",
+    "inquirer": "9.3.8",
+    "keytar": "^7.9.0",
+    "ora": "^5.4.1",
     "table": "^6.8.1"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
     "@types/inquirer": "^8.2.10",
-    "typescript": "^5.2.2",
-    "ts-node": "^10.9.1",
+    "@types/jest": "^29.5.8",
+    "@types/node": "^20.10.0",
     "jest": "^29.7.0",
-    "@types/jest": "^29.5.8"
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   },
   "keywords": [
     "secrets",

@@ -2,7 +2,17 @@
 // Enables secure secret management for Model Context Protocol tools and AI agents
 
 import axios, { AxiosInstance } from 'axios';
+import https from 'https';
 import WebSocket from 'ws';
+import {
+  createSessionId,
+  normalizeVortexEndpoint,
+  parseAllowedHosts,
+  parseSpkiPins,
+  resolveTlsOptions,
+  vortexHttpEndpointToWebSocketUrl,
+  type TlsConfig
+} from './security';
 
 export interface MCPConfig {
   vortexEndpoint: string;
@@ -12,6 +22,9 @@ export interface MCPConfig {
   version?: string;
   autoRetry?: boolean;
   timeoutMs?: number;
+  allowInsecureHttp?: boolean;
+  allowedHosts?: string[];
+  tls?: TlsConfig;
 }
 
 export interface SecretAccessOptions {
@@ -60,16 +73,59 @@ export class VortexMCPClient {
   private ws?: WebSocket;
   private activeSessions = new Map<string, MCPSession>();
   private approvalWaiters = new Map<string, (approved: boolean) => void>();
+  private wsTlsOptions?: { ca?: string | Buffer; checkServerIdentity?: (hostname: string, cert: any) => Error | undefined };
 
   constructor(private config: MCPConfig) {
+    const envAllowInsecureHttp =
+      process.env.VORTEX_ALLOW_INSECURE_HTTP === '1' ||
+      process.env.VORTEX_ALLOW_INSECURE_HTTP?.toLowerCase() === 'true';
+    const allowInsecureHttp = config.allowInsecureHttp ?? envAllowInsecureHttp;
+
+    const envAllowedHosts = parseAllowedHosts(process.env.VORTEX_ALLOWED_HOSTS);
+    const allowedHosts = Array.from(
+      new Set([...(config.allowedHosts ?? []), ...envAllowedHosts].map((h) => h.trim()).filter(Boolean))
+    );
+
+    const envTlsPins = parseSpkiPins(process.env.VORTEX_TLS_PINNED_SPKI_SHA256);
+    const tls: TlsConfig = {
+      caFile: config.tls?.caFile ?? process.env.VORTEX_TLS_CA_FILE,
+      ca: config.tls?.ca ?? process.env.VORTEX_TLS_CA,
+      pinnedSpkiSha256: Array.from(
+        new Set([...(config.tls?.pinnedSpkiSha256 ?? []), ...envTlsPins].map((p) => p.trim()).filter(Boolean))
+      )
+    };
+
+    const normalizedEndpoint = normalizeVortexEndpoint(config.vortexEndpoint, {
+      allowInsecureHttp,
+      allowedHosts
+    });
+
+    this.config = {
+      ...config,
+      vortexEndpoint: normalizedEndpoint,
+      allowedHosts,
+      tls
+    };
+
+    const endpointUrl = new URL(this.config.vortexEndpoint);
+    const tlsOptions = resolveTlsOptions(tls);
+    if (endpointUrl.protocol !== 'https:' && Object.keys(tlsOptions).length > 0) {
+      throw new Error('TLS options (CA/pins) require an https:// Vortex endpoint');
+    }
+    const httpsAgent =
+      endpointUrl.protocol === 'https:' && Object.keys(tlsOptions).length > 0 ? new https.Agent(tlsOptions) : undefined;
+    this.wsTlsOptions = Object.keys(tlsOptions).length > 0 ? tlsOptions : undefined;
+
     this.api = axios.create({
-      baseURL: config.vortexEndpoint,
-      timeout: config.timeoutMs || 30000,
+      baseURL: this.config.vortexEndpoint,
+      timeout: this.config.timeoutMs || 30000,
+      maxRedirects: 0,
+      httpsAgent,
       headers: {
-        'Authorization': `Bearer ${config.mcpToken}`,
-        'User-Agent': `vortex-mcp-sdk/${config.version || '0.1.0'}`,
-        'X-MCP-Tool-ID': config.toolId,
-        'X-MCP-Tool-Name': config.toolName,
+        'Authorization': `Bearer ${this.config.mcpToken}`,
+        'User-Agent': `vortex-mcp-sdk/${this.config.version || '0.1.0'}`,
+        'X-MCP-Tool-ID': this.config.toolId,
+        'X-MCP-Tool-Name': this.config.toolName,
         'Content-Type': 'application/json'
       }
     });
@@ -141,7 +197,7 @@ export class VortexMCPClient {
           toolId: this.config.toolId,
           toolName: this.config.toolName,
           toolVersion: this.config.version || '0.1.0',
-          sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          sessionId: createSessionId('session'),
           userApprovalRequired: options.requireApproval ?? false,
           requestSource: 'api',
           metadata: {
@@ -330,13 +386,16 @@ export class VortexMCPClient {
    */
   private setupWebSocket(): void {
     if (!this.config.vortexEndpoint.startsWith('http')) return;
-    
-    const wsUrl = this.config.vortexEndpoint.replace(/^http/, 'ws') + '/mcp/events';
+
+    const wsUrl = vortexHttpEndpointToWebSocketUrl(this.config.vortexEndpoint);
+    const wsTlsOptions = wsUrl.startsWith('wss:') ? this.wsTlsOptions : undefined;
+
     this.ws = new WebSocket(wsUrl, {
       headers: {
         'Authorization': `Bearer ${this.config.mcpToken}`,
         'X-MCP-Tool-ID': this.config.toolId
-      }
+      },
+      ...(wsTlsOptions ?? {})
     });
 
     this.ws.on('message', (data) => {
@@ -435,12 +494,28 @@ export const createMCPClient = (config: MCPConfig): VortexMCPClient => {
 
 // Helper for environment-based configuration
 export const createMCPClientFromEnv = (overrides: Partial<MCPConfig> = {}): VortexMCPClient => {
+  const allowInsecureHttp =
+    process.env.VORTEX_ALLOW_INSECURE_HTTP === '1' ||
+    process.env.VORTEX_ALLOW_INSECURE_HTTP?.toLowerCase() === 'true';
+
+  const envAllowedHosts = parseAllowedHosts(process.env.VORTEX_ALLOWED_HOSTS);
+  const envTlsPins = parseSpkiPins(process.env.VORTEX_TLS_PINNED_SPKI_SHA256);
+
+  const tls: TlsConfig = {
+    caFile: process.env.VORTEX_TLS_CA_FILE,
+    ca: process.env.VORTEX_TLS_CA,
+    pinnedSpkiSha256: envTlsPins
+  };
+
   const config: MCPConfig = {
     vortexEndpoint: process.env.VORTEX_ENDPOINT || 'https://api.vortex-secure.com',
     mcpToken: process.env.VORTEX_MCP_TOKEN || '',
     toolId: process.env.MCP_TOOL_ID || '',
     toolName: process.env.MCP_TOOL_NAME || 'Unknown Tool',
     version: process.env.MCP_TOOL_VERSION || '0.1.0',
+    allowInsecureHttp,
+    allowedHosts: envAllowedHosts,
+    tls,
     ...overrides
   };
 
