@@ -5,15 +5,40 @@ const chalk = require('chalk');
 const { VortexCLI } = require('../dist/index');
 
 const program = new Command();
-const cli = new VortexCLI();
 
 program
   .name('vortex')
   .description('🔐 Vortex Secure CLI - Developer-friendly secret management')
   .version('0.1.0')
+  .option('--allow-insecure-http', 'Allow http:// API URLs (NOT RECOMMENDED)')
+  .option('--allowed-host <host>', 'Allowed API host (repeatable)', (value, previous) => previous.concat([value]), [])
+  .option('--allowed-hosts <hosts>', 'Comma-separated allowed API hosts')
+  .option('--tls-ca-file <path>', 'TLS CA bundle PEM file path for API requests')
+  .option('--tls-pin-spki <pin>', 'TLS pin: SPKI sha256 (repeatable)', (value, previous) => previous.concat([value]), [])
   .configureOutput({
     outputError: (str, write) => write(chalk.red(str))
   });
+
+const createCli = () => {
+  const opts = program.opts();
+  const allowedHosts = [
+    ...(Array.isArray(opts.allowedHost) ? opts.allowedHost : []),
+    ...(typeof opts.allowedHosts === 'string' ? opts.allowedHosts.split(',') : [])
+  ]
+    .map((h) => String(h).trim())
+    .filter(Boolean);
+
+  const tls = {
+    caFile: opts.tlsCaFile,
+    pinnedSpkiSha256: Array.isArray(opts.tlsPinSpki) ? opts.tlsPinSpki : []
+  };
+
+  return new VortexCLI({
+    allowInsecureHttp: opts.allowInsecureHttp,
+    allowedHosts,
+    tls
+  });
+};
 
 // Authentication commands
 program
@@ -22,7 +47,7 @@ program
   .option('-u, --url <url>', 'Vortex API URL', 'https://api.vortex-secure.com')
   .action(async (options) => {
     try {
-      await cli.login(options.url);
+      await createCli().login(options.url);
     } catch (error) {
       console.error(chalk.red('Login failed:'), error.message);
       process.exit(1);
@@ -34,7 +59,7 @@ program
   .description('Logout from Vortex Secure')
   .action(async () => {
     try {
-      await cli.logout();
+      await createCli().logout();
       console.log(chalk.green('✅ Logged out successfully'));
     } catch (error) {
       console.error(chalk.red('Logout failed:'), error.message);
@@ -49,7 +74,7 @@ program
   .option('-e, --environment <env>', 'Environment (development|staging|production)', 'development')
   .action(async (projectName, options) => {
     try {
-      await cli.initProject(projectName, options.environment);
+      await createCli().initProject(projectName, options.environment);
     } catch (error) {
       console.error(chalk.red('Project initialization failed:'), error.message);
       process.exit(1);
@@ -67,7 +92,7 @@ program
   .option('--json', 'Output as JSON')
   .action(async (options) => {
     try {
-      await cli.listSecrets(options);
+      await createCli().listSecrets(options);
     } catch (error) {
       console.error(chalk.red('Failed to list secrets:'), error.message);
       process.exit(1);
@@ -82,7 +107,7 @@ program
   .option('--copy', 'Copy to clipboard')
   .action(async (name, options) => {
     try {
-      await cli.getSecret(name, options);
+      await createCli().getSecret(name, options);
     } catch (error) {
       console.error(chalk.red('Failed to get secret:'), error.message);
       process.exit(1);
@@ -99,7 +124,7 @@ program
   .option('--generate', 'Generate a secure random value')
   .action(async (name, value, options) => {
     try {
-      await cli.setSecret(name, value, options);
+      await createCli().setSecret(name, value, options);
     } catch (error) {
       console.error(chalk.red('Failed to set secret:'), error.message);
       process.exit(1);
@@ -115,7 +140,7 @@ program
   .option('-f, --force', 'Skip confirmation')
   .action(async (name, options) => {
     try {
-      await cli.deleteSecret(name, options);
+      await createCli().deleteSecret(name, options);
     } catch (error) {
       console.error(chalk.red('Failed to delete secret:'), error.message);
       process.exit(1);
@@ -131,7 +156,7 @@ program
   .option('--immediate', 'Rotate immediately without confirmation')
   .action(async (name, options) => {
     try {
-      await cli.rotateSecret(name, options);
+      await createCli().rotateSecret(name, options);
     } catch (error) {
       console.error(chalk.red('Rotation failed:'), error.message);
       process.exit(1);
@@ -146,7 +171,7 @@ program
   .option('--overlap <hours>', 'Overlap period in hours', '24')
   .action(async (name, frequency, options) => {
     try {
-      await cli.scheduleRotation(name, frequency, options);
+      await createCli().scheduleRotation(name, frequency, options);
     } catch (error) {
       console.error(chalk.red('Failed to schedule rotation:'), error.message);
       process.exit(1);
@@ -161,7 +186,7 @@ program
   .option('--overdue', 'Show only overdue rotations')
   .action(async (options) => {
     try {
-      await cli.showRotations(options);
+      await createCli().showRotations(options);
     } catch (error) {
       console.error(chalk.red('Failed to show rotations:'), error.message);
       process.exit(1);
@@ -177,7 +202,7 @@ program
   .option('--days <days>', 'Number of days to analyze', '30')
   .action(async (name, options) => {
     try {
-      await cli.showUsage(name, options);
+      await createCli().showUsage(name, options);
     } catch (error) {
       console.error(chalk.red('Failed to show usage:'), error.message);
       process.exit(1);
@@ -189,7 +214,7 @@ program
   .description('Check Vortex Secure service health')
   .action(async () => {
     try {
-      await cli.checkHealth();
+      await createCli().checkHealth();
     } catch (error) {
       console.error(chalk.red('Health check failed:'), error.message);
       process.exit(1);
@@ -205,7 +230,7 @@ program
   .option('--list', 'List all configuration')
   .action(async (options) => {
     try {
-      await cli.manageConfig(options);
+      await createCli().manageConfig(options);
     } catch (error) {
       console.error(chalk.red('Configuration failed:'), error.message);
       process.exit(1);
@@ -222,7 +247,7 @@ program
   .option('-o, --output <file>', 'Output file path')
   .action(async (options) => {
     try {
-      await cli.exportSecrets(options);
+      await createCli().exportSecrets(options);
     } catch (error) {
       console.error(chalk.red('Export failed:'), error.message);
       process.exit(1);
@@ -237,7 +262,7 @@ program
   .option('--dry-run', 'Show what would be imported without executing')
   .action(async (file, options) => {
     try {
-      await cli.importSecrets(file, options);
+      await createCli().importSecrets(file, options);
     } catch (error) {
       console.error(chalk.red('Import failed:'), error.message);
       process.exit(1);
