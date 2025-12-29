@@ -11,6 +11,9 @@ import { MCPMonitoringPage } from './pages/MCPMonitoringPage';
 import { VPSManagementPage } from './pages/VPSManagementPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { MCPServicesPage } from './pages/MCPServicesPage';
+import { APIKeysPage } from './pages/APIKeysPage';
+import { MCPUsagePage } from './pages/MCPUsagePage';
 import { User } from '@supabase/supabase-js';
 import './App.css';
 
@@ -65,6 +68,9 @@ function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/secrets" element={<SecretsPage />} />
+                  <Route path="/mcp-services" element={<MCPServicesPage />} />
+                  <Route path="/api-keys" element={<APIKeysPage />} />
+                  <Route path="/mcp-usage" element={<MCPUsagePage />} />
                   <Route path="/mcp-monitoring" element={<MCPMonitoringPage />} />
                   <Route path="/vps-management" element={<VPSManagementPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
