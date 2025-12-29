@@ -11,7 +11,6 @@ import type {
 } from '../../types/mcp-router';
 import { MCPRouterErrors } from '../../types/mcp-router';
 import { ServiceCatalogManager } from './service-catalog';
-import { UserServicesManager } from './user-services';
 import { APIKeyManager } from './api-keys';
 import { MCPProcessPool } from './process-pool';
 
@@ -234,9 +233,7 @@ export class MCPRouter {
       }
 
       // Step 7: Check if user has configured and enabled the service
-      const userServicesManager = new UserServicesManager(this.masterPassword);
-      // Note: We need to impersonate the user for this check
-      // In a real implementation, this would use a service account
+      // Uses RPC function to bypass RLS for external API requests
       const userService = await this.getUserServiceByUserId(
         userId!,
         request.service,
@@ -293,7 +290,6 @@ export class MCPRouter {
 
       // Step 8: Decrypt user credentials
       let credentials: Record<string, string>;
-      const decryptStart = Date.now();
       try {
         credentials = await this.decryptUserCredentials(
           userService.encrypted_credentials
@@ -442,6 +438,7 @@ export class MCPRouter {
 
   /**
    * Get user service by user ID (service account level access)
+   * Uses RPC function to bypass RLS for external API requests
    */
   private async getUserServiceByUserId(
     userId: string,
@@ -451,19 +448,19 @@ export class MCPRouter {
     encrypted_credentials: string;
     is_enabled: boolean;
   } | null> {
+    // Use RPC function to bypass RLS
     const { data, error } = await supabase
-      .from('user_mcp_services')
-      .select('encrypted_credentials, is_enabled')
-      .eq('user_id', userId)
-      .eq('service_key', serviceKey)
-      .eq('environment', environment)
-      .single();
+      .rpc('get_user_service_for_routing', {
+        p_user_id: userId,
+        p_service_key: serviceKey,
+        p_environment: environment,
+      });
 
-    if (error) {
+    if (error || !data || data.length === 0) {
       return null;
     }
 
-    return data;
+    return data[0];
   }
 
   /**

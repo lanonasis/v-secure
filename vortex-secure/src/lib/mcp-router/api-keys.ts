@@ -160,6 +160,7 @@ export class APIKeyManager {
 
   /**
    * Validate an API key and return the user/key info
+   * Uses RPC function to bypass RLS for external API requests
    */
   async validateAPIKey(apiKey: string): Promise<{
     valid: boolean;
@@ -170,44 +171,73 @@ export class APIKeyManager {
     try {
       const keyHash = await this.hashAPIKey(apiKey);
 
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select(`
-          *,
-          scopes:api_key_scopes(
-            *,
-            service:mcp_service_catalog(*)
-          )
-        `)
-        .eq('key_hash', keyHash)
-        .single();
+      // Use RPC function to bypass RLS
+      const { data: keyData, error: keyError } = await supabase
+        .rpc('validate_api_key', { p_key_hash: keyHash });
 
-      if (error) {
+      if (keyError || !keyData || keyData.length === 0) {
         return { valid: false, error: 'Invalid API key' };
       }
 
+      const apiKeyData = keyData[0];
+
       // Check if active
-      if (!data.is_active) {
+      if (!apiKeyData.is_active) {
         return { valid: false, error: 'API key is inactive' };
       }
 
       // Check if revoked
-      if (data.revoked_at) {
+      if (apiKeyData.revoked_at) {
         return {
           valid: false,
-          error: `API key was revoked: ${data.revoked_reason || 'No reason provided'}`,
+          error: `API key was revoked: ${apiKeyData.revoked_reason || 'No reason provided'}`,
         };
       }
 
       // Check if expired
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      if (apiKeyData.expires_at && new Date(apiKeyData.expires_at) < new Date()) {
         return { valid: false, error: 'API key has expired' };
       }
 
+      // Get scopes using RPC function
+      const { data: scopesData } = await supabase
+        .rpc('get_api_key_scopes', { p_api_key_id: apiKeyData.id });
+
+      // Build the API key object
+      const mappedKey: APIKey = {
+        id: apiKeyData.id,
+        user_id: apiKeyData.user_id,
+        key_prefix: apiKeyData.key_prefix,
+        key_hash: keyHash,
+        name: apiKeyData.name,
+        description: undefined,
+        encrypted_key: '',
+        scope_type: apiKeyData.scope_type as ScopeType,
+        allowed_environments: apiKeyData.allowed_environments || [],
+        rate_limit_per_minute: apiKeyData.rate_limit_per_minute,
+        rate_limit_per_day: apiKeyData.rate_limit_per_day,
+        allowed_ips: apiKeyData.allowed_ips || [],
+        expires_at: apiKeyData.expires_at,
+        is_active: apiKeyData.is_active,
+        revoked_at: apiKeyData.revoked_at,
+        revoked_reason: apiKeyData.revoked_reason,
+        created_at: '',
+        updated_at: '',
+        scopes: (scopesData || []).map((s: any) => ({
+          id: '',
+          api_key_id: apiKeyData.id,
+          service_key: s.service_key,
+          allowed_actions: s.allowed_actions || [],
+          max_calls_per_minute: s.max_calls_per_minute,
+          max_calls_per_day: s.max_calls_per_day,
+          created_at: '',
+        })),
+      };
+
       return {
         valid: true,
-        api_key: this.mapAPIKeyFromDB(data),
-        user_id: data.user_id,
+        api_key: mappedKey,
+        user_id: apiKeyData.user_id,
       };
     } catch (e: any) {
       return { valid: false, error: e.message };
@@ -478,6 +508,7 @@ export class APIKeyManager {
 
   /**
    * Check and update rate limits
+   * Uses RPC function to bypass RLS for external API requests
    */
   async checkRateLimit(
     apiKeyId: string
@@ -498,20 +529,17 @@ export class APIKeyManager {
       now.getDate(),
       now.getHours(),
       now.getMinutes()
-    ).toISOString();
+    );
 
     const dayWindow = new Date(
       now.getFullYear(),
       now.getMonth(),
       now.getDate()
-    ).toISOString();
+    );
 
-    // Get current rate limit counts
+    // Get current rate limit counts using RPC to bypass RLS
     const { data: rateLimits } = await supabase
-      .from('mcp_rate_limits')
-      .select('*')
-      .eq('api_key_id', apiKeyId)
-      .in('window_start', [minuteWindow, dayWindow]);
+      .rpc('check_rate_limits', { p_api_key_id: apiKeyId });
 
     let minuteCount = 0;
     let dayCount = 0;

@@ -448,6 +448,198 @@ CREATE TRIGGER trigger_update_api_key_usage
   EXECUTE FUNCTION update_api_key_usage();
 
 -- =============================================
+-- RATE LIMITING RPC FUNCTION
+-- Required for incrementing rate limit counters
+-- =============================================
+
+-- Function to increment rate limit counter (upsert pattern)
+CREATE OR REPLACE FUNCTION increment_rate_limit(
+  p_api_key_id UUID,
+  p_window_start TIMESTAMP WITH TIME ZONE,
+  p_window_type TEXT
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER  -- Runs with owner privileges, bypasses RLS
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO mcp_rate_limits (api_key_id, window_start, window_type, request_count)
+  VALUES (p_api_key_id, p_window_start, p_window_type, 1)
+  ON CONFLICT (api_key_id, window_start, window_type)
+  DO UPDATE SET request_count = mcp_rate_limits.request_count + 1;
+END;
+$$;
+
+-- Function to validate API key and return user info (bypasses RLS)
+CREATE OR REPLACE FUNCTION validate_api_key(p_key_hash TEXT)
+RETURNS TABLE (
+  id UUID,
+  user_id UUID,
+  key_prefix TEXT,
+  name TEXT,
+  scope_type TEXT,
+  allowed_environments TEXT[],
+  rate_limit_per_minute INTEGER,
+  rate_limit_per_day INTEGER,
+  allowed_ips CIDR[],
+  expires_at TIMESTAMP WITH TIME ZONE,
+  is_active BOOLEAN,
+  revoked_at TIMESTAMP WITH TIME ZONE,
+  revoked_reason TEXT
+)
+LANGUAGE plpgsql
+SECURITY DEFINER  -- Runs with owner privileges, bypasses RLS
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ak.id,
+    ak.user_id,
+    ak.key_prefix,
+    ak.name,
+    ak.scope_type,
+    ak.allowed_environments,
+    ak.rate_limit_per_minute,
+    ak.rate_limit_per_day,
+    ak.allowed_ips,
+    ak.expires_at,
+    ak.is_active,
+    ak.revoked_at,
+    ak.revoked_reason
+  FROM api_keys ak
+  WHERE ak.key_hash = p_key_hash;
+END;
+$$;
+
+-- Function to get API key scopes (bypasses RLS)
+CREATE OR REPLACE FUNCTION get_api_key_scopes(p_api_key_id UUID)
+RETURNS TABLE (
+  service_key TEXT,
+  allowed_actions TEXT[],
+  max_calls_per_minute INTEGER,
+  max_calls_per_day INTEGER
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    aks.service_key,
+    aks.allowed_actions,
+    aks.max_calls_per_minute,
+    aks.max_calls_per_day
+  FROM api_key_scopes aks
+  WHERE aks.api_key_id = p_api_key_id;
+END;
+$$;
+
+-- Function to get user service credentials (bypasses RLS for router)
+CREATE OR REPLACE FUNCTION get_user_service_for_routing(
+  p_user_id UUID,
+  p_service_key TEXT,
+  p_environment TEXT
+)
+RETURNS TABLE (
+  encrypted_credentials TEXT,
+  is_enabled BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    ums.encrypted_credentials,
+    ums.is_enabled
+  FROM user_mcp_services ums
+  WHERE ums.user_id = p_user_id
+    AND ums.service_key = p_service_key
+    AND ums.environment = p_environment;
+END;
+$$;
+
+-- Function to check rate limits (bypasses RLS)
+CREATE OR REPLACE FUNCTION check_rate_limits(p_api_key_id UUID)
+RETURNS TABLE (
+  window_type TEXT,
+  request_count INTEGER,
+  window_start TIMESTAMP WITH TIME ZONE
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_minute_window TIMESTAMP WITH TIME ZONE;
+  v_day_window TIMESTAMP WITH TIME ZONE;
+BEGIN
+  -- Calculate current windows
+  v_minute_window := date_trunc('minute', NOW());
+  v_day_window := date_trunc('day', NOW());
+
+  RETURN QUERY
+  SELECT
+    rl.window_type,
+    rl.request_count,
+    rl.window_start
+  FROM mcp_rate_limits rl
+  WHERE rl.api_key_id = p_api_key_id
+    AND rl.window_start IN (v_minute_window, v_day_window);
+END;
+$$;
+
+-- Function to log MCP usage (bypasses RLS for router)
+CREATE OR REPLACE FUNCTION log_mcp_usage(
+  p_request_id TEXT,
+  p_user_id UUID,
+  p_api_key_id UUID,
+  p_service_key TEXT,
+  p_action TEXT,
+  p_method TEXT,
+  p_response_status INTEGER,
+  p_error_message TEXT,
+  p_error_code TEXT,
+  p_response_time_ms INTEGER,
+  p_mcp_spawn_time_ms INTEGER,
+  p_external_api_time_ms INTEGER,
+  p_client_ip INET,
+  p_user_agent TEXT,
+  p_status TEXT
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  INSERT INTO mcp_usage_logs (
+    request_id, user_id, api_key_id, service_key, action, method,
+    response_status, error_message, error_code, response_time_ms,
+    mcp_spawn_time_ms, external_api_time_ms, client_ip, user_agent,
+    status, timestamp
+  ) VALUES (
+    p_request_id, p_user_id, p_api_key_id, p_service_key, p_action, p_method,
+    p_response_status, p_error_message, p_error_code, p_response_time_ms,
+    p_mcp_spawn_time_ms, p_external_api_time_ms, p_client_ip, p_user_agent,
+    p_status, NOW()
+  );
+END;
+$$;
+
+-- Grant execute permissions on RPC functions to authenticated and anon users
+GRANT EXECUTE ON FUNCTION increment_rate_limit TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION validate_api_key TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION get_api_key_scopes TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION get_user_service_for_routing TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION check_rate_limits TO authenticated, anon;
+GRANT EXECUTE ON FUNCTION log_mcp_usage TO authenticated, anon;
+
+-- =============================================
 -- INITIAL SERVICE CATALOG DATA
 -- =============================================
 
