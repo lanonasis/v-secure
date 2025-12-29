@@ -505,7 +505,7 @@ export class MCPRouter {
   }
 
   /**
-   * Log usage to database
+   * Log usage to database using RPC to bypass RLS
    */
   private async logUsage(
     log: Partial<MCPUsageLog> & {
@@ -516,32 +516,30 @@ export class MCPRouter {
     }
   ): Promise<void> {
     try {
-      await supabase.from('mcp_usage_logs').insert([
-        {
-          request_id: log.request_id,
-          user_id: log.user_id,
-          api_key_id: log.api_key_id,
-          service_key: log.service_key,
-          action: log.action,
-          method: log.method || 'POST',
-          request_body: log.request_body,
-          request_headers: log.request_headers,
-          response_status: log.response_status,
-          response_body: log.response_body,
-          error_message: log.error_message,
-          error_code: log.error_code,
-          response_time_ms: log.response_time_ms,
-          mcp_spawn_time_ms: log.mcp_spawn_time_ms,
-          external_api_time_ms: log.external_api_time_ms,
-          client_ip: log.client_ip,
-          user_agent: log.user_agent,
-          origin: log.origin,
-          status: log.status || 'pending',
-          billable: log.billable ?? true,
-          billing_amount_cents: log.billing_amount_cents || 0,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      // Use RPC function to bypass RLS for external API requests
+      await supabase.rpc('log_mcp_usage', {
+        p_request_id: log.request_id,
+        p_user_id: log.user_id,
+        p_api_key_id: log.api_key_id || null,
+        p_service_key: log.service_key,
+        p_action: log.action,
+        p_method: log.method || 'POST',
+        p_request_body: log.request_body || null,
+        p_request_headers: log.request_headers || null,
+        p_response_status: log.response_status || null,
+        p_response_body: log.response_body || null,
+        p_error_message: log.error_message || null,
+        p_error_code: log.error_code || null,
+        p_response_time_ms: log.response_time_ms || null,
+        p_mcp_spawn_time_ms: log.mcp_spawn_time_ms || null,
+        p_external_api_time_ms: log.external_api_time_ms || null,
+        p_client_ip: log.client_ip || null,
+        p_user_agent: log.user_agent || null,
+        p_origin: log.origin || null,
+        p_status: log.status || 'pending',
+        p_billable: log.billable ?? true,
+        p_billing_amount_cents: log.billing_amount_cents || 0,
+      });
     } catch (error) {
       console.error('Failed to log usage:', error);
     }
