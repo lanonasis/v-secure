@@ -184,7 +184,7 @@ export class MCPProcessPool {
     };
 
     // Insert into database
-    await supabase.from('mcp_process_pool').insert([
+    const { error: insertError } = await supabase.from('mcp_process_pool').insert([
       {
         process_id: processId,
         user_id: userId,
@@ -197,6 +197,10 @@ export class MCPProcessPool {
         active_requests: 0,
       },
     ]);
+
+    if (insertError) {
+      console.error('Failed to insert process into database:', insertError.message);
+    }
 
     // Simulate process startup
     // In a real implementation, this would spawn an actual MCP server process
@@ -571,7 +575,7 @@ export class MCPProcessPool {
    * Force terminate a specific process
    */
   async forceTerminate(processId: string): Promise<void> {
-    for (const [key, process] of this.pool.entries()) {
+    for (const process of this.pool.values()) {
       if (process.id === processId) {
         await this.terminateProcess(process);
         return;

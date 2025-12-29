@@ -426,7 +426,7 @@ export class APIKeyManager {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('api_keys')
       .update({
         is_active: true,
@@ -434,9 +434,7 @@ export class APIKeyManager {
         revoked_reason: null,
       })
       .eq('id', id)
-      .eq('user_id', user.id)
-      .select()
-      .single();
+      .eq('user_id', user.id);
 
     if (error) {
       throw new Error(`Failed to reactivate API key: ${error.message}`);

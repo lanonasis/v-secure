@@ -12,13 +12,9 @@ import {
   Copy,
   Trash2,
   Settings,
-  Eye,
-  EyeOff,
   CheckCircle,
   XCircle,
   Clock,
-  Shield,
-  AlertTriangle,
   ExternalLink,
   RefreshCw,
 } from 'lucide-react';

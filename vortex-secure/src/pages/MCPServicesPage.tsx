@@ -241,11 +241,8 @@ export function MCPServicesPage() {
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | 'all'>('all');
   const [showBeta, setShowBeta] = useState(true);
   const [configureService, setConfigureService] = useState<MCPServiceCatalog | null>(null);
-  const [catalogServices, setCatalogServices] = useState<MCPServiceCatalog[]>(mockCatalogServices);
+  const [catalogServices] = useState<MCPServiceCatalog[]>(mockCatalogServices);
   const [userServices, setUserServices] = useState<UserMCPService[]>(mockUserServices);
-
-  // Get configured service keys
-  const configuredServiceKeys = new Set(userServices.map(s => s.service_key));
 
   // Filter services
   const filteredServices = catalogServices.filter(service => {
