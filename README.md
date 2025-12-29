@@ -12,6 +12,8 @@
 [![Node](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
 [![Security](https://img.shields.io/badge/security-SOC%202%20|%20ISO%2027001-brightgreen.svg)](#security-standards-compliance)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![CI](https://github.com/lanonasis/v-secure/actions/workflows/ci.yml/badge.svg)]
+[![CodeQL](https://github.com/lanonasis/v-secure/actions/workflows/codeql.yml/badge.svg)]
 
 [Features](#-features) • [Quick Start](#-installation) • [Documentation](#-table-of-contents) • [Security](#-security-standards-compliance) • [Support](#-support)
 
