@@ -9,8 +9,6 @@ import {
   BarChart3,
   Settings,
   Database,
-  Users,
-  Activity,
   Plug,
   KeyRound,
   TrendingUp,
