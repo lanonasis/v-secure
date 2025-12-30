@@ -12,6 +12,7 @@ import {
   Plug,
   KeyRound,
   TrendingUp,
+  Brain,
 } from 'lucide-react';
 
 const navigation = [
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'MCP Usage', href: '/mcp-usage', icon: TrendingUp },
   { name: 'MCP Monitoring', href: '/mcp-monitoring', icon: Bot },
   { name: 'VPS Management', href: '/vps-management', icon: Database },
+  { name: 'Memories', href: '/memories', icon: Brain },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
