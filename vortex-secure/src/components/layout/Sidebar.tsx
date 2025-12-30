@@ -1,25 +1,28 @@
 // Vortex Secure - Admin Sidebar Navigation
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { 
-  Shield, 
-  LayoutDashboard, 
-  Key, 
-  Bot, 
-  BarChart3, 
+import {
+  Shield,
+  LayoutDashboard,
+  Key,
+  Bot,
+  BarChart3,
   Settings,
   Database,
-  Users,
-  Activity
+  Plug,
+  KeyRound,
+  TrendingUp,
 } from 'lucide-react';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Secrets', href: '/secrets', icon: Key },
+  { name: 'MCP Services', href: '/mcp-services', icon: Plug },
+  { name: 'API Keys', href: '/api-keys', icon: KeyRound },
+  { name: 'MCP Usage', href: '/mcp-usage', icon: TrendingUp },
   { name: 'MCP Monitoring', href: '/mcp-monitoring', icon: Bot },
   { name: 'VPS Management', href: '/vps-management', icon: Database },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Users', href: '/users', icon: Users },
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
