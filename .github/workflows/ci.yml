@@ -112,7 +112,7 @@ jobs:
           CI: true
 
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         if: success()
         continue-on-error: true
         with:
