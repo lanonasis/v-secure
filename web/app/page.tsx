@@ -47,7 +47,7 @@ export default function VortexShieldPage() {
               <Link href="/" className="text-gray-300 hover:text-vortex-indigo transition">
                 All Services
               </Link>
-              <a href="https://app.lanonasis.com/signup" target="_blank" rel="noopener noreferrer" className="px-6 py-2 bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white rounded-lg hover:shadow-lg transition">
+              <a href="/signup" className="px-6 py-2 bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white rounded-lg hover:shadow-lg transition">
                 Get Started
               </a>
             </div>
@@ -76,7 +76,7 @@ export default function VortexShieldPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-              <a href="https://app.lanonasis.com/signup" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white rounded-lg font-semibold text-lg hover:shadow-xl transition transform hover:-translate-y-1 text-center">
+              <a href="/signup" className="px-8 py-4 bg-gradient-to-r from-vortex-blue to-vortex-cyan text-white rounded-lg font-semibold text-lg hover:shadow-xl transition transform hover:-translate-y-1 text-center">
                 Start Free Trial
               </a>
               <a href="https://docs.lanonasis.com/v-secure" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-white text-vortex-indigo border-2 border-vortex-indigo rounded-lg font-semibold text-lg hover:bg-vortex-indigo hover:text-white transition text-center">
@@ -297,27 +297,27 @@ await apiKeyService.rotateApiKey(keyId, userId);`}</code>
                 <h3 className="font-semibold text-sm text-gray-300">MCP Integration (AI Tool Access)</h3>
               </div>
               <pre className="p-6 text-sm overflow-x-auto">
-                <code className="language-typescript">{`// Register an MCP tool
-const tool = await apiKeyService.registerMCPTool({
+                <code className="language-typescript">{`import { VortexClient } from '@vortex-secure/mcp-sdk';
+
+// Initialize the client (api.lanonasis.com/mcp/v1)
+const vortex = new VortexClient({
+  endpoint: 'https://api.lanonasis.com/mcp/v1',
+  apiKey: process.env.VORTEX_API_KEY,
   toolId: 'claude-code-assistant',
   toolName: 'Claude Code Assistant',
-  permissions: {
-    keys: ['GITHUB_TOKEN', 'AWS_ACCESS_KEY'],
-    environments: ['development', 'staging'],
-    maxConcurrentSessions: 3,
-    maxSessionDuration: 900
-  },
-  autoApprove: false,
-  riskLevel: 'medium'
-}, userId);
+});
 
-// Request access to secrets
-const requestId = await apiKeyService.createMCPAccessRequest({
-  toolId: 'claude-code-assistant',
-  keyNames: ['GITHUB_TOKEN'],
-  environment: 'development',
-  justification: 'Code review automation',
-  estimatedDuration: 600
+// Use secrets securely within scoped callback
+await vortex.useSecret('GITHUB_TOKEN', async (token) => {
+  // Token automatically revoked after callback
+  const octokit = new Octokit({ auth: token });
+  return octokit.repos.listForAuthenticatedUser();
+});
+
+// Or route requests through configured services
+const result = await vortex.router.execute({
+  service: 'github',
+  action: 'repos.list',
 });`}</code>
               </pre>
             </div>
@@ -765,7 +765,7 @@ const result = await abstraction.executeAbstractedCall(
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a href="https://app.lanonasis.com/signup" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-white text-vortex-indigo rounded-lg font-semibold text-lg hover:shadow-xl transition transform hover:-translate-y-1 text-center">
+            <a href="/signup" className="px-8 py-4 bg-white text-vortex-indigo rounded-lg font-semibold text-lg hover:shadow-xl transition transform hover:-translate-y-1 text-center">
               Start Free Trial
             </a>
             <a href="https://calendly.com/lanonasis/demo" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-lg font-semibold text-lg hover:bg-white hover:text-vortex-indigo transition text-center">
