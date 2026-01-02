@@ -14,6 +14,7 @@ import { SettingsPage } from './pages/SettingsPage';
 import { MCPServicesPage } from './pages/MCPServicesPage';
 import { APIKeysPage } from './pages/APIKeysPage';
 import { MCPUsagePage } from './pages/MCPUsagePage';
+import { MemoriesPage } from './pages/MemoriesPage';
 import { User } from '@supabase/supabase-js';
 import './App.css';
 
@@ -74,6 +75,7 @@ function App() {
                   <Route path="/mcp-monitoring" element={<MCPMonitoringPage />} />
                   <Route path="/vps-management" element={<VPSManagementPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/memories" element={<MemoriesPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Routes>
               </div>
