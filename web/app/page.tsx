@@ -594,7 +594,7 @@ const result = await abstraction.executeAbstractedCall(
               <span className="gradient-text">Trusted Across</span> Industries
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              From fintech to healthcare, VortexShield secures Africa's digital economy
+              From fintech to healthcare, VortexShield secures Africa&apos;s digital economy
             </p>
           </div>
 
@@ -681,7 +681,7 @@ const result = await abstraction.executeAbstractedCall(
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-slate-800/50 border border-slate-700 rounded-xl p-8 card-hover">
                 <div className="mb-4">{testimonial.icon}</div>
-                <p className="text-gray-300 mb-6 italic">"{testimonial.quote}"</p>
+                <p className="text-gray-300 mb-6 italic">&quot;{testimonial.quote}&quot;</p>
                 <div className="border-t border-slate-700 pt-4">
                   <p className="font-bold text-gray-100">{testimonial.author}</p>
                   <p className="text-sm text-gray-400">{testimonial.role}</p>

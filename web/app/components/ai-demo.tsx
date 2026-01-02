@@ -184,7 +184,7 @@ export function AiDemo() {
             {messages.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <LanonasisIcon className="w-16 h-16 mb-3" />
-                <p className="text-center">Hi! I'm <span className="text-vortex-cyan font-semibold">VortexShield AI</span></p>
+                <p className="text-center">Hi! I&apos;m <span className="text-vortex-cyan font-semibold">VortexShield AI</span></p>
                 <p className="text-sm text-center mt-1">Your security-focused assistant. Ask me anything!</p>
                 <div className="flex flex-wrap gap-2 mt-4 justify-center">
                   {['Who are you?', 'Secure my Next.js app', 'OWASP Top 10'].map((suggestion) => (
