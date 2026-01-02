@@ -8,7 +8,7 @@
 export interface VortexConfig {
   /** Vortex Secure API endpoint */
   endpoint: string;
-  /** API key for authentication (vx_* format) */
+  /** API key for authentication (lms_* format) */
   apiKey: string;
   /** Optional: Tool identification for MCP tools */
   toolId?: string;

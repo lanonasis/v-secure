@@ -508,7 +508,7 @@ export class VortexCLI {
     
     switch (type) {
       case 'api_key':
-        return `vx_${Date.now().toString(36)}_${this.randomString(40, chars)}`;
+        return `lms_${Date.now().toString(36)}_${this.randomString(40, chars)}`;
       case 'oauth_token':
         return this.randomString(64, chars);
       case 'webhook_secret':

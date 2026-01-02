@@ -67,7 +67,7 @@ export interface VortexClientOptions extends VortexConfig {
  * // Browser/Web usage
  * const vortex = new VortexClient({
  *   endpoint: 'https://api.lanonasis.com/mcp/v1',
- *   apiKey: 'vx_prod_xxx',
+ *   apiKey: 'lms_prod_xxx',
  * });
  *
  * // List available services
@@ -321,11 +321,17 @@ export class VortexClient {
 
   /**
    * Inject secrets as environment variables for CLI tools
+   * Note: Only works in Node.js environments
    */
   async injectSecrets(
     secretNames: string[],
     options: SecretAccessOptions & { envPrefix?: string } = {}
   ): Promise<NodeJS.ProcessEnv> {
+    // Check for Node.js environment
+    if (typeof process === 'undefined' || typeof process.env === 'undefined') {
+      throw new Error('injectSecrets is only available in Node.js environments. Use useSecret() or useSecrets() in browser.');
+    }
+
     const session = await this.requestSecretAccess(secretNames, options);
     const prefix = options.envPrefix || '';
 
@@ -437,18 +443,25 @@ export class VortexClient {
     return new Promise(async (resolve) => {
       const wsUrl = this.config.endpoint.replace(/^http/, 'ws') + '/mcp/events';
 
-      let WS: typeof WebSocket;
+      let WS: any;
       if (typeof WebSocket !== 'undefined') {
         WS = WebSocket;
       } else {
         // Node.js environment
-        const ws = await import('ws');
-        WS = ws.default as any;
+        try {
+          const ws = await import('ws');
+          WS = ws.default;
+        } catch {
+          // ws module not available, fallback to polling
+          this.events.emit('websocket.unavailable', { reason: 'ws module not installed' });
+          return this.waitForApprovalViaPolling(requestId).then(resolve);
+        }
       }
 
       this.ws = new WS(wsUrl);
 
       this.ws.onopen = () => {
+        this.events.emit('websocket.connected', { url: wsUrl });
         this.ws?.send(JSON.stringify({
           type: 'subscribe',
           requestId,
@@ -456,26 +469,35 @@ export class VortexClient {
         }));
       };
 
-      this.ws.onmessage = (event: MessageEvent) => {
+      // Handle message - works for both browser MessageEvent and Node.js ws event
+      this.ws.onmessage = (event: { data: string | Buffer }) => {
         try {
-          const message = JSON.parse(event.data);
+          const data = typeof event.data === 'string' ? event.data : event.data.toString();
+          const message = JSON.parse(data);
           if (message.type === 'approval_decision' && message.requestId === requestId) {
             this.ws?.close();
             resolve(message.approved);
           }
-        } catch {
-          // Ignore parse errors
+        } catch (err) {
+          this.events.emit('websocket.parse_error', { error: String(err) });
         }
       };
 
-      this.ws.onerror = () => {
+      this.ws.onerror = (err: Error | Event) => {
+        const errorMessage = err instanceof Error ? err.message : 'WebSocket error';
+        this.events.emit('websocket.error', { error: errorMessage, requestId });
         this.ws?.close();
         // Fallback to polling on error
         this.waitForApprovalViaPolling(requestId).then(resolve);
       };
 
+      this.ws.onclose = () => {
+        this.events.emit('websocket.disconnected', { requestId });
+      };
+
       // Timeout after 5 minutes
       setTimeout(() => {
+        this.events.emit('websocket.timeout', { requestId });
         this.ws?.close();
         resolve(false);
       }, 300000);
