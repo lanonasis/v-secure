@@ -30,7 +30,7 @@
   "author": "Onasis-CORE Team",
   "license": "PROPRIETARY",
   "dependencies": {
-    "@lanonasis/shared-types": "workspace:*",
+    "@lanonasis/shared-types": "1.0.0",
     "crypto": "^1.0.1"
   },
   "devDependencies": {
