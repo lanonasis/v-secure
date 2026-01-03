@@ -29,8 +29,8 @@ export class APIKeyManager {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
-    // Generate the API key
-    const prefix = 'vx_prod';
+    // Generate the API key (lms = LanOnasis)
+    const prefix = 'lms_prod';
     const fullKey = VortexEncryption.generateAPIKey(prefix);
     const keyPrefix = fullKey.substring(0, 12);
 

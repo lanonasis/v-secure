@@ -301,7 +301,7 @@ export class MCPSecretProxy {
 
       // Generate unique proxy token
       const tokenId = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      const proxyValue = `vx_proxy_${tokenId}`;
+      const proxyValue = `lms_proxy_${tokenId}`;
       const expiresAt = new Date(Date.now() + params.ttl * 1000);
 
       // Store token mapping (encrypted)

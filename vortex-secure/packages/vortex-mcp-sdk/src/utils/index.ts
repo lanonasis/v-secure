@@ -123,9 +123,16 @@ export function maskSensitive(value: string, visibleChars: number = 4): string {
 }
 
 /**
- * Parse a Vortex API key to extract metadata
+ * Parse a LanOnasis API key to extract metadata
+ * Supports both legacy vx_* and new lms_* formats
  */
 export function parseApiKey(key: string): { prefix: string; valid: boolean } {
+  // New lms_* format
+  const lmsMatch = key.match(/^lms_([a-z]+)_/);
+  if (lmsMatch) {
+    return { prefix: `lms_${lmsMatch[1]}_`, valid: true };
+  }
+  // Legacy vx_* format (backward compatibility)
   const vxMatch = key.match(/^vx_([a-z]+)_/);
   if (vxMatch) {
     return { prefix: `vx_${vxMatch[1]}_`, valid: true };

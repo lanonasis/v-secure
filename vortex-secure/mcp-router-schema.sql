@@ -100,7 +100,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
   user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
 
   -- Key identification
-  key_prefix TEXT NOT NULL, -- First 8 chars for identification: 'vx_prod_'
+  key_prefix TEXT NOT NULL, -- First 8 chars for identification: 'lms_prod_'
   key_hash TEXT NOT NULL, -- SHA-256 hash of full key
   name TEXT NOT NULL, -- User-defined name
   description TEXT,
