@@ -25,7 +25,7 @@ const mockAPIKeys: APIKey[] = [
   {
     id: '1',
     user_id: 'user-1',
-    key_prefix: 'vx_prod_lxyz',
+    key_prefix: 'lms_prod_lxyz',
     key_hash: 'hash1',
     name: 'Production App',
     description: 'Main production application key',
@@ -83,7 +83,7 @@ const mockAPIKeys: APIKey[] = [
   {
     id: '2',
     user_id: 'user-1',
-    key_prefix: 'vx_test_abcd',
+    key_prefix: 'lms_test_abcd',
     key_hash: 'hash2',
     name: 'Testing Key',
     description: 'For development and testing',
@@ -102,7 +102,7 @@ const mockAPIKeys: APIKey[] = [
   {
     id: '3',
     user_id: 'user-1',
-    key_prefix: 'vx_prod_old1',
+    key_prefix: 'lms_prod_old1',
     key_hash: 'hash3',
     name: 'Legacy App',
     description: 'Old application (deprecated)',
@@ -568,7 +568,7 @@ function CreateAPIKeyModal({
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      const fullKey = `vx_prod_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 40)}`;
+      const fullKey = `lms_prod_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 40)}`;
       const key: APIKey = {
         id: `key-${Date.now()}`,
         user_id: 'user-1',

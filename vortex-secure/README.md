@@ -213,7 +213,7 @@ await scheduler.scheduleRotation('database_url', 90, {
 {
   event: 'secret.rotated',
   secret_id: 'stripe_api_key',
-  new_value: 'vx_proxy_token_xyz', // Temporary proxy token
+  new_value: 'lms_proxy_token_xyz', // Temporary proxy token
   old_value_expires: '2024-01-15T10:30:00Z',
   rotation_id: 'rot_1642248600000'
 }
