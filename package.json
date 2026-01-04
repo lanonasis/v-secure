@@ -31,6 +31,7 @@
   "author": "Seye Derick",
   "license": "MIT",
   "dependencies": {
+    "next": "^16.1.1",
     "@supabase/supabase-js": "^2.89.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.16.3",
