@@ -14,9 +14,9 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "export": "next build && next export",
-    "deploy": "npm run build && netlify deploy --prod",
-    "deploy:preview": "npm run build && netlify deploy",
-    "analyze": "ANALYZE=true npm run build"
+    "deploy": "bun run build && netlify deploy --prod",
+    "deploy:preview": "bun run build && netlify deploy",
+    "analyze": "ANALYZE=true bun run build"
   },
   "dependencies": {
     "@lanonasis/ai-sdk": "^0.2.2",
