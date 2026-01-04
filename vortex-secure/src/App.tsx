@@ -18,16 +18,31 @@ import { MemoriesPage } from './pages/MemoriesPage';
 import { User } from '@supabase/supabase-js';
 import './App.css';
 
+// Demo mode - set to true for testing without Supabase auth
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || true;
+
+// Demo user for testing
+const DEMO_USER = {
+  id: 'demo-user-001',
+  email: 'admin@vortex-secure.demo',
+  user_metadata: { name: 'Demo Admin' },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as unknown as User;
+
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
+  const [loading, setLoading] = useState(!DEMO_MODE);
 
   useEffect(() => {
+    if (DEMO_MODE) return; // Skip auth in demo mode
+
     // Check initial session
     getCurrentUser().then(user => {
       setUser(user);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
