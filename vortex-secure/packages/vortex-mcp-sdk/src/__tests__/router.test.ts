@@ -1,14 +1,15 @@
 // Unit tests for RouterClient
 
+import { describe, it, expect, vi } from 'vitest';
 import { RouterClient } from '../client/router';
 import type { HTTPAdapter, HTTPResponse } from '../types';
 
 // Mock HTTP adapter
 const createMockHTTPAdapter = (mockResponse: any): HTTPAdapter => ({
-  get: jest.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
-  post: jest.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
-  put: jest.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
-  delete: jest.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
+  get: vi.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
+  post: vi.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
+  put: vi.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
+  delete: vi.fn().mockResolvedValue({ data: mockResponse, status: 200, headers: {} }),
 });
 
 describe('RouterClient', () => {
@@ -56,11 +57,11 @@ describe('RouterClient', () => {
 
       const http = createMockHTTPAdapter(mockResponse);
       const events = {
-        emit: jest.fn(),
-        on: jest.fn(),
-        off: jest.fn(),
-        onAll: jest.fn(),
-        clear: jest.fn()
+        emit: vi.fn(),
+        on: vi.fn(),
+        off: vi.fn(),
+        onAll: vi.fn(),
+        clear: vi.fn()
       };
       const router = new RouterClient({ http, events: events as any });
 
@@ -96,7 +97,7 @@ describe('RouterClient', () => {
       const http = createMockHTTPAdapter({});
       let callCount = 0;
 
-      http.post = jest.fn().mockImplementation(() => {
+      http.post = vi.fn().mockImplementation(() => {
         callCount++;
         if (callCount < 3) {
           return Promise.reject({ status: 500, message: 'Server error' });
@@ -121,7 +122,7 @@ describe('RouterClient', () => {
 
     it('should not retry on 400 errors', async () => {
       const http = createMockHTTPAdapter({});
-      http.post = jest.fn().mockRejectedValue({ status: 400, message: 'Bad request' });
+      http.post = vi.fn().mockRejectedValue({ status: 400, message: 'Bad request' });
 
       const router = new RouterClient({ http });
 

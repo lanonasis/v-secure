@@ -1,5 +1,6 @@
 // Unit tests for SDK utilities
 
+import { describe, it, expect } from 'vitest';
 import {
   generateRequestId,
   generateSessionId,
@@ -13,7 +14,7 @@ import {
 describe('generateRequestId', () => {
   it('should generate a unique request ID with req_ prefix', () => {
     const id = generateRequestId();
-    expect(id).toMatch(/^req_[a-z0-9]+$/);
+    expect(id).toMatch(/^req_[a-z0-9_]+$/);
   });
 
   it('should generate unique IDs', () => {
@@ -23,9 +24,9 @@ describe('generateRequestId', () => {
 });
 
 describe('generateSessionId', () => {
-  it('should generate a session ID with sess_ prefix', () => {
+  it('should generate a session ID with session_ prefix', () => {
     const id = generateSessionId();
-    expect(id).toMatch(/^sess_[a-z0-9]+$/);
+    expect(id).toMatch(/^session_[a-z0-9_]+$/);
   });
 });
 

@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-// Mock cross-fetch
-const mockFetch = vi.fn();
+// Mock cross-fetch - use vi.hoisted to ensure mockFetch is available before vi.mock runs
+const { mockFetch } = vi.hoisted(() => ({
+  mockFetch: vi.fn()
+}));
 vi.mock('cross-fetch', () => ({
   default: mockFetch
 }));
