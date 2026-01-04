@@ -1,12 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach, Mock } from 'vitest';
-import { BaseOAuthFlow } from '../flows/base-flow';
-import type { TokenResponse, OAuthConfig } from '../types';
 
-// Mock cross-fetch
-const mockFetch = vi.fn();
+// Mock cross-fetch - use vi.hoisted to ensure mockFetch is available before vi.mock runs
+const { mockFetch } = vi.hoisted(() => ({
+  mockFetch: vi.fn()
+}));
 vi.mock('cross-fetch', () => ({
   default: mockFetch
 }));
+
+import { BaseOAuthFlow } from '../flows/base-flow';
+import type { TokenResponse, OAuthConfig } from '../types';
 
 class TestOAuthFlow extends BaseOAuthFlow {
   async authenticate(): Promise<TokenResponse> {
