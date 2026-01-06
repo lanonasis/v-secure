@@ -1,6 +1,6 @@
 // Vortex Secure - Main Application Component
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { supabase, getCurrentUser } from './lib/supabase';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -30,6 +30,8 @@ const DEMO_USER = {
   aud: 'authenticated',
   created_at: new Date().toISOString(),
 } as unknown as User;
+
+const DASHBOARD_BASE = '/dashboard';
 
 function App() {
   const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
@@ -68,7 +70,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename={DASHBOARD_BASE}>
       <div className="min-h-screen bg-gray-50">
         <div className="flex h-screen">
           {/* Sidebar */}
@@ -81,8 +83,7 @@ function App() {
             <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50">
               <div className="container mx-auto px-6 py-8">
                 <Routes>
-                  <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/" element={<Dashboard />} />
                   <Route path="/secrets" element={<SecretsPage />} />
                   <Route path="/mcp-services" element={<MCPServicesPage />} />
                   <Route path="/api-keys" element={<APIKeysPage />} />
