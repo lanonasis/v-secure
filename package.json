@@ -51,7 +51,7 @@
     "express": "^5.1.0",
     "express-validator": "^7.3.1",
     "jest": "^30.2.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.6",
     "tsx": "^4.7.0",
     "typescript": "^5.7.2"
   },
