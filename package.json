@@ -35,7 +35,7 @@
     "@supabase/supabase-js": "^2.89.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.16.3",
-    "zod": "^4.2.1"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
     "@types/express": "^5.0.5",
