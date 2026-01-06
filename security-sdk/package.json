@@ -29,7 +29,7 @@
   "scripts": {
     "build": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --clean",
     "dev": "tsup src/index.ts src/hash-utils.ts --format esm,cjs --dts --watch",
-    "test": "vitest",
+    "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
