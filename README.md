@@ -6,12 +6,16 @@
 
 *Your secrets deserve better. Production-ready security that scales with confidence.*
 
+[![CI](https://github.com/lanonasis/v-secure/actions/workflows/ci.yml/badge.svg)](https://github.com/lanonasis/v-secure/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/lanonasis/v-secure/actions/workflows/codeql.yml/badge.svg)](https://github.com/lanonasis/v-secure/actions/workflows/codeql.yml)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/lanonasis/v-secure)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7.2-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
 [![Security](https://img.shields.io/badge/security-SOC%202%20|%20ISO%2027001-brightgreen.svg)](#security-standards-compliance)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![CI](https://github.com/lanonasis/v-secure/actions/workflows/ci.yml/badge.svg)]
+[![CodeQL](https://github.com/lanonasis/v-secure/actions/workflows/codeql.yml/badge.svg)]
 
 [Features](#-features) • [Quick Start](#-installation) • [Documentation](#-table-of-contents) • [Security](#-security-standards-compliance) • [Support](#-support)
 
