@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "applications": {
+    "v-secure": {
+      "packageName": "@lanonasis/vortexshield-web"
+    },
+    "vortex-secure": {
+      "routing": [
+        {
+          "paths": [
+            "/dashboard/:path*"
+          ]
+        }
+      ]
+    }
+  }
+}
