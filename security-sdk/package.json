@@ -9,13 +9,13 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
     },
     "./hash-utils": {
       "types": "./dist/hash-utils.d.ts",
-      "import": "./dist/hash-utils.mjs",
-      "require": "./dist/hash-utils.js"
+      "import": "./dist/hash-utils.js",
+      "require": "./dist/hash-utils.cjs"
     }
   },
   "publishConfig": {

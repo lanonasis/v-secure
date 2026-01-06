@@ -11,19 +11,38 @@ import { MCPMonitoringPage } from './pages/MCPMonitoringPage';
 import { VPSManagementPage } from './pages/VPSManagementPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { MCPServicesPage } from './pages/MCPServicesPage';
+import { APIKeysPage } from './pages/APIKeysPage';
+import { MCPUsagePage } from './pages/MCPUsagePage';
+import { MemoriesPage } from './pages/MemoriesPage';
 import { User } from '@supabase/supabase-js';
 import './App.css';
 
+// Demo mode - set to true for testing without Supabase auth
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || true;
+
+// Demo user for testing
+const DEMO_USER = {
+  id: 'demo-user-001',
+  email: 'admin@vortex-secure.demo',
+  user_metadata: { name: 'Demo Admin' },
+  app_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+} as unknown as User;
+
 function App() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
+  const [loading, setLoading] = useState(!DEMO_MODE);
 
   useEffect(() => {
+    if (DEMO_MODE) return; // Skip auth in demo mode
+
     // Check initial session
     getCurrentUser().then(user => {
       setUser(user);
       setLoading(false);
-    });
+    }).catch(() => setLoading(false));
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -65,9 +84,13 @@ function App() {
                   <Route path="/" element={<Navigate to="/dashboard" replace />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/secrets" element={<SecretsPage />} />
+                  <Route path="/mcp-services" element={<MCPServicesPage />} />
+                  <Route path="/api-keys" element={<APIKeysPage />} />
+                  <Route path="/mcp-usage" element={<MCPUsagePage />} />
                   <Route path="/mcp-monitoring" element={<MCPMonitoringPage />} />
                   <Route path="/vps-management" element={<VPSManagementPage />} />
                   <Route path="/analytics" element={<AnalyticsPage />} />
+                  <Route path="/memories" element={<MemoriesPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
                 </Routes>
               </div>
