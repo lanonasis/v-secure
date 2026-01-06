@@ -33,6 +33,7 @@ All prerequisites for production deployment have been completed.
 - [x] security.txt - Security contact (RFC 9116)
 - [x] \_headers - Netlify security headers
 - [x] netlify.toml - Complete deployment config
+- [x] Vercel root directory set to `web` (required for Git deployments)
 
 ### ✅ Security
 
