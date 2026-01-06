@@ -31,7 +31,7 @@ const CreateApiKeySchema = z.object({
   tags: z.array(z.string()).default([]),
   expiresAt: z.string().datetime().optional(),
   rotationFrequency: z.number().int().min(1).max(365).default(90),
-  metadata: z.record(z.any()).default({})
+  metadata: z.record(z.string(), z.any()).default({})
 });
 
 const UpdateApiKeySchema = CreateApiKeySchema.partial().omit({ projectId: true });
@@ -41,7 +41,7 @@ const CreateProjectSchema = z.object({
   description: z.string().optional(),
   organizationId: z.string().uuid(),
   teamMembers: z.array(z.string().uuid()).default([]),
-  settings: z.record(z.any()).default({})
+  settings: z.record(z.string(), z.any()).default({})
 });
 
 const MCPToolSchema = z.object({
@@ -66,7 +66,7 @@ const MCPAccessRequestSchema = z.object({
   environment: z.enum(['development', 'staging', 'production']),
   justification: z.string().min(1),
   estimatedDuration: z.number().int().min(60).max(3600),
-  context: z.record(z.any()).default({})
+  context: z.record(z.string(), z.any()).default({})
 });
 
 // Types
