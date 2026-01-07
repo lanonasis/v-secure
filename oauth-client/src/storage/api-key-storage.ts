@@ -22,13 +22,27 @@ export class ApiKeyStorage {
   private migrationCompleted = false;
 
   constructor() {
-    // Lazy load keytar only in Node environment
-    if (this.isNode()) {
-      try {
-        this.keytar = require('keytar');
-      } catch (e) {
-        console.warn('Keytar not available - falling back to encrypted file storage');
-      }
+    // Keytar will be loaded lazily when needed
+  }
+
+  private async loadKeytar(): Promise<any> {
+    if (this.keytar !== undefined) {
+      return this.keytar;
+    }
+
+    if (!this.isNode()) {
+      this.keytar = null;
+      return null;
+    }
+
+    try {
+      const keytarModule = await import('keytar');
+      this.keytar = keytarModule.default || keytarModule;
+      return this.keytar;
+    } catch (e) {
+      console.warn('Keytar not available - falling back to encrypted file storage');
+      this.keytar = null;
+      return null;
     }
   }
 
@@ -55,15 +69,16 @@ export class ApiKeyStorage {
 
     if (this.isNode()) {
       // Terminal: Use system keychain if available
-      if (this.keytar) {
+      const keytar = await this.loadKeytar();
+      if (keytar) {
         try {
-          await this.keytar.setPassword('lanonasis-mcp', this.storageKey, keyString);
+          await keytar.setPassword('lanonasis-mcp', this.storageKey, keyString);
           return;
         } catch (error) {
           console.warn('Keytar storage failed, falling back to file:', error);
         }
       }
-      
+
       // Fallback to encrypted file
       await this.storeToFile(keyString);
       
@@ -91,14 +106,15 @@ export class ApiKeyStorage {
     try {
       if (this.isNode()) {
         // Terminal: Try keychain first
-        if (this.keytar) {
+        const keytar = await this.loadKeytar();
+        if (keytar) {
           try {
-            keyString = await this.keytar.getPassword('lanonasis-mcp', this.storageKey);
+            keyString = await keytar.getPassword('lanonasis-mcp', this.storageKey);
           } catch (error) {
             console.warn('Keytar retrieval failed, trying file:', error);
           }
         }
-        
+
         // Fallback to file if not in keychain
         if (!keyString) {
           keyString = await this.retrieveFromFile();
@@ -167,9 +183,10 @@ export class ApiKeyStorage {
    */
   async clear(): Promise<void> {
     if (this.isNode()) {
-      if (this.keytar) {
+      const keytar = await this.loadKeytar();
+      if (keytar) {
         try {
-          await this.keytar.deletePassword('lanonasis-mcp', this.storageKey);
+          await keytar.deletePassword('lanonasis-mcp', this.storageKey);
         } catch (error) {
           console.warn('Keytar deletion failed:', error);
         }
@@ -276,62 +293,62 @@ export class ApiKeyStorage {
 
   private async storeToFile(keyString: string): Promise<void> {
     if (!this.isNode()) return;
-    
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    const crypto = require('crypto');
-    
-    const configDir = path.join(os.homedir(), '.lanonasis');
-    const keyFile = path.join(configDir, 'api-key.enc');
-    
+
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const os = await import('node:os');
+    const crypto = await import('node:crypto');
+
+    const configDir = path.default.join(os.default.homedir(), '.lanonasis');
+    const keyFile = path.default.join(configDir, 'api-key.enc');
+
     // Ensure directory exists with secure permissions
-    await fs.mkdir(configDir, { recursive: true, mode: 0o700 });
-    
+    await fs.default.mkdir(configDir, { recursive: true, mode: 0o700 });
+
     // Encrypt API key with AES-256-GCM (more secure than CBC)
-    const key = this.getFileEncryptionKey();
-    const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-    
+    const key = await this.getFileEncryptionKey();
+    const iv = crypto.default.randomBytes(16);
+    const cipher = crypto.default.createCipheriv('aes-256-gcm', key, iv);
+
     let encrypted = cipher.update(keyString, 'utf8', 'hex');
     encrypted += cipher.final('hex');
-    
+
     // Get authentication tag for GCM
     const authTag = cipher.getAuthTag();
-    
+
     // Store with IV and auth tag
     const data = iv.toString('hex') + ':' + authTag.toString('hex') + ':' + encrypted;
-    await fs.writeFile(keyFile, data, { mode: 0o600 });
+    await fs.default.writeFile(keyFile, data, { mode: 0o600 });
   }
 
   private async retrieveFromFile(): Promise<string | null> {
     if (!this.isNode()) return null;
-    
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    const crypto = require('crypto');
-    
-    const keyFile = path.join(os.homedir(), '.lanonasis', 'api-key.enc');
-    
+
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const os = await import('node:os');
+    const crypto = await import('node:crypto');
+
+    const keyFile = path.default.join(os.default.homedir(), '.lanonasis', 'api-key.enc');
+
     try {
-      const data = await fs.readFile(keyFile, 'utf8');
+      const data = await fs.default.readFile(keyFile, 'utf8');
       const [ivHex, authTagHex, encrypted] = data.split(':');
-      
+
       if (!ivHex || !authTagHex || !encrypted) {
         throw new Error('Invalid encrypted file format');
       }
-      
-      const key = this.getFileEncryptionKey();
+
+      const key = await this.getFileEncryptionKey();
       const iv = Buffer.from(ivHex, 'hex');
       const authTag = Buffer.from(authTagHex, 'hex');
-      const decipher = crypto.createDecipheriv('aes-256-gcm', key, iv);
-      
+      const decipher = crypto.default.createDecipheriv('aes-256-gcm', key, iv);
+
       decipher.setAuthTag(authTag);
-      
+
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
       decrypted += decipher.final('utf8');
-      
+
       return decrypted;
     } catch (error) {
       // File doesn't exist or decryption failed
@@ -341,15 +358,15 @@ export class ApiKeyStorage {
 
   private async deleteFile(): Promise<void> {
     if (!this.isNode()) return;
-    
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    
-    const keyFile = path.join(os.homedir(), '.lanonasis', 'api-key.enc');
-    
+
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const os = await import('node:os');
+
+    const keyFile = path.default.join(os.default.homedir(), '.lanonasis', 'api-key.enc');
+
     try {
-      await fs.unlink(keyFile);
+      await fs.default.unlink(keyFile);
     } catch (error) {
       // Ignore if file doesn't exist
     }
@@ -357,16 +374,16 @@ export class ApiKeyStorage {
 
   private async retrieveLegacyFromFile(): Promise<string | null> {
     if (!this.isNode()) return null;
-    
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    
+
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const os = await import('node:os');
+
     // Check old unencrypted location
-    const legacyFile = path.join(os.homedir(), '.lanonasis', 'api-key.txt');
-    
+    const legacyFile = path.default.join(os.default.homedir(), '.lanonasis', 'api-key.txt');
+
     try {
-      return await fs.readFile(legacyFile, 'utf8');
+      return await fs.default.readFile(legacyFile, 'utf8');
     } catch {
       return null;
     }
@@ -374,29 +391,29 @@ export class ApiKeyStorage {
 
   private async deleteLegacyFile(): Promise<void> {
     if (!this.isNode()) return;
-    
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    
-    const legacyFile = path.join(os.homedir(), '.lanonasis', 'api-key.txt');
-    
+
+    const fs = await import('node:fs/promises');
+    const path = await import('node:path');
+    const os = await import('node:os');
+
+    const legacyFile = path.default.join(os.default.homedir(), '.lanonasis', 'api-key.txt');
+
     try {
-      await fs.unlink(legacyFile);
+      await fs.default.unlink(legacyFile);
     } catch {
       // Ignore errors
     }
   }
 
-  private getFileEncryptionKey(): Buffer {
-    const crypto = require('crypto');
-    const os = require('os');
-    
+  private async getFileEncryptionKey(): Promise<Buffer> {
+    const crypto = await import('node:crypto');
+    const os = await import('node:os');
+
     // Derive key from machine ID + user + fixed salt
-    const machineId = os.hostname() + os.userInfo().username;
+    const machineId = os.default.hostname() + os.default.userInfo().username;
     const salt = 'lanonasis-mcp-api-key-2024';
-    
-    return crypto.pbkdf2Sync(machineId, salt, 100000, 32, 'sha256');
+
+    return crypto.default.pbkdf2Sync(machineId, salt, 100000, 32, 'sha256');
   }
 
   // ==================== Web Encryption ====================
