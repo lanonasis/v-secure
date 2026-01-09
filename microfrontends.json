@@ -1,16 +1,15 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
+  "version": "1.0.0",
   "applications": {
     "v-secure": {
       "packageName": "@lanonasis/vortexshield-web",
       "development": {
-        "local": 3000,
         "fallback": "https://v-secure.vercel.app"
       }
     },
     "vortex-secure": {
       "development": {
-        "local": 5173,
         "fallback": "https://vortex-secure.vercel.app"
       },
       "routing": [
