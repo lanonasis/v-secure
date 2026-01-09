@@ -1,0 +1,10 @@
+{
+    "name": "v-secure",
+    "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/v-secure/src",
+    "projectType": "application",
+    "tags": [
+        "scope:security",
+        "type:service"
+    ]
+}

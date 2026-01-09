@@ -1,0 +1,10 @@
+{
+    "name": "v-secure-oauth-client",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/v-secure/oauth-client/src",
+    "projectType": "library",
+    "tags": [
+        "scope:security",
+        "type:sdk"
+    ]
+}
