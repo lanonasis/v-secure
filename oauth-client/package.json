@@ -1,6 +1,6 @@
 {
   "name": "@lanonasis/oauth-client",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "type": "module",
   "description": "OAuth and API Key authentication client for Lan Onasis MCP integration",
   "license": "MIT",
