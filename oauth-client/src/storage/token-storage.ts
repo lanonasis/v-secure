@@ -1,5 +1,29 @@
 import { TokenResponse } from '../types';
 
+// Lazy-loaded Node.js modules (only imported when running in Node.js)
+let _fs: typeof import('fs') | null = null;
+let _path: typeof import('path') | null = null;
+let _os: typeof import('os') | null = null;
+let _crypto: typeof import('crypto') | null = null;
+
+async function getNodeModules() {
+  if (_fs && _path && _os && _crypto) {
+    return { fs: _fs, path: _path, os: _os, crypto: _crypto };
+  }
+  // Dynamic imports - only executed in Node.js environment
+  const [fs, path, os, crypto] = await Promise.all([
+    import('fs'),
+    import('path'),
+    import('os'),
+    import('crypto')
+  ]);
+  _fs = fs;
+  _path = path;
+  _os = os;
+  _crypto = crypto;
+  return { fs, path, os, crypto };
+}
+
 export interface TokenStorageAdapter {
   store(tokens: TokenResponse): Promise<void>;
   retrieve(): Promise<TokenResponse | null>;
@@ -129,45 +153,37 @@ export class TokenStorage implements TokenStorageAdapter {
   private async storeToFile(tokenString: string): Promise<void> {
     if (!this.isNode()) return;
     
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    const crypto = require('crypto');
+    const { fs, path, os, crypto } = await getNodeModules();
+    const configDir = path.join(os.homedir(), '.lanonasis');
+    const tokenFile = path.join(configDir, 'mcp-tokens.enc');
     
-      const configDir = path.join(os.homedir(), '.lanonasis');
-      const tokenFile = path.join(configDir, 'mcp-tokens.enc');
+    // Ensure directory exists
+    await fs.promises.mkdir(configDir, { recursive: true });
       
-      // Ensure directory exists
-      await fs.mkdir(configDir, { recursive: true });
+    // Encrypt tokens (AES-256-GCM)
+    const key = await this.getFileEncryptionKey();
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
+    
+    let encrypted = cipher.update(tokenString, 'utf8', 'hex');
+    encrypted += cipher.final('hex');
+    const authTag = cipher.getAuthTag().toString('hex');
       
-      // Encrypt tokens (AES-256-GCM)
-      const key = this.getFileEncryptionKey();
-      const iv = crypto.randomBytes(16);
-      const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
-      
-      let encrypted = cipher.update(tokenString, 'utf8', 'hex');
-      encrypted += cipher.final('hex');
-      const authTag = cipher.getAuthTag().toString('hex');
-      
-      // Store with IV and auth tag for integrity
-      const data = [iv.toString('hex'), authTag, encrypted].join(':');
-      await fs.writeFile(tokenFile, data, { mode: 0o600 });
-    }
+    // Store with IV and auth tag for integrity
+    const data = [iv.toString('hex'), authTag, encrypted].join(':');
+    await fs.promises.writeFile(tokenFile, data, { mode: 0o600 });
+  }
 
   private async retrieveFromFile(): Promise<string | null> {
     if (!this.isNode()) return null;
     
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    const crypto = require('crypto');
-    
+    const { fs, path, os, crypto } = await getNodeModules();
     const tokenFile = path.join(os.homedir(), '.lanonasis', 'mcp-tokens.enc');
     
     try {
-      const data = await fs.readFile(tokenFile, 'utf8');
+      const data = await fs.promises.readFile(tokenFile, 'utf8');
       const parts = data.split(':');
-      const key = this.getFileEncryptionKey();
+      const key = await this.getFileEncryptionKey();
 
       // Preferred: AES-GCM (iv:auth:cipher)
       if (parts.length === 3) {
@@ -202,23 +218,18 @@ export class TokenStorage implements TokenStorageAdapter {
   private async deleteFile(): Promise<void> {
     if (!this.isNode()) return;
     
-    const fs = require('fs').promises;
-    const path = require('path');
-    const os = require('os');
-    
+    const { fs, path, os } = await getNodeModules();
     const tokenFile = path.join(os.homedir(), '.lanonasis', 'mcp-tokens.enc');
     
     try {
-      await fs.unlink(tokenFile);
+      await fs.promises.unlink(tokenFile);
     } catch (error) {
       // Ignore if file doesn't exist
     }
   }
 
-  private getFileEncryptionKey(): Buffer {
-    const crypto = require('crypto');
-    const os = require('os');
-    
+  private async getFileEncryptionKey(): Promise<Buffer> {
+    const { os, crypto } = await getNodeModules();
     // Derive key from machine ID + fixed salt
     const machineId = os.hostname() + os.userInfo().username;
     const salt = 'lanonasis-mcp-oauth-2024';

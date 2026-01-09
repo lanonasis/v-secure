@@ -6,4 +6,5 @@ export * from './storage/api-key-storage';
 export * from './storage/token-storage-web';
 export * from './storage/api-key-storage-web';
 export * from './client/mcp-client';
+export * from './client/auth-gateway-client';
 export * from './types';

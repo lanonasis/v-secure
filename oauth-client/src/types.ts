@@ -37,3 +37,44 @@ export interface PKCEChallenge {
   codeVerifier: string;
   codeChallenge: string;
 }
+
+export type AuthTokenType = 'api_key' | 'jwt' | 'oauth' | 'cli';
+
+export interface AuthValidationResult {
+  valid: boolean;
+  type?: AuthTokenType;
+  userId?: string;
+  email?: string;
+  role?: string;
+  projectScope?: string;
+  permissions?: string[];
+  scope?: string | string[];
+  expiresAt?: string | null;
+  error?: string;
+  raw?: unknown;
+}
+
+export interface AuthGatewayClientConfig {
+  authBaseUrl?: string;
+  clientId?: string;
+  projectScope?: string;
+}
+
+export interface TokenExchangeOptions {
+  projectScope?: string;
+  platform?: string;
+}
+
+export interface TokenExchangeResponse {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+  token_type?: string;
+  user?: {
+    id: string;
+    email?: string;
+    role?: string;
+    project_scope?: string;
+  };
+  [key: string]: unknown;
+}

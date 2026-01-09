@@ -64,7 +64,7 @@ export class APIKeyFlow extends BaseOAuthFlow {
    */
   async validateAPIKey(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.authBaseUrl}/api/v1/health`, {
+      const response = await fetch(`${this.config.authBaseUrl}/api/v1/health`, {
         headers: {
           'x-api-key': this.apiKey
         }
