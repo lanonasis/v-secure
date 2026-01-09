@@ -58,21 +58,27 @@ v-secure.vercel.app/
     └── /dashboard/*     → vortex-secure catch-all
 ```
 
-#### Vercel Project Setup
+#### Vercel Project Setup (Recommended: Separate Projects)
 
 **Project 1: v-secure (Main)**
 - **Name**: `v-secure`
-- **Root Directory**: `apps/v-secure/web`
-- **Framework**: Next.js
+- **Connect from**: `apps/v-secure/web` directory
+- **Framework**: Next.js (auto-detected)
+- **Root Directory**: Set to empty (current directory) in Vercel dashboard
 - **Build Command**: `VC_MICROFRONTENDS_CONFIG=../microfrontends.json bun run build`
-- **Output Directory**: `.next`
 
 **Project 2: vortex-secure (Dashboard)**
 - **Name**: `vortex-secure`
-- **Root Directory**: `apps/v-secure/vortex-secure` (NOT `vortex-secure/vortex-secure`!)
-- **Framework**: Vite
+- **Connect from**: `apps/v-secure/vortex-secure` directory
+- **Framework**: Vite (auto-detected)
+- **Root Directory**: Set to empty (current directory) in Vercel dashboard
 - **Build Command**: `VC_MICROFRONTENDS_CONFIG=../microfrontends.json bun run build`
-- **Output Directory**: `dist`
+
+#### Alternative: Monorepo Deployment (Not Recommended for Microfrontends)
+
+If deploying from monorepo root, set **Root Directory** in Vercel dashboard:
+- **v-secure project**: Root Directory = `apps/v-secure/web`
+- **vortex-secure project**: Root Directory = `apps/v-secure/vortex-secure`
 
 ### 3. Current Issue Resolution
 
@@ -107,16 +113,23 @@ VC_MICROFRONTENDS_CONFIG=../microfrontends.json vercel --prod --force
 - **Child app** (vortex-secure) handles `/dashboard/*` routes
 - Routing is handled by Vercel's edge network, not client-side routing
 
-#### Local Development
+#### Local Development (Updated for Official Microfrontends)
 ```bash
-# Terminal 1: Main app (Next.js)
+# From monorepo root - runs both apps with automatic port assignment
+bun run dev:v-secure
+
+# Or run individual apps:
 cd apps/v-secure/web
 VC_MICROFRONTENDS_CONFIG=../microfrontends.json bun run dev
 
-# Terminal 2: Dashboard app (Vite)
 cd apps/v-secure/vortex-secure
 VC_MICROFRONTENDS_CONFIG=../microfrontends.json bun run dev
 ```
+
+**New Features:**
+- ✅ Automatic port assignment (`npx @vercel/microfrontends port <app-name>`)
+- ✅ Turbo integration for running multiple apps
+- ✅ No more hardcoded ports in configuration
 
 ### 5. Configuration Files Setup
 
@@ -148,16 +161,23 @@ VC_MICROFRONTENDS_CONFIG=../microfrontends.json bun run dev
 ls -la microfrontends.json  # Should exist
 ```
 
-#### Step 3: Redeploy Both Apps
+#### Step 3: Deploy from Correct Directories
+
+**Recommended: Deploy from App Directories**
 ```bash
-# Deploy main app
+# Deploy main app from its directory
 cd apps/v-secure/web
 VC_MICROFRONTENDS_CONFIG=../microfrontends.json vercel --prod
 
-# Deploy dashboard app (after fixing root directory)
+# Deploy dashboard app from its directory (after fixing root directory)
 cd apps/v-secure/vortex-secure
 VC_MICROFRONTENDS_CONFIG=../microfrontends.json vercel --prod
 ```
+
+**Alternative: Deploy from Monorepo Root**
+If deploying from monorepo root, ensure **Root Directory** is set in Vercel dashboard:
+- For v-secure project: Root Directory = `apps/v-secure/web`
+- For vortex-secure project: Root Directory = `apps/v-secure/vortex-secure`
 
 #### Step 4: Verify Routing
 - `https://v-secure.vercel.app/` → Main app
