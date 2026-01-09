@@ -1,0 +1,10 @@
+{
+    "name": "v-secure-security-sdk",
+    "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+    "sourceRoot": "apps/v-secure/security-sdk/src",
+    "projectType": "library",
+    "tags": [
+        "scope:security",
+        "type:sdk"
+    ]
+}
