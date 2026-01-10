@@ -24,6 +24,10 @@
       ]
     }
   ],
+  "rewrites": [
+    { "source": "/dashboard", "destination": "https://vortex-secure-onasis-team.vercel.app/" },
+    { "source": "/dashboard/:path*", "destination": "https://vortex-secure-onasis-team.vercel.app/:path*" }
+  ],
   "redirects": [
     { "source": "/docs", "destination": "https://docs.lanonasis.com/vortexshield", "permanent": true },
     { "source": "/api-docs", "destination": "https://docs.lanonasis.com/vortexshield/api", "permanent": true },
