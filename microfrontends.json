@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/microfrontends.json",
-  "version": "1.0.0",
   "applications": {
     "v-secure": {
       "packageName": "@lanonasis/vortexshield-web",
