@@ -28,6 +28,7 @@ vi.mock('next/navigation', () => ({
 const mockSignInWithPassword = vi.fn();
 const mockSignInWithOAuth = vi.fn();
 const mockGetSession = vi.fn();
+const mockIsSupabaseConfigured = vi.fn(() => true);
 
 vi.mock('@/app/lib/supabase', () => ({
   signInWithEmail: vi.fn(async (email: string, password: string) => {
@@ -39,7 +40,7 @@ vi.mock('@/app/lib/supabase', () => ({
   getSession: vi.fn(async () => {
     return mockGetSession();
   }),
-  isSupabaseConfigured: () => true,
+  isSupabaseConfigured: mockIsSupabaseConfigured,
 }));
 
 describe('Login Page Integration Tests', () => {
@@ -49,6 +50,7 @@ describe('Login Page Integration Tests', () => {
     mockSearchParams.delete('message');
     mockSearchParams.delete('redirect');
     mockGetSession.mockResolvedValue(null);
+    mockIsSupabaseConfigured.mockReturnValue(true);
   });
 
   describe('Form Rendering', () => {
@@ -277,9 +279,7 @@ describe('Login Page Integration Tests', () => {
 
   describe('Configuration Check', () => {
     it('should show error when Supabase is not configured', async () => {
-      vi.doMock('@/app/lib/supabase', () => ({
-        isSupabaseConfigured: () => false,
-      }));
+      mockIsSupabaseConfigured.mockReturnValue(false);
 
       const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
