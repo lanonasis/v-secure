@@ -7,13 +7,16 @@
  *
  * @see https://supabase.com/docs/guides/auth/oauth-server
  */
-import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
 
 // Mock fetch for testing
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 describe('OAuth 2.1 Integration Tests', () => {
+  beforeEach(() => {
+    mockFetch.mockReset();
+  });
 
   describe('Auth-Gateway OAuth (auth.lanonasis.com)', () => {
     const AUTH_GATEWAY_URL = 'https://auth.lanonasis.com';
