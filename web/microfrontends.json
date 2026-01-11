@@ -16,6 +16,7 @@
       "routing": [
         {
           "paths": [
+            "/dashboard",
             "/dashboard/:path*"
           ]
         }
