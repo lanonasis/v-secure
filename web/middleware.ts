@@ -20,7 +20,6 @@ export const config = {
     // Required for microfrontends client config and prefetch optimizations
     '/.well-known/vercel/microfrontends/:path*',
     // Dashboard routes handled by vortex-secure microfrontend
-    '/dashboard',
     '/dashboard/:path*',
   ],
 };

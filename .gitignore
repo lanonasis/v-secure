@@ -44,3 +44,4 @@ yarn-error.log*
 # Database setup with credentials (use .env instead)
 # DATABASE_SETUP.md with real credentials should never be committed
 .vercel
+.env*.local
