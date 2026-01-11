@@ -9,6 +9,7 @@
       }
     },
     "vortex-secure": {
+      "packageName": "vortex-secure",
       "development": {
         "local": 5173,
         "fallback": "https://vortex-secure.vercel.app"
@@ -16,7 +17,6 @@
       "routing": [
         {
           "paths": [
-            "/dashboard",
             "/dashboard/:path*"
           ]
         }
