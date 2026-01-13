@@ -1,5 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { ComponentType } from 'react';
 
 // Mock Supabase client
 vi.mock('@/app/lib/supabase', () => ({
@@ -19,10 +20,16 @@ vi.mock('@/app/lib/supabase', () => ({
 
 // Simple component test
 describe('Login Page', () => {
-  it('renders login form elements', async () => {
-    // Dynamic import to avoid SSR issues
-    const { default: LoginPage } = await import('@/app/login/page');
+  let LoginPage: ComponentType;
 
+  beforeAll(
+    async () => {
+      ({ default: LoginPage } = await import('@/app/login/page'));
+    },
+    10000
+  );
+
+  it('renders login form elements', async () => {
     render(<LoginPage />);
 
     // Check for form elements (using actual placeholder text)
@@ -32,8 +39,6 @@ describe('Login Page', () => {
   });
 
   it('has OAuth provider buttons', async () => {
-    const { default: LoginPage } = await import('@/app/login/page');
-
     render(<LoginPage />);
 
     // Check for OAuth buttons
@@ -42,8 +47,6 @@ describe('Login Page', () => {
   });
 
   it('has link to signup page', async () => {
-    const { default: LoginPage } = await import('@/app/login/page');
-
     render(<LoginPage />);
 
     // Link text is "Start free trial"

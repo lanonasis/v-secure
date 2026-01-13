@@ -9,8 +9,9 @@
  * - Redirect behavior
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import type { ComponentType } from 'react';
 import { useRouter } from 'next/navigation';
 
 // Mock Next.js router
@@ -44,6 +45,15 @@ vi.mock('@/app/lib/supabase', () => ({
 }));
 
 describe('Login Page Integration Tests', () => {
+  let LoginPage: ComponentType;
+
+  beforeAll(
+    async () => {
+      ({ default: LoginPage } = await import('@/app/login/page'));
+    },
+    10000
+  );
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockSearchParams.delete('error');
@@ -55,7 +65,6 @@ describe('Login Page Integration Tests', () => {
 
   describe('Form Rendering', () => {
     it('should render all login form elements', async () => {
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       expect(screen.getByPlaceholderText('you@example.com')).toBeInTheDocument();
@@ -67,7 +76,6 @@ describe('Login Page Integration Tests', () => {
 
     it('should show error message from URL params', async () => {
       mockSearchParams.set('error', 'Invalid credentials');
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
@@ -75,7 +83,6 @@ describe('Login Page Integration Tests', () => {
 
     it('should show success message from URL params', async () => {
       mockSearchParams.set('message', 'Login successful');
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       expect(screen.getByText('Login successful')).toBeInTheDocument();
@@ -92,7 +99,6 @@ describe('Login Page Integration Tests', () => {
         error: null,
       });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -112,7 +118,6 @@ describe('Login Page Integration Tests', () => {
     it('should display error on invalid credentials', async () => {
       mockSignInWithPassword.mockRejectedValue(new Error('Invalid login credentials'));
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -129,7 +134,6 @@ describe('Login Page Integration Tests', () => {
     });
 
     it('should validate email format', async () => {
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -143,7 +147,6 @@ describe('Login Page Integration Tests', () => {
     });
 
     it('should require password', async () => {
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -157,7 +160,6 @@ describe('Login Page Integration Tests', () => {
     });
 
     it('should toggle password visibility', async () => {
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const passwordInput = screen.getByPlaceholderText('Enter your password') as HTMLInputElement;
@@ -177,7 +179,6 @@ describe('Login Page Integration Tests', () => {
     it('should initiate GitHub OAuth flow', async () => {
       mockSignInWithOAuth.mockResolvedValue({ data: {}, error: null });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const githubButton = screen.getByRole('button', { name: /github/i });
@@ -191,7 +192,6 @@ describe('Login Page Integration Tests', () => {
     it('should initiate Google OAuth flow', async () => {
       mockSignInWithOAuth.mockResolvedValue({ data: {}, error: null });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const googleButton = screen.getByRole('button', { name: /google/i });
@@ -205,7 +205,6 @@ describe('Login Page Integration Tests', () => {
     it('should handle OAuth errors', async () => {
       mockSignInWithOAuth.mockRejectedValue(new Error('OAuth failed'));
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const githubButton = screen.getByRole('button', { name: /github/i });
@@ -225,7 +224,6 @@ describe('Login Page Integration Tests', () => {
         error: null,
       });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -247,7 +245,6 @@ describe('Login Page Integration Tests', () => {
         error: null,
       });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
@@ -268,7 +265,6 @@ describe('Login Page Integration Tests', () => {
         data: { session: { access_token: 'token-123' } },
       });
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       await waitFor(() => {
@@ -281,7 +277,6 @@ describe('Login Page Integration Tests', () => {
     it('should show error when Supabase is not configured', async () => {
       mockIsSupabaseConfigured.mockReturnValue(false);
 
-      const { default: LoginPage } = await import('@/app/login/page');
       render(<LoginPage />);
 
       const emailInput = screen.getByPlaceholderText('you@example.com');
