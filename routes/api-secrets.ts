@@ -3,7 +3,7 @@ import { body, param, validationResult } from 'express-validator';
 import { authMiddleware } from '@/middleware/auth';
 import { SecretService } from '@/services/secretService';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 const secretService = new SecretService();
 
 /**

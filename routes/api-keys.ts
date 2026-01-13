@@ -4,7 +4,7 @@ import { authMiddleware } from '../middleware/auth.js';
 import { apiKeyService } from '../services/apiKeyService.js';
 import { logger } from '../utils/logger.js';
 
-const router = express.Router();
+const router: express.Router = express.Router();
 
 // Validation middleware
 const validateRequest = (req: express.Request, res: express.Response, next: express.NextFunction): void => {
