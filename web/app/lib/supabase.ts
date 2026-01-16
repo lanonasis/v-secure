@@ -28,23 +28,39 @@ if (!supabaseAnonKey || supabaseAnonKey === 'your_supabase_anon_key') {
   console.warn('NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured. Auth features will be disabled.');
 }
 
-// Create Supabase client for browser
+// Cookie domain for cross-subdomain auth (secureme.lanonasis.com <-> vortexshield.lanonasis.com)
+const cookieDomain = process.env.NODE_ENV === 'production' ? '.lanonasis.com' : undefined;
+
+// Create Supabase client for browser with cross-subdomain cookie support
 export function createClient() {
   return createBrowserClient(
     supabaseUrl || 'https://placeholder.supabase.co',
-    supabaseAnonKey || 'placeholder-key'
+    supabaseAnonKey || 'placeholder-key',
+    {
+      cookies: {
+        // Set cookies on parent domain for subdomain sharing
+        ...(cookieDomain && {
+          domain: cookieDomain,
+        }),
+      },
+    }
   );
 }
 
 // Default client instance
 export const supabase = createClient();
 
+// Auth URLs - centralized on auth.lanonasis.com in production
+const AUTH_CALLBACK_URL = process.env.NODE_ENV === 'production'
+  ? 'https://auth.lanonasis.com/auth/callback'
+  : `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
+
 // Auth helper functions
 export async function signInWithProvider(provider: 'github' | 'google') {
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/auth/callback`,
+      redirectTo: AUTH_CALLBACK_URL,
     },
   });
   if (error) throw error;
@@ -65,7 +81,7 @@ export async function signUpWithEmail(email: string, password: string, metadata?
     email,
     password,
     options: {
-      emailRedirectTo: `${window.location.origin}/auth/callback`,
+      emailRedirectTo: AUTH_CALLBACK_URL,
       data: metadata,
     },
   });

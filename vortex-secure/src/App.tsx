@@ -31,7 +31,9 @@ const DEMO_USER = {
   created_at: new Date().toISOString(),
 } as unknown as User;
 
-const DASHBOARD_BASE = '/dashboard';
+// In production (secureme.lanonasis.com), app is at root
+// In development, use /dashboard for local rewrite testing
+const DASHBOARD_BASE = import.meta.env.PROD ? '/' : '/dashboard';
 
 function App() {
   const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);

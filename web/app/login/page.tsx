@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield, Github, Chrome, Mail, ArrowLeft, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { signInWithProvider, signInWithEmail, getSession, isSupabaseConfigured } from '../lib/supabase';
 
+// Demo mode - bypass auth for testing
+const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -17,9 +20,19 @@ function LoginForm() {
   const [message, setMessage] = useState<string | null>(null);
 
   const isConfigured = isSupabaseConfigured();
-  const redirectTo = searchParams.get('redirect') || '/dashboard';
+  // In production, redirect to dashboard subdomain; in dev, use local dashboard
+  const defaultRedirect = process.env.NODE_ENV === 'production'
+    ? 'https://dashboard.lanonasis.com'
+    : '/dashboard';
+  const redirectTo = searchParams.get('redirect') || defaultRedirect;
 
   useEffect(() => {
+    // In demo mode, redirect directly to dashboard
+    if (DEMO_MODE) {
+      router.push(redirectTo);
+      return;
+    }
+
     // Check if already logged in
     getSession().then((session) => {
       if (session) {
