@@ -28,7 +28,7 @@ if (!supabaseAnonKey || supabaseAnonKey === 'your_supabase_anon_key') {
   console.warn('NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
 }
 
-// Cookie domain for cross-subdomain auth (secureme.lanonasis.com <-> vortexshield.lanonasis.com)
+// Cookie domain for cross-subdomain auth (auth.lanonasis.com <-> dashboard.lanonasis.com)
 const cookieDomain = process.env.NODE_ENV === 'production' ? '.lanonasis.com' : undefined;
 
 // Create Supabase client for browser with cross-subdomain cookie support
@@ -37,11 +37,12 @@ export function createClient() {
     supabaseUrl || 'https://placeholder.supabase.co',
     supabaseAnonKey || 'placeholder-key',
     {
-      cookies: {
+      cookieOptions: {
         // Set cookies on parent domain for subdomain sharing
-        ...(cookieDomain && {
-          domain: cookieDomain,
-        }),
+        domain: cookieDomain,
+        path: '/',
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
       },
     }
   );

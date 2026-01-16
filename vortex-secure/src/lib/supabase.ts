@@ -7,16 +7,17 @@ import type { Database } from '../types/database';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
 
-// Cookie domain for cross-subdomain auth (secureme.lanonasis.com <-> vortexshield.lanonasis.com)
+// Cookie domain for cross-subdomain auth (auth.lanonasis.com <-> dashboard.lanonasis.com)
 const cookieDomain = import.meta.env.PROD ? '.lanonasis.com' : undefined;
 
 // Use createBrowserClient for cookie-based auth (shares session with v-secure landing page)
 export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
-  cookies: {
+  cookieOptions: {
     // Set cookies on parent domain for subdomain sharing
-    ...(cookieDomain && {
-      domain: cookieDomain,
-    }),
+    domain: cookieDomain,
+    path: '/',
+    sameSite: 'lax',
+    secure: import.meta.env.PROD,
   },
 });
 
