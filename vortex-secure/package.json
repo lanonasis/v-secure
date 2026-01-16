@@ -7,10 +7,12 @@
   "author": "The Fixer Initiative",
   "license": "MIT",
   "scripts": {
-    "dev": "VC_MICROFRONTENDS_CONFIG=../web/microfrontends.json vite --port $(npx @vercel/microfrontends port vortex-secure)",
-    "build": "VC_MICROFRONTENDS_CONFIG=../web/microfrontends.json vite build",
+    "dev": "VC_MICROFRONTENDS_CONFIG=./microfrontends.json vite --port $(npx @vercel/microfrontends port vortex-secure)",
+    "dev:monorepo": "VC_MICROFRONTENDS_CONFIG=../web/microfrontends.json vite --port $(npx @vercel/microfrontends port vortex-secure)",
+    "build": "VC_MICROFRONTENDS_CONFIG=./microfrontends.json vite build",
+    "build:monorepo": "VC_MICROFRONTENDS_CONFIG=../web/microfrontends.json vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "VC_MICROFRONTENDS_CONFIG=../web/microfrontends.json vite preview",
+    "preview": "VC_MICROFRONTENDS_CONFIG=./microfrontends.json vite preview",
     "setup": "npm install && npx shadcn-ui@latest init && npx shadcn-ui@latest add button card input label badge",
     "db:setup": "supabase init && supabase start"
   },
