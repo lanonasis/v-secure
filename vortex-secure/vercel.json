@@ -2,9 +2,5 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "bun install",
-  "buildCommand": "VC_MICROFRONTENDS_CONFIG=./microfrontends.json vite build",
-  "outputDirectory": "dist",
-  "env": {
-    "VC_MICROFRONTENDS_CONFIG": "./microfrontends.json"
-  }
+  "outputDirectory": "dist"
 }
