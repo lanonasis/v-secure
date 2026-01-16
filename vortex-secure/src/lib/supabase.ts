@@ -1,22 +1,23 @@
 // Vortex Secure - Supabase Client Configuration
+// Uses @supabase/ssr for cookie-based auth to share session with landing page
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '../types/database';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+// Cookie domain for cross-subdomain auth (secureme.lanonasis.com <-> vortexshield.lanonasis.com)
+const cookieDomain = import.meta.env.PROD ? '.lanonasis.com' : undefined;
+
+// Use createBrowserClient for cookie-based auth (shares session with v-secure landing page)
+export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+  cookies: {
+    // Set cookies on parent domain for subdomain sharing
+    ...(cookieDomain && {
+      domain: cookieDomain,
+    }),
   },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
 });
 
 // Database Schema Setup SQL
@@ -176,11 +177,17 @@ export const getCurrentUser = async () => {
   return user;
 };
 
+// Auth callback URL - centralized on auth.lanonasis.com in production
+const AUTH_CALLBACK_URL = import.meta.env.PROD
+  ? 'https://auth.lanonasis.com/auth/callback?next=https://dashboard.lanonasis.com'
+  : `${window.location.origin}/auth/callback?next=/dashboard`;
+
 export const signInWithProvider = async (provider: 'github' | 'google') => {
+  // Redirect to centralized auth which then redirects to dashboard
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
-      redirectTo: `${window.location.origin}/dashboard`
+      redirectTo: AUTH_CALLBACK_URL
     }
   });
   if (error) throw error;
