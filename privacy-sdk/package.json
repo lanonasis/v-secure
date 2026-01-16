@@ -1,45 +1,82 @@
 {
   "name": "@lanonasis/privacy-sdk",
   "version": "1.0.0",
-  "description": "Privacy utilities and data masking SDK for Onasis ecosystem",
+  "description": "Enterprise-grade privacy utilities: PII detection, data masking, tokenization, and GDPR compliance. Part of the LanOnasis Security Suite.",
   "main": "dist/index.js",
-  "module": "dist/index.esm.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/index.esm.js",
+      "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "prebuild": "cd ../shared-types && bun run build",
-    "build": "tsup src/index.ts --format esm,cjs --dts --external react",
-    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest --coverage",
     "lint": "eslint src/**/*.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "privacy",
+    "pii",
     "data-masking",
     "anonymization",
-    "pii-protection",
-    "onasis",
-    "security"
+    "gdpr",
+    "ccpa",
+    "compliance",
+    "security",
+    "tokenization",
+    "lanonasis",
+    "vortexshield"
   ],
-  "author": "Onasis-CORE Team",
-  "license": "PROPRIETARY",
-  "dependencies": {
-    "@lanonasis/shared-types": "1.0.0",
-    "crypto": "^1.0.1"
+  "author": "LanOnasis <privacy@lanonasis.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lanonasis/v-secure.git",
+    "directory": "privacy-sdk"
+  },
+  "homepage": "https://vortexshield.lanonasis.com",
+  "bugs": {
+    "url": "https://github.com/lanonasis/v-secure/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.4",
-    "tsup": "^8.5.0",
+    "@types/node": "^20.0.0",
     "eslint": "^8.40.0",
-    "@types/node": "^18.16.3"
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.0",
+    "vitest": "^4.0.17"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "related": {
+    "@lanonasis/security-sdk": "Encryption, key management, API key generation",
+    "@lanonasis/security-shield": "Edge-layer bot protection and WAF",
+    "@lanonasis/mem-intel-sdk": "Memory intelligence and context management"
   }
 }
