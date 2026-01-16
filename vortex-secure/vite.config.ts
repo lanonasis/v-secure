@@ -3,11 +3,9 @@ import react from '@vitejs/plugin-react'
 import { microfrontends } from '@vercel/microfrontends/experimental/vite'
 import path from 'path'
 
-const useMicrofrontends = Boolean(process.env.VC_MICROFRONTENDS_CONFIG)
-
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: useMicrofrontends ? '/dashboard/' : '/',
+  base: '/dashboard/',
   plugins: [react(), microfrontends()],
   resolve: {
     alias: {
