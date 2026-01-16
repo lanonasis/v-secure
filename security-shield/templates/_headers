@@ -1,0 +1,109 @@
+# ============================================
+# LanOnasis Security Headers v2.0
+# ============================================
+
+# Global security headers for all pages
+/*
+  # Prevent clickjacking
+  X-Frame-Options: DENY
+  
+  # Prevent MIME type sniffing
+  X-Content-Type-Options: nosniff
+  
+  # Enable XSS filter (legacy browsers)
+  X-XSS-Protection: 1; mode=block
+  
+  # Control referrer information
+  Referrer-Policy: strict-origin-when-cross-origin
+  
+  # Restrict browser features
+  Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()
+  
+  # Strict Transport Security (HTTPS only)
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  
+  # Content Security Policy (adjust as needed for your site)
+  # Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.lanonasis.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  
+  # Tell crawlers not to cache sensitive responses
+  X-Robots-Tag: noarchive
+
+# ============================================
+# Sensitive file protection
+# ============================================
+
+/.env
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store
+
+/.env*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  Cache-Control: no-store
+
+/.git/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/.htaccess
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/.htpasswd
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/wp-config.php
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/config.php
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+# ============================================
+# API routes protection
+# ============================================
+
+/api/*
+  Cache-Control: no-store, no-cache, must-revalidate
+  X-Robots-Tag: noindex, nofollow
+
+/webhook
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+/webhook/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
+# ============================================
+# Admin/internal paths
+# ============================================
+
+/admin/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Frame-Options: DENY
+
+/dashboard/*
+  X-Robots-Tag: noindex, nofollow
+
+# ============================================
+# Static assets - allow caching
+# ============================================
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=86400
+
+/images/*
+  Cache-Control: public, max-age=86400
+
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *

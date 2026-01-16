@@ -1,0 +1,116 @@
+# ============================================
+# Security Shield Redirect Rules
+# 
+# INSTRUCTIONS:
+# Merge these rules into your existing netlify.toml
+# Place these redirects BEFORE your SPA catch-all redirect
+# ============================================
+
+# Sensitive files
+[[redirects]]
+  from = "/.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env.*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.git/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.htaccess"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-config.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/config.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.sql"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.bak"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# WordPress probing
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/xmlrpc.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Database admin
+[[redirects]]
+  from = "/phpmyadmin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Webhooks
+[[redirects]]
+  from = "/webhook"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/webhook/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Admin
+[[redirects]]
+  from = "/admin"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# PHP files
+[[redirects]]
+  from = "/*.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ============================================
+# Edge function declaration
+# ============================================
+[[edge_functions]]
+  path = "/*"
+  function = "security-shield"
