@@ -1,13 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
-  "devCommand": "next dev --webpack",
-  "buildCommand": "VC_MICROFRONTENDS_CONFIG=./microfrontends.json bun run build",
   "installCommand": "bun install",
-  "outputDirectory": ".next",
-  "env": {
-    "VC_MICROFRONTENDS_CONFIG": "./microfrontends.json"
-  },
   "headers": [
     {
       "source": "/(.*)",
