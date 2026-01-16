@@ -1,0 +1,109 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "geolocation=(), microphone=(), camera=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains; preload"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/.env",
+      "destination": "/404"
+    },
+    {
+      "source": "/.env:path*",
+      "destination": "/404"
+    },
+    {
+      "source": "/.git/:path*",
+      "destination": "/404"
+    },
+    {
+      "source": "/.htaccess",
+      "destination": "/404"
+    },
+    {
+      "source": "/wp-config.php",
+      "destination": "/404"
+    },
+    {
+      "source": "/wp-admin/:path*",
+      "destination": "/404"
+    },
+    {
+      "source": "/wp-login.php",
+      "destination": "/404"
+    },
+    {
+      "source": "/xmlrpc.php",
+      "destination": "/404"
+    },
+    {
+      "source": "/phpmyadmin/:path*",
+      "destination": "/404"
+    },
+    {
+      "source": "/admin",
+      "destination": "/404"
+    },
+    {
+      "source": "/webhook",
+      "destination": "/404"
+    },
+    {
+      "source": "/cgi-bin/:path*",
+      "destination": "/404"
+    },
+    {
+      "source": "/:path*.php",
+      "destination": "/404"
+    },
+    {
+      "source": "/:path*.sql",
+      "destination": "/404"
+    },
+    {
+      "source": "/:path*.bak",
+      "destination": "/404"
+    }
+  ]
+}

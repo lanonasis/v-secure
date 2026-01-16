@@ -1,0 +1,363 @@
+# ============================================
+# LanOnasis Security Configuration v2.0
+# ============================================
+# IMPORTANT: Merge these rules with your existing netlify.toml
+# Place redirect rules BEFORE your catch-all SPA redirect
+
+[build]
+  edge_functions = "netlify/edge-functions"
+
+# ============================================
+# SENSITIVE FILE BLOCKING
+# These return true 404s, not your SPA index.html
+# ============================================
+
+# Environment files
+[[redirects]]
+  from = "/.env"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.env.*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Git directory
+[[redirects]]
+  from = "/.git/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.gitignore"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Config files
+[[redirects]]
+  from = "/.htaccess"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.htpasswd"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-config.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/config.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/config.yml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/config.yaml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Package manager files
+[[redirects]]
+  from = "/.npmrc"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.yarnrc"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/package-lock.json"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/yarn.lock"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# IDE/Editor files
+[[redirects]]
+  from = "/.vscode/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.idea/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Backup/temp files
+[[redirects]]
+  from = "/*.bak"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.old"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.sql"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/*.log"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ============================================
+# HONEYPOT / ATTACK VECTOR BLOCKING
+# ============================================
+
+# Webhook probing
+[[redirects]]
+  from = "/webhook"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/webhook/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/api/webhook"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/hooks"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/callback"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# WordPress probing
+[[redirects]]
+  from = "/wp-admin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-login.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-content/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wp-includes/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wordpress/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/xmlrpc.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/wlwmanifest.xml"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Database admin probing
+[[redirects]]
+  from = "/phpmyadmin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/pma/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/myadmin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/mysql/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Admin panels
+[[redirects]]
+  from = "/admin"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/administrator"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/console/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/manager/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# PHP files (we don't run PHP)
+[[redirects]]
+  from = "/*.php"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# CGI (we don't use it)
+[[redirects]]
+  from = "/cgi-bin/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Shell/exec attempts
+[[redirects]]
+  from = "/shell"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/cmd"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/exec"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# API doc probing (if you don't have public docs)
+[[redirects]]
+  from = "/swagger-ui/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/api-docs"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Kubernetes/container probing
+[[redirects]]
+  from = "/actuator/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Version control
+[[redirects]]
+  from = "/.svn/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/.hg/*"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# Server status pages
+[[redirects]]
+  from = "/server-status"
+  to = "/404.html"
+  status = 404
+  force = true
+
+[[redirects]]
+  from = "/server-info"
+  to = "/404.html"
+  status = 404
+  force = true
+
+# ============================================
+# EDGE FUNCTION CONFIGURATION
+# ============================================
+
+[[edge_functions]]
+  path = "/*"
+  function = "security-shield"
+
+# ============================================
+# KEEP YOUR EXISTING SPA REDIRECT LAST
+# ============================================
+# This should be at the END of your redirects
+# [[redirects]]
+#   from = "/*"
+#   to = "/index.html"
+#   status = 200

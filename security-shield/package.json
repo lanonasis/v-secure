@@ -1,0 +1,85 @@
+{
+  "name": "@lanonasis/security-shield",
+  "version": "1.0.0",
+  "description": "Edge-layer security for Netlify & Vercel - bot protection, WAF, attack mitigation. Part of the LanOnasis Security Suite.",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "security-shield": "./bin/cli.js",
+    "lanonasis-shield": "./bin/cli.js"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "templates",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "lint": "eslint src/",
+    "test": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "netlify",
+    "vercel",
+    "security",
+    "bot-protection",
+    "edge-functions",
+    "middleware",
+    "waf",
+    "firewall",
+    "rate-limiting",
+    "ddos-protection",
+    "lanonasis",
+    "vortexshield"
+  ],
+  "author": "LanOnasis <security@lanonasis.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lanonasis/v-secure.git",
+    "directory": "security-shield"
+  },
+  "homepage": "https://vortexshield.lanonasis.com",
+  "bugs": {
+    "url": "https://github.com/lanonasis/v-secure/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.2.0"
+  },
+  "devDependencies": {
+    "@netlify/edge-functions": "^2.0.0",
+    "@types/fs-extra": "^11.0.4",
+    "@types/node": "^20.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^4.0.17"
+  },
+  "peerDependencies": {
+    "@netlify/edge-functions": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@netlify/edge-functions": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "related": {
+    "@lanonasis/security-sdk": "Encryption, key management, API key generation",
+    "@lanonasis/privacy-sdk": "PII detection, data masking, GDPR compliance",
+    "@lanonasis/mem-intel-sdk": "Memory intelligence and context management"
+  }
+}
