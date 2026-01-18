@@ -1,77 +1,35 @@
 // Vortex Secure - Main Dashboard Page
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Shield, 
-  Key, 
-  Bot, 
-  Activity, 
+import {
+  Shield,
+  Key,
+  Bot,
+  Activity,
   AlertTriangle,
   CheckCircle,
   Clock,
   TrendingUp,
   Users,
   Database,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
-
-// Mock data for demo
-const mockUsageData = [
-  { name: 'Mon', secrets: 45, mcp: 12 },
-  { name: 'Tue', secrets: 52, mcp: 18 },
-  { name: 'Wed', secrets: 61, mcp: 23 },
-  { name: 'Thu', secrets: 58, mcp: 19 },
-  { name: 'Fri', secrets: 73, mcp: 31 },
-  { name: 'Sat', secrets: 45, mcp: 15 },
-  { name: 'Sun', secrets: 38, mcp: 8 }
-];
-
-const mockSecrets = [
-  { name: 'stripe_api_key', environment: 'production', status: 'active', lastRotated: '2024-01-10', usage: 156 },
-  { name: 'database_url', environment: 'production', status: 'rotation_due', lastRotated: '2023-12-15', usage: 243 },
-  { name: 'openai_api_key', environment: 'staging', status: 'active', lastRotated: '2024-01-20', usage: 89 },
-  { name: 'webhook_secret', environment: 'development', status: 'active', lastRotated: '2024-01-25', usage: 34 }
-];
-
-const mockMCPSessions = [
-  { toolName: 'AI Payment Processor', secretsAccessed: ['stripe_api_key'], timeRemaining: '12m 34s', riskLevel: 'high' },
-  { toolName: 'Database Manager', secretsAccessed: ['database_url'], timeRemaining: '4m 12s', riskLevel: 'medium' },
-  { toolName: 'Content Generator', secretsAccessed: ['openai_api_key'], timeRemaining: '8m 45s', riskLevel: 'low' }
-];
+import { useDashboard } from '../hooks/useDashboard';
 
 export function Dashboard() {
-  const [stats, setStats] = useState({
-    totalSecrets: 0,
-    activeSecrets: 0,
-    rotationsDue: 0,
-    mcpSessions: 0,
-    secretsAccessed24h: 0,
-    averageResponseTime: 0
-  });
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setStats({
-        totalSecrets: 1247,
-        activeSecrets: 1189,
-        rotationsDue: 23,
-        mcpSessions: 15,
-        secretsAccessed24h: 3421,
-        averageResponseTime: 145
-      });
-      setLoading(false);
-    }, 1000);
-  };
+  const {
+    stats,
+    usageData,
+    recentSecrets,
+    activeSessions,
+    loading,
+    error,
+    refresh,
+  } = useDashboard();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -112,6 +70,31 @@ export function Dashboard() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Error loading dashboard</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -125,7 +108,7 @@ export function Dashboard() {
             <CheckCircle className="h-3 w-3 mr-1" />
             All Systems Operational
           </Badge>
-          <Button onClick={loadDashboardData} disabled={loading}>
+          <Button onClick={refresh} disabled={loading}>
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -203,7 +186,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockUsageData}>
+              <LineChart data={usageData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -240,7 +223,7 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockSecrets.map((secret, index) => (
+              {recentSecrets.map((secret, index) => (
                 <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
@@ -271,12 +254,12 @@ export function Dashboard() {
               <Bot className="h-5 w-5" />
               Active MCP Sessions
             </CardTitle>
-            <Badge variant="secondary">{mockMCPSessions.length} active</Badge>
+            <Badge variant="secondary">{activeSessions.length} active</Badge>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockMCPSessions.map((session, index) => (
+            {activeSessions.map((session, index) => (
               <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -303,7 +286,7 @@ export function Dashboard() {
               </div>
             ))}
             
-            {mockMCPSessions.length === 0 && (
+            {activeSessions.length === 0 && (
               <div className="text-center py-8 text-gray-500">
                 <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p>No active MCP sessions</p>

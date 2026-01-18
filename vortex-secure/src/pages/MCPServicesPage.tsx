@@ -31,6 +31,7 @@ import type {
   ServiceCategory,
 } from '../types/mcp-router';
 import { ServiceConfigureModal } from '../components/mcp-router/ServiceConfigureModal';
+import { useMCPServices } from '../hooks/useMCPServices';
 
 // Icon mapping for categories
 const categoryIcons: Record<ServiceCategory, React.ReactNode> = {
@@ -63,186 +64,25 @@ const categoryLabels: Record<ServiceCategory, string> = {
   other: 'Other',
 };
 
-// Mock data for demonstration
-const mockCatalogServices: MCPServiceCatalog[] = [
-  {
-    id: '1',
-    service_key: 'stripe',
-    display_name: 'Stripe',
-    description: 'Accept payments, manage subscriptions, and handle billing',
-    icon: 'credit-card',
-    category: 'payment',
-    credential_fields: [
-      { key: 'secret_key', label: 'Secret Key', type: 'password', required: true, placeholder: 'sk_live_...' },
-      { key: 'webhook_secret', label: 'Webhook Secret', type: 'password', required: false, placeholder: 'whsec_...' },
-    ],
-    mcp_command: 'npx @stripe/mcp-server-stripe',
-    mcp_args: [],
-    mcp_env_mapping: { secret_key: 'STRIPE_SECRET_KEY' },
-    documentation_url: 'https://stripe.com/docs/api',
-    base_url: 'https://api.stripe.com',
-    health_check_endpoint: '/v1/account',
-    is_available: true,
-    is_beta: false,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    service_key: 'github',
-    display_name: 'GitHub',
-    description: 'Manage repositories, issues, pull requests, and workflows',
-    icon: 'github',
-    category: 'devops',
-    credential_fields: [
-      { key: 'token', label: 'Personal Access Token', type: 'password', required: true, placeholder: 'ghp_...' },
-    ],
-    mcp_command: 'npx @modelcontextprotocol/server-github',
-    mcp_args: [],
-    mcp_env_mapping: { token: 'GITHUB_TOKEN' },
-    documentation_url: 'https://docs.github.com/en/rest',
-    base_url: 'https://api.github.com',
-    health_check_endpoint: '/user',
-    is_available: true,
-    is_beta: false,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    service_key: 'openai',
-    display_name: 'OpenAI',
-    description: 'Access GPT models, embeddings, DALL-E, and Whisper APIs',
-    icon: 'brain',
-    category: 'ai',
-    credential_fields: [
-      { key: 'api_key', label: 'API Key', type: 'password', required: true, placeholder: 'sk-...' },
-      { key: 'organization', label: 'Organization ID', type: 'text', required: false, placeholder: 'org-...' },
-    ],
-    mcp_command: 'npx openai-mcp-server',
-    mcp_args: [],
-    mcp_env_mapping: { api_key: 'OPENAI_API_KEY=REDACTED_OPENAI_API_KEY
-    documentation_url: 'https://platform.openai.com/docs/api-reference',
-    base_url: 'https://api.openai.com',
-    health_check_endpoint: '/v1/models',
-    is_available: true,
-    is_beta: false,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '4',
-    service_key: 'slack',
-    display_name: 'Slack',
-    description: 'Send messages and manage Slack workspaces',
-    icon: 'message-square',
-    category: 'communication',
-    credential_fields: [
-      { key: 'bot_token', label: 'Bot Token', type: 'password', required: true, placeholder: 'xoxb-...' },
-    ],
-    mcp_command: 'npx @modelcontextprotocol/server-slack',
-    mcp_args: [],
-    mcp_env_mapping: { bot_token: 'SLACK_BOT_TOKEN' },
-    documentation_url: 'https://api.slack.com/methods',
-    base_url: 'https://slack.com/api',
-    health_check_endpoint: '/auth.test',
-    is_available: true,
-    is_beta: false,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '5',
-    service_key: 'perplexity',
-    display_name: 'Perplexity',
-    description: 'AI-powered search and research with real-time information',
-    icon: 'search',
-    category: 'ai',
-    credential_fields: [
-      { key: 'api_key', label: 'API Key', type: 'password', required: true, placeholder: 'pplx-...' },
-    ],
-    mcp_command: 'npx perplexity-mcp-server',
-    mcp_args: [],
-    mcp_env_mapping: { api_key: 'PERPLEXITY_API_KEY' },
-    documentation_url: 'https://docs.perplexity.ai/reference',
-    base_url: 'https://api.perplexity.ai',
-    health_check_endpoint: '/chat/completions',
-    is_available: true,
-    is_beta: true,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '6',
-    service_key: 'notion',
-    display_name: 'Notion',
-    description: 'Manage Notion pages, databases, and workspaces',
-    icon: 'file-text',
-    category: 'other',
-    credential_fields: [
-      { key: 'api_key', label: 'Integration Token', type: 'password', required: true, placeholder: 'secret_...' },
-    ],
-    mcp_command: 'npx @modelcontextprotocol/server-notion',
-    mcp_args: [],
-    mcp_env_mapping: { api_key: 'NOTION_API_KEY' },
-    documentation_url: 'https://developers.notion.com/reference',
-    base_url: 'https://api.notion.com/v1',
-    health_check_endpoint: '/users/me',
-    is_available: true,
-    is_beta: false,
-    requires_approval: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-const mockUserServices: UserMCPService[] = [
-  {
-    id: '1',
-    user_id: 'user-1',
-    service_key: 'stripe',
-    encrypted_credentials: 'encrypted_data',
-    encryption_version: 1,
-    is_enabled: true,
-    environment: 'production',
-    last_used_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    total_calls: 156,
-    successful_calls: 152,
-    failed_calls: 4,
-    health_status: 'healthy',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    user_id: 'user-1',
-    service_key: 'github',
-    encrypted_credentials: 'encrypted_data',
-    encryption_version: 1,
-    is_enabled: true,
-    environment: 'production',
-    last_used_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    total_calls: 89,
-    successful_calls: 89,
-    failed_calls: 0,
-    health_status: 'healthy',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
 
 export function MCPServicesPage() {
+  const {
+    catalogServices,
+    userServices,
+    stats,
+    loading,
+    error,
+    configureService: saveServiceConfig,
+    toggleService,
+    deleteService,
+    testConnection,
+    refresh,
+  } = useMCPServices();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | 'all'>('all');
   const [showBeta, setShowBeta] = useState(true);
   const [configureService, setConfigureService] = useState<MCPServiceCatalog | null>(null);
-  const [catalogServices] = useState<MCPServiceCatalog[]>(mockCatalogServices);
-  const [userServices, setUserServices] = useState<UserMCPService[]>(mockUserServices);
 
   // Filter services
   const filteredServices = catalogServices.filter(service => {
@@ -271,14 +111,6 @@ export function MCPServicesPage() {
     return true;
   });
 
-  // Get stats
-  const stats = {
-    total: catalogServices.length,
-    configured: userServices.length,
-    enabled: userServices.filter(s => s.is_enabled).length,
-    healthy: userServices.filter(s => s.health_status === 'healthy').length,
-  };
-
   // Get user service for a catalog service
   const getUserService = (serviceKey: string) => {
     return userServices.find(s => s.service_key === serviceKey);
@@ -286,59 +118,95 @@ export function MCPServicesPage() {
 
   // Handle enable/disable toggle
   const handleToggle = async (serviceKey: string, enabled: boolean) => {
-    setUserServices(prev =>
-      prev.map(s =>
-        s.service_key === serviceKey ? { ...s, is_enabled: enabled } : s
-      )
-    );
+    try {
+      await toggleService(serviceKey, enabled);
+    } catch (err: any) {
+      alert(`Failed to toggle service: ${err.message}`);
+    }
   };
 
   // Handle delete
   const handleDelete = async (serviceKey: string) => {
     if (confirm('Are you sure you want to remove this service configuration?')) {
-      setUserServices(prev => prev.filter(s => s.service_key !== serviceKey));
+      try {
+        await deleteService(serviceKey);
+      } catch (err: any) {
+        alert(`Failed to delete service: ${err.message}`);
+      }
     }
   };
 
   // Handle test connection
   const handleTestConnection = async (serviceKey: string) => {
-    // In real implementation, would call API
-    alert(`Testing connection to ${serviceKey}...`);
+    try {
+      const result = await testConnection(serviceKey);
+      alert(result.success ? 'Connection successful!' : `Connection failed: ${result.message}`);
+    } catch (err: any) {
+      alert(`Test failed: ${err.message}`);
+    }
   };
 
   // Handle save configuration
   const handleSaveConfiguration = async (serviceKey: string, credentials: Record<string, string>) => {
-    const existing = getUserService(serviceKey);
-    if (existing) {
-      // Update existing
-      setUserServices(prev =>
-        prev.map(s =>
-          s.service_key === serviceKey
-            ? { ...s, health_status: 'unknown', updated_at: new Date().toISOString() }
-            : s
-        )
-      );
-    } else {
-      // Add new
-      const newService: UserMCPService = {
-        id: `new-${Date.now()}`,
-        user_id: 'user-1',
-        service_key: serviceKey,
-        encrypted_credentials: 'encrypted_data',
-        encryption_version: 1,
-        is_enabled: true,
-        environment: 'production',
-        total_calls: 0,
-        successful_calls: 0,
-        failed_calls: 0,
-        health_status: 'unknown',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
-      setUserServices(prev => [...prev, newService]);
+    try {
+      await saveServiceConfig(serviceKey, credentials);
+      setConfigureService(null);
+    } catch (err: any) {
+      alert(`Failed to save configuration: ${err.message}`);
     }
-    setConfigureService(null);
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">MCP Services</h1>
+            <p className="text-gray-600 mt-1">Loading...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">MCP Services</h1>
+          </div>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Error loading services</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const formatLastUsed = (date?: string) => {
     if (!date) return 'Never';
