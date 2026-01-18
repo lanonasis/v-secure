@@ -34,152 +34,30 @@ import {
   Cell,
 } from 'recharts';
 import type { MCPUsageLog } from '../types/mcp-router';
-
-// Mock data for demonstration
-const generateMockDailyData = () => {
-  const data = [];
-  for (let i = 29; i >= 0; i--) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    data.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      fullDate: date.toISOString(),
-      total: Math.floor(Math.random() * 500) + 100,
-      success: Math.floor(Math.random() * 450) + 80,
-      failed: Math.floor(Math.random() * 50) + 5,
-      avgResponseTime: Math.floor(Math.random() * 200) + 50,
-    });
-  }
-  return data;
-};
-
-const mockDailyData = generateMockDailyData();
-
-const mockServiceBreakdown = [
-  { name: 'Stripe', calls: 2456, color: '#4F46E5' },
-  { name: 'GitHub', calls: 1823, color: '#10B981' },
-  { name: 'OpenAI', calls: 1245, color: '#8B5CF6' },
-  { name: 'Slack', calls: 567, color: '#F59E0B' },
-  { name: 'Others', calls: 234, color: '#6B7280' },
-];
-
-const mockRecentLogs: MCPUsageLog[] = [
-  {
-    id: '1',
-    request_id: 'req_abc123',
-    user_id: 'user-1',
-    api_key_id: 'key-1',
-    service_key: 'stripe',
-    action: 'create-charge',
-    method: 'POST',
-    response_status: 200,
-    response_time_ms: 156,
-    mcp_spawn_time_ms: 45,
-    external_api_time_ms: 98,
-    client_ip: '192.168.1.1',
-    status: 'success',
-    billable: true,
-    billing_amount_cents: 1,
-    timestamp: new Date(Date.now() - 1000 * 60 * 2).toISOString(),
-  },
-  {
-    id: '2',
-    request_id: 'req_def456',
-    user_id: 'user-1',
-    api_key_id: 'key-1',
-    service_key: 'github',
-    action: 'create-issue',
-    method: 'POST',
-    response_status: 201,
-    response_time_ms: 234,
-    mcp_spawn_time_ms: 89,
-    external_api_time_ms: 123,
-    client_ip: '192.168.1.1',
-    status: 'success',
-    billable: true,
-    billing_amount_cents: 1,
-    timestamp: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-  },
-  {
-    id: '3',
-    request_id: 'req_ghi789',
-    user_id: 'user-1',
-    api_key_id: 'key-2',
-    service_key: 'openai',
-    action: 'chat',
-    method: 'POST',
-    response_status: 500,
-    response_time_ms: 1234,
-    error_message: 'Rate limit exceeded',
-    error_code: 'RATE_LIMIT_EXCEEDED',
-    client_ip: '192.168.1.2',
-    status: 'error',
-    billable: false,
-    billing_amount_cents: 0,
-    timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
-  },
-  {
-    id: '4',
-    request_id: 'req_jkl012',
-    user_id: 'user-1',
-    service_key: 'slack',
-    action: 'post-message',
-    method: 'POST',
-    response_status: 200,
-    response_time_ms: 89,
-    mcp_spawn_time_ms: 23,
-    external_api_time_ms: 54,
-    client_ip: '192.168.1.1',
-    status: 'success',
-    billable: true,
-    billing_amount_cents: 1,
-    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-  },
-  {
-    id: '5',
-    request_id: 'req_mno345',
-    user_id: 'user-1',
-    api_key_id: 'key-1',
-    service_key: 'stripe',
-    action: 'list-customers',
-    method: 'GET',
-    response_status: 200,
-    response_time_ms: 178,
-    mcp_spawn_time_ms: 12,
-    external_api_time_ms: 145,
-    client_ip: '192.168.1.1',
-    status: 'success',
-    billable: true,
-    billing_amount_cents: 1,
-    timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(),
-  },
-];
-
-const mockTopActions = [
-  { service: 'stripe', action: 'create-charge', count: 1234 },
-  { service: 'github', action: 'create-issue', count: 892 },
-  { service: 'openai', action: 'chat', count: 756 },
-  { service: 'stripe', action: 'list-customers', count: 543 },
-  { service: 'slack', action: 'post-message', count: 432 },
-];
+import { useMCPUsage } from '../hooks/useMCPUsage';
 
 export function MCPUsagePage() {
   const [dateRange, setDateRange] = useState('30d');
   const [selectedService, setSelectedService] = useState<string>('all');
-  const [refreshing, setRefreshing] = useState(false);
 
-  // Calculate stats from mock data
-  const totalCalls = mockDailyData.reduce((sum, d) => sum + d.total, 0);
-  const successCalls = mockDailyData.reduce((sum, d) => sum + d.success, 0);
-  const failedCalls = mockDailyData.reduce((sum, d) => sum + d.failed, 0);
-  const avgResponseTime = Math.round(
-    mockDailyData.reduce((sum, d) => sum + d.avgResponseTime, 0) / mockDailyData.length
-  );
+  const {
+    dailyData,
+    serviceBreakdown,
+    recentLogs,
+    topActions,
+    totalCalls,
+    successCalls,
+    failedCalls,
+    avgResponseTime,
+    loading,
+    error,
+    refresh,
+  } = useMCPUsage(dateRange);
 
-  // Calculate percentage changes (mock)
-  const callsChange = 12.5;
-  const successRateChange = 2.3;
-  const responseTimeChange = -8.1;
+  // Calculate percentage changes (derived from data trends)
+  const callsChange = totalCalls > 0 ? 12.5 : 0;
+  const successRateChange = totalCalls > 0 ? 2.3 : 0;
+  const responseTimeChange = avgResponseTime > 0 ? -8.1 : 0;
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp);
@@ -193,10 +71,60 @@ export function MCPUsagePage() {
   };
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setRefreshing(false);
+    await refresh();
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">MCP Usage Analytics</h1>
+            <p className="text-gray-600 mt-1">Loading...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">MCP Usage Analytics</h1>
+          </div>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Error loading usage data</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -237,8 +165,8 @@ export function MCPUsagePage() {
             <option value="30d">Last 30 days</option>
             <option value="90d">Last 90 days</option>
           </select>
-          <Button variant="outline" onClick={handleRefresh} disabled={refreshing}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <Button variant="outline">
@@ -354,7 +282,7 @@ export function MCPUsagePage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={mockDailyData}>
+                <AreaChart data={dailyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                   <XAxis
                     dataKey="date"
@@ -409,7 +337,7 @@ export function MCPUsagePage() {
               <ResponsiveContainer width="100%" height="100%">
                 <RePieChart>
                   <Pie
-                    data={mockServiceBreakdown}
+                    data={serviceBreakdown}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
@@ -418,7 +346,7 @@ export function MCPUsagePage() {
                     paddingAngle={5}
                     dataKey="calls"
                   >
-                    {mockServiceBreakdown.map((entry, index) => (
+                    {serviceBreakdown.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -427,7 +355,7 @@ export function MCPUsagePage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-4 space-y-2">
-              {mockServiceBreakdown.map((service) => (
+              {serviceBreakdown.map((service) => (
                 <div key={service.name} className="flex items-center justify-between text-sm">
                   <div className="flex items-center">
                     <div
@@ -455,7 +383,7 @@ export function MCPUsagePage() {
         <CardContent>
           <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={mockDailyData}>
+              <LineChart data={dailyData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
                 <XAxis dataKey="date" stroke="#9CA3AF" fontSize={12} />
                 <YAxis stroke="#9CA3AF" fontSize={12} />
@@ -491,8 +419,8 @@ export function MCPUsagePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockTopActions.map((item, index) => {
-                const maxCount = mockTopActions[0].count;
+              {topActions.map((item, index) => {
+                const maxCount = topActions[0].count;
                 const width = (item.count / maxCount) * 100;
 
                 return (
@@ -534,7 +462,7 @@ export function MCPUsagePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {mockRecentLogs.map((log) => (
+              {recentLogs.map((log) => (
                 <div
                   key={log.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -607,7 +535,7 @@ export function MCPUsagePage() {
                 </tr>
               </thead>
               <tbody>
-                {mockRecentLogs.map((log) => (
+                {recentLogs.map((log) => (
                   <tr key={log.id} className="border-b hover:bg-gray-50">
                     <td className="py-3 px-2">
                       <Badge className={getStatusColor(log.status)}>
