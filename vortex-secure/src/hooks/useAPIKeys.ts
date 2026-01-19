@@ -91,7 +91,7 @@ export function useAPIKeys(): UseAPIKeysReturn {
     const fullKey = `${prefix}_${randomPart}`;
     const keyPrefix = fullKey.substring(0, 12);
 
-    // Hash the key
+    // Hash the key for storage (never store the raw key)
     const encoder = new TextEncoder();
     const data = encoder.encode(fullKey);
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
@@ -99,6 +99,8 @@ export function useAPIKeys(): UseAPIKeysReturn {
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
 
+    // Note: The full key is only returned to the user once and never stored.
+    // We only store the hash for verification and a prefix for identification.
     const { data: apiKeyData, error: apiKeyError } = await supabase
       .from('api_keys')
       .insert([{
@@ -107,7 +109,7 @@ export function useAPIKeys(): UseAPIKeysReturn {
         key_hash: keyHash,
         name: request.name,
         description: request.description,
-        encrypted_key: fullKey, // In production, encrypt this
+        // Do NOT store the full key - only the hash is persisted
         scope_type: request.scope_type,
         allowed_environments: request.allowed_environments || ['production'],
         rate_limit_per_minute: request.rate_limit_per_minute || 60,
@@ -238,7 +240,8 @@ function mapAPIKeyFromDB(row: any): APIKey {
     key_hash: row.key_hash,
     name: row.name,
     description: row.description,
-    encrypted_key: row.encrypted_key,
+    // Note: encrypted_key is intentionally not included - keys are hashed, not stored
+    encrypted_key: '', // Placeholder - actual key is never stored
     scope_type: row.scope_type,
     allowed_environments: row.allowed_environments || [],
     rate_limit_per_minute: row.rate_limit_per_minute,
