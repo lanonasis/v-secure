@@ -418,32 +418,38 @@ export function MCPUsagePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {topActions.map((item, index) => {
-                const maxCount = topActions[0].count;
-                const width = (item.count / maxCount) * 100;
+            {topActions.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No actions recorded yet
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topActions.map((item) => {
+                  const maxCount = topActions[0]?.count || 1;
+                  const width = maxCount > 0 ? (item.count / maxCount) * 100 : 0;
 
-                return (
-                  <div key={`${item.service}-${item.action}`}>
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-xs">
-                          {item.service}
-                        </Badge>
-                        <span className="text-sm font-medium">{item.action}</span>
+                  return (
+                    <div key={`${item.service}-${item.action}`}>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="outline" className="text-xs">
+                            {item.service}
+                          </Badge>
+                          <span className="text-sm font-medium">{item.action}</span>
+                        </div>
+                        <span className="text-sm text-gray-600">{item.count.toLocaleString()}</span>
                       </div>
-                      <span className="text-sm text-gray-600">{item.count.toLocaleString()}</span>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{ width: `${width}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
 
