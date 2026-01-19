@@ -23,7 +23,7 @@ const CONFIG = {
   enableUserAgentBlocking: true,
   enablePathBlocking: true,
   enableLogging: true,
-  
+
   // Response behavior
   honeypotDelay: 2000, // ms - slow down bots
   blockResponse: 404,  // 404 looks like "nothing here" vs 403 which says "protected"
@@ -211,8 +211,8 @@ const SUSPICIOUS_PATTERNS = [
   /onload=/i,                  // XSS
   /onerror=/i,                 // XSS
   /onclick=/i,                 // XSS
-  /\' or \'/i,                 // SQL injection
-  /\" or \"/i,                 // SQL injection
+  /' or '/i,                   // SQL injection
+  /" or "/i,                   // SQL injection
   /union select/i,             // SQL injection
   /concat\(/i,                 // SQL injection
   /group_concat/i,             // SQL injection
@@ -292,7 +292,7 @@ async function createHoneypotResponse(): Promise<Response> {
   if (CONFIG.honeypotDelay > 0) {
     await new Promise(resolve => setTimeout(resolve, CONFIG.honeypotDelay));
   }
-  
+
   return new Response("Not Found", {
     status: 404,
     headers: {
@@ -308,7 +308,7 @@ async function createHoneypotResponse(): Promise<Response> {
 // ============================================
 
 export default async function securityShield(
-  req: Request, 
+  req: Request,
   context: Context
 ): Promise<Response> {
   const url = new URL(req.url);
@@ -317,10 +317,10 @@ export default async function securityShield(
   const method = req.method;
   const userAgent = req.headers.get("user-agent") || "";
   const referer = req.headers.get("referer") || "";
-  
+
   const requestId = generateRequestId();
   const geo = context.geo || {};
-  
+
   const baseLog: Omit<SecurityLog, "type" | "reason"> = {
     id: requestId,
     path: pathname,
@@ -371,7 +371,7 @@ export default async function securityShield(
       });
       return createBlockResponse(403);
     }
-    
+
     // Block known malicious user agents
     if (matchesAny(userAgent, MALICIOUS_USER_AGENTS)) {
       logSecurityEvent({
