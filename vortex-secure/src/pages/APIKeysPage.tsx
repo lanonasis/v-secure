@@ -17,141 +17,38 @@ import {
   Clock,
   ExternalLink,
   RefreshCw,
+  AlertCircle,
 } from 'lucide-react';
 import type { APIKey, ScopeType } from '../types/mcp-router';
-
-// Mock data for demonstration
-const mockAPIKeys: APIKey[] = [
-  {
-    id: '1',
-    user_id: 'user-1',
-    key_prefix: 'lms_prod_lxyz',
-    key_hash: 'hash1',
-    name: 'Production App',
-    description: 'Main production application key',
-    encrypted_key: 'encrypted',
-    scope_type: 'specific',
-    allowed_environments: ['production'],
-    rate_limit_per_minute: 60,
-    rate_limit_per_day: 10000,
-    last_used_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
-    last_used_ip: '192.168.1.1',
-    is_active: true,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 30).toISOString(),
-    updated_at: new Date().toISOString(),
-    scopes: [
-      {
-        id: 's1',
-        api_key_id: '1',
-        service_key: 'stripe',
-        created_at: new Date().toISOString(),
-        service: {
-          id: '1',
-          service_key: 'stripe',
-          display_name: 'Stripe',
-          description: 'Payment processing',
-          category: 'payment',
-          credential_fields: [],
-          is_available: true,
-          is_beta: false,
-          requires_approval: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      },
-      {
-        id: 's2',
-        api_key_id: '1',
-        service_key: 'github',
-        created_at: new Date().toISOString(),
-        service: {
-          id: '2',
-          service_key: 'github',
-          display_name: 'GitHub',
-          description: 'Version control',
-          category: 'devops',
-          credential_fields: [],
-          is_available: true,
-          is_beta: false,
-          requires_approval: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        },
-      },
-    ],
-  },
-  {
-    id: '2',
-    user_id: 'user-1',
-    key_prefix: 'lms_test_abcd',
-    key_hash: 'hash2',
-    name: 'Testing Key',
-    description: 'For development and testing',
-    encrypted_key: 'encrypted',
-    scope_type: 'all',
-    allowed_environments: ['development', 'staging'],
-    rate_limit_per_minute: 120,
-    rate_limit_per_day: 50000,
-    last_used_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    last_used_ip: '127.0.0.1',
-    is_active: true,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-    updated_at: new Date().toISOString(),
-    scopes: [],
-  },
-  {
-    id: '3',
-    user_id: 'user-1',
-    key_prefix: 'lms_prod_old1',
-    key_hash: 'hash3',
-    name: 'Legacy App',
-    description: 'Old application (deprecated)',
-    encrypted_key: 'encrypted',
-    scope_type: 'specific',
-    allowed_environments: ['production'],
-    rate_limit_per_minute: 30,
-    rate_limit_per_day: 5000,
-    is_active: false,
-    revoked_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
-    revoked_reason: 'Replaced with new key',
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString(),
-    updated_at: new Date().toISOString(),
-    scopes: [
-      {
-        id: 's3',
-        api_key_id: '3',
-        service_key: 'stripe',
-        created_at: new Date().toISOString(),
-      },
-    ],
-  },
-];
-
-const mockConfiguredServices = [
-  { service_key: 'stripe', display_name: 'Stripe', is_enabled: true },
-  { service_key: 'github', display_name: 'GitHub', is_enabled: true },
-  { service_key: 'openai', display_name: 'OpenAI', is_enabled: true },
-  { service_key: 'slack', display_name: 'Slack', is_enabled: false },
-];
+import { useAPIKeys } from '../hooks/useAPIKeys';
+import { useMCPServices } from '../hooks/useMCPServices';
 
 export function APIKeysPage() {
-  const [apiKeys, setAPIKeys] = useState<APIKey[]>(mockAPIKeys);
+  const {
+    apiKeys,
+    stats,
+    loading,
+    error,
+    createAPIKey,
+    revokeAPIKey,
+    reactivateAPIKey,
+    deleteAPIKey,
+    updateAPIKey,
+    refresh,
+  } = useAPIKeys();
+  const { userServices } = useMCPServices();
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedKey, setSelectedKey] = useState<APIKey | null>(null);
   const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null);
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<{ key: APIKey; fullKey: string } | null>(null);
 
-  // Stats
-  const stats = {
-    total: apiKeys.length,
-    active: apiKeys.filter(k => k.is_active).length,
-    revoked: apiKeys.filter(k => !k.is_active).length,
-    expiringSoon: apiKeys.filter(k => {
-      if (!k.expires_at) return false;
-      const expiresIn = new Date(k.expires_at).getTime() - Date.now();
-      return expiresIn > 0 && expiresIn < 7 * 24 * 60 * 60 * 1000; // 7 days
-    }).length,
-  };
+  // Get configured services for the create modal
+  const configuredServices = userServices.map(s => ({
+    service_key: s.service_key,
+    display_name: s.service?.display_name || s.service_key,
+    is_enabled: s.is_enabled,
+  }));
 
   const formatDate = (date?: string) => {
     if (!date) return 'Never';
@@ -179,36 +76,83 @@ export function APIKeysPage() {
     if (!confirm('Are you sure you want to revoke this API key? This action cannot be undone.')) {
       return;
     }
-    setAPIKeys(prev =>
-      prev.map(k =>
-        k.id === keyId
-          ? {
-              ...k,
-              is_active: false,
-              revoked_at: new Date().toISOString(),
-              revoked_reason: 'Manually revoked',
-            }
-          : k
-      )
-    );
+    try {
+      await revokeAPIKey(keyId, 'Manually revoked');
+    } catch (err: any) {
+      alert(`Failed to revoke key: ${err.message}`);
+    }
   };
 
   const handleDeleteKey = async (keyId: string) => {
     if (!confirm('Are you sure you want to permanently delete this API key?')) {
       return;
     }
-    setAPIKeys(prev => prev.filter(k => k.id !== keyId));
+    try {
+      await deleteAPIKey(keyId);
+    } catch (err: any) {
+      alert(`Failed to delete key: ${err.message}`);
+    }
   };
 
   const handleReactivateKey = async (keyId: string) => {
-    setAPIKeys(prev =>
-      prev.map(k =>
-        k.id === keyId
-          ? { ...k, is_active: true, revoked_at: undefined, revoked_reason: undefined }
-          : k
-      )
-    );
+    try {
+      await reactivateAPIKey(keyId);
+    } catch (err: any) {
+      alert(`Failed to reactivate key: ${err.message}`);
+    }
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">API Keys</h1>
+            <p className="text-gray-600 mt-1">Loading...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">API Keys</h1>
+          </div>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Error loading API keys</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -497,12 +441,16 @@ export function APIKeysPage() {
       {/* Create API Key Modal */}
       {showCreateModal && (
         <CreateAPIKeyModal
-          configuredServices={mockConfiguredServices}
+          configuredServices={configuredServices}
           onClose={() => setShowCreateModal(false)}
-          onCreate={(key, fullKey) => {
-            setAPIKeys(prev => [key, ...prev]);
-            setNewlyCreatedKey({ key, fullKey });
-            setShowCreateModal(false);
+          onCreate={async (request) => {
+            try {
+              const result = await createAPIKey(request);
+              setNewlyCreatedKey(result);
+              setShowCreateModal(false);
+            } catch (err: any) {
+              alert(`Failed to create API key: ${err.message}`);
+            }
           }}
         />
       )}
@@ -511,13 +459,15 @@ export function APIKeysPage() {
       {selectedKey && (
         <EditAPIKeyModal
           apiKey={selectedKey}
-          configuredServices={mockConfiguredServices}
+          configuredServices={configuredServices}
           onClose={() => setSelectedKey(null)}
-          onSave={(updated) => {
-            setAPIKeys(prev =>
-              prev.map(k => (k.id === updated.id ? updated : k))
-            );
-            setSelectedKey(null);
+          onSave={async (updated) => {
+            try {
+              await updateAPIKey(updated.id, updated);
+              setSelectedKey(null);
+            } catch (err: any) {
+              alert(`Failed to update API key: ${err.message}`);
+            }
           }}
         />
       )}
@@ -533,7 +483,15 @@ function CreateAPIKeyModal({
 }: {
   configuredServices: { service_key: string; display_name: string; is_enabled: boolean }[];
   onClose: () => void;
-  onCreate: (key: APIKey, fullKey: string) => void;
+  onCreate: (request: {
+    name: string;
+    description?: string;
+    scope_type: ScopeType;
+    service_keys?: string[];
+    allowed_environments?: string[];
+    rate_limit_per_minute?: number;
+    rate_limit_per_day?: number;
+  }) => Promise<void>;
 }) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -565,37 +523,15 @@ function CreateAPIKeyModal({
     setIsCreating(true);
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const fullKey = `lms_prod_${Date.now().toString(36)}_${Math.random().toString(36).substr(2, 40)}`;
-      const key: APIKey = {
-        id: `key-${Date.now()}`,
-        user_id: 'user-1',
-        key_prefix: fullKey.substring(0, 12),
-        key_hash: 'hash',
+      await onCreate({
         name: name.trim(),
         description: description.trim() || undefined,
-        encrypted_key: 'encrypted',
         scope_type: scopeType,
-        allowed_environments: Array.from(environments) as any,
+        service_keys: scopeType === 'specific' ? Array.from(selectedServices) : undefined,
+        allowed_environments: Array.from(environments),
         rate_limit_per_minute: rateLimitMinute,
         rate_limit_per_day: rateLimitDay,
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        scopes: scopeType === 'specific'
-          ? Array.from(selectedServices).map(sk => ({
-              id: `scope-${Date.now()}-${sk}`,
-              api_key_id: `key-${Date.now()}`,
-              service_key: sk,
-              created_at: new Date().toISOString(),
-              service: configuredServices.find(s => s.service_key === sk) as any,
-            }))
-          : [],
-      };
-
-      onCreate(key, fullKey);
+      });
     } finally {
       setIsCreating(false);
     }
