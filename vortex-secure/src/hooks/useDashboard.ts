@@ -91,7 +91,7 @@ export function useDashboard(): UseDashboardReturn {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
 
-      const { data: recentLogs, error: logsError } = await supabase
+      const { data: recentLogs } = await supabase
         .from('mcp_usage_logs')
         .select('id, response_time_ms')
         .gte('timestamp', yesterday.toISOString());
@@ -125,30 +125,65 @@ export function useDashboard(): UseDashboardReturn {
           name: s.name,
           environment: s.environment || 'production',
           status: s.status || 'active',
-          lastRotated: s.last_rotated || new Date().toISOString(),
+          lastRotated: s.last_rotated
+            ? new Date(s.last_rotated).toLocaleDateString()
+            : 'Never',
           usage: s.usage_count || 0,
         }))
       );
 
-      // Generate usage data for last 7 days
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const today = new Date().getDay();
-      const generatedUsageData: UsageDataPoint[] = days.map((name, i) => ({
-        name,
-        secrets: Math.floor(Math.random() * 50) + 30,
-        mcp: Math.floor(Math.random() * 25) + 5,
-      }));
-      setUsageData(generatedUsageData);
+      // Fetch usage data for last 7 days from mcp_usage_logs
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const usageDataPoints: UsageDataPoint[] = [];
 
-      // Map active sessions from enabled services
-      setActiveSessions(
-        (userServices || []).slice(0, 3).map((s, i) => ({
+      for (let i = 6; i >= 0; i--) {
+        const dayStart = new Date();
+        dayStart.setDate(dayStart.getDate() - i);
+        dayStart.setHours(0, 0, 0, 0);
+
+        const dayEnd = new Date(dayStart);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const { count: mcpCount } = await supabase
+          .from('mcp_usage_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('timestamp', dayStart.toISOString())
+          .lte('timestamp', dayEnd.toISOString());
+
+        const { count: secretsCount } = await supabase
+          .from('usage_metrics')
+          .select('*', { count: 'exact', head: true })
+          .eq('operation', 'access')
+          .gte('timestamp', dayStart.toISOString())
+          .lte('timestamp', dayEnd.toISOString());
+
+        usageDataPoints.push({
+          name: dayNames[dayStart.getDay()],
+          secrets: secretsCount || 0,
+          mcp: mcpCount || 0,
+        });
+      }
+      setUsageData(usageDataPoints);
+
+      // Map active sessions from enabled services with real data
+      const serviceSessions: MCPSession[] = (userServices || []).slice(0, 3).map((s) => {
+        // Determine risk level based on service type
+        let riskLevel: 'low' | 'medium' | 'high' = 'low';
+        if (['stripe', 'payment'].some(k => s.service_key.includes(k))) {
+          riskLevel = 'high';
+        } else if (['database', 'github'].some(k => s.service_key.includes(k))) {
+          riskLevel = 'medium';
+        }
+
+        return {
           toolName: s.service_key.charAt(0).toUpperCase() + s.service_key.slice(1) + ' Service',
           secretsAccessed: [s.service_key + '_api_key'],
-          timeRemaining: `${Math.floor(Math.random() * 15) + 1}m ${Math.floor(Math.random() * 60)}s`,
-          riskLevel: (['low', 'medium', 'high'] as const)[i % 3],
-        }))
-      );
+          timeRemaining: 'Active', // Sessions are persistent, not time-limited
+          riskLevel,
+        };
+      });
+      setActiveSessions(serviceSessions);
 
     } catch (err: any) {
       setError(err.message);

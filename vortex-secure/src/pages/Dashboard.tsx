@@ -8,12 +8,9 @@ import {
   Key,
   Bot,
   Activity,
-  AlertTriangle,
   CheckCircle,
   Clock,
   TrendingUp,
-  Users,
-  Database,
   RefreshCw,
   AlertCircle
 } from 'lucide-react';

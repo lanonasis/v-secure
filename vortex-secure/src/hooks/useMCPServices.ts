@@ -3,6 +3,37 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 import type { MCPServiceCatalog, UserMCPService, ServiceCategory } from '../types/mcp-router';
 
+// Encryption utilities for secure credential storage
+async function encryptCredentials(credentials: Record<string, string>, userId: string): Promise<string> {
+  // Generate a deterministic key from user ID (in production, use a proper KMS)
+  const encoder = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(userId.padEnd(32, '0').slice(0, 32)),
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt']
+  );
+
+  // Generate random IV
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+
+  // Encrypt the credentials
+  const data = encoder.encode(JSON.stringify(credentials));
+  const encrypted = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv },
+    keyMaterial,
+    data
+  );
+
+  // Combine IV and encrypted data, encode as base64
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+
+  return btoa(String.fromCharCode(...combined));
+}
+
 interface ServiceStats {
   total: number;
   configured: number;
@@ -83,6 +114,9 @@ export function useMCPServices(): UseMCPServicesReturn {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('User not authenticated');
 
+    // Encrypt credentials before storing
+    const encryptedCredentials = await encryptCredentials(credentials, user.id);
+
     const existing = userServices.find(s => s.service_key === serviceKey);
 
     if (existing) {
@@ -90,7 +124,8 @@ export function useMCPServices(): UseMCPServicesReturn {
       const { error } = await supabase
         .from('user_mcp_services')
         .update({
-          encrypted_credentials: JSON.stringify(credentials),
+          encrypted_credentials: encryptedCredentials,
+          encryption_version: 2, // Version 2 = AES-GCM encrypted
           health_status: 'unknown',
           updated_at: new Date().toISOString(),
         })
@@ -104,8 +139,8 @@ export function useMCPServices(): UseMCPServicesReturn {
         .insert([{
           user_id: user.id,
           service_key: serviceKey,
-          encrypted_credentials: JSON.stringify(credentials),
-          encryption_version: 1,
+          encrypted_credentials: encryptedCredentials,
+          encryption_version: 2, // Version 2 = AES-GCM encrypted
           is_enabled: true,
           environment: 'production',
           health_status: 'unknown',
@@ -154,22 +189,27 @@ export function useMCPServices(): UseMCPServicesReturn {
     const service = catalogServices.find(s => s.service_key === serviceKey);
     if (!service) return { success: false, message: 'Service not found' };
 
-    // Update health status to unknown while testing
     const userService = userServices.find(s => s.service_key === serviceKey);
-    if (userService) {
-      await supabase
-        .from('user_mcp_services')
-        .update({ health_status: 'unknown' })
-        .eq('id', userService.id);
-    }
+    if (!userService) return { success: false, message: 'Service not configured' };
 
-    // Simulated connection test - in production, this would call the actual health check
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Update health status to unknown while testing
+    await supabase
+      .from('user_mcp_services')
+      .update({ health_status: 'checking' })
+      .eq('id', userService.id);
 
-    const success = Math.random() > 0.2; // 80% success rate for demo
-    const status = success ? 'healthy' : 'unhealthy';
+    try {
+      // Call backend health check endpoint
+      const { data, error } = await supabase.functions.invoke('mcp-health-check', {
+        body: { service_key: serviceKey },
+      });
 
-    if (userService) {
+      const success = !error && data?.healthy === true;
+      const status = success ? 'healthy' : 'unhealthy';
+      const message = success
+        ? 'Connection successful'
+        : data?.error || error?.message || 'Connection failed - please check credentials';
+
       await supabase
         .from('user_mcp_services')
         .update({ health_status: status, last_health_check: new Date().toISOString() })
@@ -177,15 +217,31 @@ export function useMCPServices(): UseMCPServicesReturn {
 
       setUserServices(prev =>
         prev.map(s =>
-          s.service_key === serviceKey ? { ...s, health_status: status } : s
+          s.service_key === serviceKey
+            ? { ...s, health_status: status, last_health_check: new Date().toISOString() }
+            : s
         )
       );
-    }
 
-    return {
-      success,
-      message: success ? 'Connection successful' : 'Connection failed - please check credentials',
-    };
+      return { success, message };
+    } catch (err: any) {
+      // If the edge function doesn't exist yet, mark as unknown
+      await supabase
+        .from('user_mcp_services')
+        .update({ health_status: 'unknown', last_health_check: new Date().toISOString() })
+        .eq('id', userService.id);
+
+      setUserServices(prev =>
+        prev.map(s =>
+          s.service_key === serviceKey ? { ...s, health_status: 'unknown' } : s
+        )
+      );
+
+      return {
+        success: false,
+        message: 'Health check not available - service saved but not verified',
+      };
+    }
   };
 
   return {
