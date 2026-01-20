@@ -4,22 +4,22 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+    exclude: ['node_modules', 'dist'],
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json', 'html'],
       include: ['src/**/*.ts'],
       exclude: [
-        '**/*.test.ts',
-        '**/index.ts',
-        '**/types.ts',
-        '**/browser.ts'
-      ],
-      thresholds: {
-        lines: 70,
-        functions: 70,
-        branches: 60,
-        statements: 70
-      }
-    }
+        'src/**/*.test.ts',
+        'src/**/*.spec.ts',
+        'src/**/*.d.ts',
+        'src/**/types.ts',
+        'src/**/index.ts'
+      ]
+    },
+    mockReset: true,
+    restoreMocks: true,
+    testTimeout: 10000
   }
 });

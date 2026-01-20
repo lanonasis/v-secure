@@ -9,80 +9,72 @@ vi.mock('cross-fetch', () => ({
 
 // Mock token storage
 vi.mock('../storage/token-storage', () => ({
-  TokenStorage: class TokenStorageMock {
-    store = vi.fn().mockResolvedValue(undefined);
-    retrieve = vi.fn().mockResolvedValue(null);
-    clear = vi.fn().mockResolvedValue(undefined);
-    isTokenExpired = vi.fn().mockReturnValue(false);
-  }
+  TokenStorage: vi.fn().mockImplementation(() => ({
+    store: vi.fn().mockResolvedValue(undefined),
+    retrieve: vi.fn().mockResolvedValue(null),
+    clear: vi.fn().mockResolvedValue(undefined),
+    isTokenExpired: vi.fn().mockReturnValue(false)
+  }))
 }));
 
 // Mock token storage web
 vi.mock('../storage/token-storage-web', () => ({
-  TokenStorageWeb: class TokenStorageWebMock {
-    store = vi.fn().mockResolvedValue(undefined);
-    retrieve = vi.fn().mockResolvedValue(null);
-    clear = vi.fn().mockResolvedValue(undefined);
-    isTokenExpired = vi.fn().mockReturnValue(false);
-  }
+  TokenStorageWeb: vi.fn().mockImplementation(() => ({
+    store: vi.fn().mockResolvedValue(undefined),
+    retrieve: vi.fn().mockResolvedValue(null),
+    clear: vi.fn().mockResolvedValue(undefined),
+    isTokenExpired: vi.fn().mockReturnValue(false)
+  }))
 }));
 
 // Mock auth flows
 vi.mock('../flows/terminal-flow', () => ({
-  TerminalOAuthFlow: class TerminalOAuthFlowMock {
-    authenticate = vi.fn().mockResolvedValue({
+  TerminalOAuthFlow: vi.fn().mockImplementation(() => ({
+    authenticate: vi.fn().mockResolvedValue({
       access_token: 'test_token',
       refresh_token: 'refresh_token',
       expires_in: 3600,
       token_type: 'Bearer'
-    });
-    refreshToken = vi.fn().mockResolvedValue({
+    }),
+    refreshToken: vi.fn().mockResolvedValue({
       access_token: 'new_token',
       refresh_token: 'new_refresh',
       expires_in: 3600,
       token_type: 'Bearer'
-    });
-    revokeToken = vi.fn().mockResolvedValue(undefined);
-  }
+    }),
+    revokeToken: vi.fn().mockResolvedValue(undefined)
+  }))
 }));
 
 vi.mock('../flows/desktop-flow', () => ({
-  DesktopOAuthFlow: class DesktopOAuthFlowMock {
-    authenticate = vi.fn().mockResolvedValue({
+  DesktopOAuthFlow: vi.fn().mockImplementation(() => ({
+    authenticate: vi.fn().mockResolvedValue({
       access_token: 'desktop_token',
       refresh_token: 'desktop_refresh',
       expires_in: 3600,
       token_type: 'Bearer'
-    });
-    refreshToken = vi.fn().mockResolvedValue({
+    }),
+    refreshToken: vi.fn().mockResolvedValue({
       access_token: 'new_desktop_token',
       refresh_token: 'new_desktop_refresh',
       expires_in: 3600,
       token_type: 'Bearer'
-    });
-    revokeToken = vi.fn().mockResolvedValue(undefined);
-  }
+    }),
+    revokeToken: vi.fn().mockResolvedValue(undefined)
+  }))
 }));
 
 vi.mock('../flows/apikey-flow', () => ({
-  APIKeyFlow: class APIKeyFlowMock {
-    authenticate: ReturnType<typeof vi.fn>;
-    refreshToken: ReturnType<typeof vi.fn>;
-    revokeToken: ReturnType<typeof vi.fn>;
-
-    constructor(apiKey: string) {
-      this.authenticate = vi.fn().mockResolvedValue({
-        access_token: apiKey,
-        token_type: 'api-key',
-        expires_in: 0,
-        issued_at: Date.now()
-      });
-      this.refreshToken = vi.fn().mockRejectedValue(
-        new Error('API keys do not support token refresh')
-      );
-      this.revokeToken = vi.fn().mockResolvedValue(undefined);
-    }
-  }
+  APIKeyFlow: vi.fn().mockImplementation((apiKey: string) => ({
+    authenticate: vi.fn().mockResolvedValue({
+      access_token: apiKey,
+      token_type: 'api-key',
+      expires_in: 0,
+      issued_at: Date.now()
+    }),
+    refreshToken: vi.fn().mockRejectedValue(new Error('API keys do not support token refresh')),
+    revokeToken: vi.fn().mockResolvedValue(undefined)
+  }))
 }));
 
 import fetch from 'cross-fetch';

@@ -5,6 +5,70 @@ All notable changes to `@lanonasis/oauth-client` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-01-20
+
+### Added
+- **NEW: React Hooks Export (`./react`)**
+  - `useSSO()` - React hook for SSO authentication state management
+  - `useSSOSync()` - Hook for cross-subdomain session synchronization
+  - `parseUserCookie()` - Browser-side cookie parsing utility
+  - `hasSessionCookie()` - Check for session cookie presence
+  - `hasAuthCookies()` - Validate complete auth cookie state
+  - `clearUserCookie()` - Clear authentication cookies
+  - `isBrowser()` - Environment detection helper
+
+- **NEW: Server Middleware Export (`./server`)**
+  - `requireAuth()` - Express middleware that enforces authentication (401 if not authenticated)
+  - `optionalAuth()` - Middleware that attaches user if authenticated but allows anonymous access
+  - `requireRole(role)` - Middleware that enforces specific user roles (403 if insufficient permissions)
+  - `validateSessionMiddleware()` - Configurable session validation middleware
+  - `getSSOUserFromRequest()` - Extract SSO user from Express request
+  - `getSessionTokenFromRequest()` - Extract session token from request
+  - `hasSSOfromRequest()` - Check if request has valid SSO cookies
+  - `parseCookieHeader()` - Parse raw cookie header string
+  - Cookie constants: `COOKIE_NAMES`, `DEFAULT_AUTH_GATEWAY`, `DEFAULT_COOKIE_DOMAIN`
+
+- **NEW: Shared Cookie Constants (`./cookies`)**
+  - Centralized cookie name definitions for `lanonasis_session` and `lanonasis_user`
+  - Default configuration values for auth gateway and cookie domain
+
+### Changed
+- **BREAKING**: Major version bump to 2.0.0 for new subpath exports
+- Package now consolidates all Lanonasis authentication into one package
+- `@lanonasis/shared-auth` is now deprecated and re-exports from this package
+
+### Migration from @lanonasis/shared-auth
+```typescript
+// BEFORE (deprecated)
+import { useSSO } from '@lanonasis/shared-auth';
+import { getSSOUserFromRequest } from '@lanonasis/shared-auth/server';
+
+// AFTER (recommended)
+import { useSSO } from '@lanonasis/oauth-client/react';
+import { getSSOUserFromRequest, requireAuth } from '@lanonasis/oauth-client/server';
+```
+
+## [1.2.8] - 2026-01-13
+
+### Added
+- **Magic Link Flow**: Passwordless authentication via OTP and magic links
+  - `MagicLinkFlow` class for email-based passwordless authentication
+  - `sendMagicLink(email)` - Send magic link to user's email
+  - `sendOTP(email)` - Send one-time password to email
+  - `verifyOTP(email, code)` - Verify OTP code and obtain tokens
+  - `verifyMagicLink(token)` - Verify magic link token
+  - Configurable OTP length and expiration
+  - Integration with auth-gateway `/v1/auth/magic-link/*` and `/v1/auth/otp/*` endpoints
+
+### Fixed
+- Bug fix in `apikey-flow.ts`: corrected `this.authBaseUrl` reference
+
+## [1.2.7] - 2026-01-10
+
+### Changed
+- Version bump for dependency updates
+- Improved auth-gateway compatibility
+
 ## [1.2.3] - 2025-12-13
 
 ### Fixed
