@@ -32,8 +32,8 @@ const DEMO_USER = {
 } as unknown as User;
 
 // In production (secureme.lanonasis.com), app is at root
-// In development, use /dashboard for local rewrite testing
-const DASHBOARD_BASE = import.meta.env.PROD ? '/' : '/dashboard';
+// In development, use /console for local rewrite testing via Next.js web app
+const CONSOLE_BASE = import.meta.env.PROD ? '/' : '/console';
 
 function App() {
   const [user, setUser] = useState<User | null>(DEMO_MODE ? DEMO_USER : null);
@@ -72,7 +72,7 @@ function App() {
   }
 
   return (
-    <Router basename={DASHBOARD_BASE}>
+    <Router basename={CONSOLE_BASE}>
       <div className="min-h-screen bg-gray-50">
         <div className="flex h-screen">
           {/* Sidebar */}

@@ -6,19 +6,19 @@ const nextConfig = {
   },
   async rewrites() {
     // In development, proxy to local vortex-secure dev server
-    // In production, proxy to deployed vortex-secure
-    const dashboardUrl = process.env.NODE_ENV === 'development'
+    // In production, proxy to deployed vortex-secure (secureme.lanonasis.com)
+    const consoleUrl = process.env.NODE_ENV === 'development'
       ? 'http://localhost:5173'
       : 'https://vortex-secure.vercel.app';
 
     return [
       {
-        source: '/dashboard',
-        destination: `${dashboardUrl}/dashboard`,
+        source: '/console',
+        destination: `${consoleUrl}/`,
       },
       {
-        source: '/dashboard/:path*',
-        destination: `${dashboardUrl}/dashboard/:path*`,
+        source: '/console/:path*',
+        destination: `${consoleUrl}/:path*`,
       },
     ]
   },

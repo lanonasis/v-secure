@@ -20,10 +20,10 @@ function LoginForm() {
   const [message, setMessage] = useState<string | null>(null);
 
   const isConfigured = isSupabaseConfigured();
-  // In production, redirect to dashboard subdomain; in dev, use local dashboard
+  // In production, redirect to console subdomain; in dev, use local console
   const defaultRedirect = process.env.NODE_ENV === 'production'
-    ? 'https://dashboard.lanonasis.com'
-    : '/dashboard';
+    ? 'https://console.lanonasis.com'
+    : '/console';
   const redirectTo = searchParams.get('redirect') || defaultRedirect;
 
   useEffect(() => {

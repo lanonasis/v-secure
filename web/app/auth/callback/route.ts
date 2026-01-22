@@ -2,10 +2,10 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-// Dashboard URL based on environment
-const DASHBOARD_URL = process.env.NODE_ENV === 'production'
-  ? 'https://dashboard.lanonasis.com'
-  : '/dashboard';
+// Console URL based on environment
+const CONSOLE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://console.lanonasis.com'
+  : '/console';
 
 // Cookie domain for cross-subdomain auth
 const COOKIE_DOMAIN = process.env.NODE_ENV === 'production' ? '.lanonasis.com' : undefined;
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
-  const next = requestUrl.searchParams.get('next') || DASHBOARD_URL;
+  const next = requestUrl.searchParams.get('next') || CONSOLE_URL;
 
   // Handle OAuth errors
   if (error) {
@@ -66,8 +66,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
 
-    // Successful authentication - redirect to dashboard or next page
-    // Handle both absolute URLs (https://secureme.lanonasis.com) and relative paths (/dashboard)
+    // Successful authentication - redirect to console or next page
+    // Handle both absolute URLs (https://console.lanonasis.com) and relative paths (/console)
     const redirectUrl = next.startsWith('http')
       ? next
       : new URL(next, requestUrl.origin).toString();

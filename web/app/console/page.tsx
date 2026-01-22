@@ -19,7 +19,7 @@ import {
 import { getCurrentUser, signOut, isSupabaseConfigured } from '../lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
-export default function DashboardPage() {
+export default function ConsolePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,14 +35,14 @@ export default function DashboardPage() {
     getCurrentUser()
       .then((user) => {
         if (!user) {
-          router.push('/login?redirect=/dashboard');
+          router.push('/login?redirect=/console');
           return;
         }
         setUser(user);
         setLoading(false);
       })
       .catch(() => {
-        router.push('/login?redirect=/dashboard');
+        router.push('/login?redirect=/console');
       });
   }, [router, isConfigured]);
 
@@ -56,7 +56,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-vortex-cyan border-t-transparent mx-auto mb-4" />
-          <p className="text-gray-400">Loading dashboard...</p>
+          <p className="text-gray-400">Loading console...</p>
         </div>
       </div>
     );
@@ -76,28 +76,28 @@ export default function DashboardPage() {
       title: 'Secrets Manager',
       description: 'Store and manage encrypted secrets',
       icon: <Lock className="w-6 h-6" />,
-      href: '/dashboard/secrets',
+      href: '/console/secrets',
       color: 'from-blue-500 to-indigo-500',
     },
     {
       title: 'API Keys',
       description: 'Generate and rotate API keys',
       icon: <Key className="w-6 h-6" />,
-      href: '/dashboard/api-keys',
+      href: '/console/api-keys',
       color: 'from-purple-500 to-pink-500',
     },
     {
       title: 'MCP Services',
       description: 'Configure AI tool integrations',
       icon: <Network className="w-6 h-6" />,
-      href: '/dashboard/mcp-services',
+      href: '/console/mcp-services',
       color: 'from-cyan-500 to-teal-500',
     },
     {
       title: 'Analytics',
       description: 'View usage and security metrics',
       icon: <BarChart className="w-6 h-6" />,
-      href: '/dashboard/analytics',
+      href: '/console/analytics',
       color: 'from-orange-500 to-red-500',
     },
   ];
