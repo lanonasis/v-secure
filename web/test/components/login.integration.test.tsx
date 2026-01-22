@@ -111,7 +111,7 @@ describe('Login Page Integration Tests', () => {
 
       await waitFor(() => {
         expect(mockSignInWithPassword).toHaveBeenCalledWith('test@example.com', 'password123');
-        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+        expect(mockPush).toHaveBeenCalledWith('/console');
       });
     });
 
@@ -239,7 +239,7 @@ describe('Login Page Integration Tests', () => {
       });
     });
 
-    it('should redirect to dashboard by default', async () => {
+    it('should redirect to console by default', async () => {
       mockSignInWithPassword.mockResolvedValue({
         data: { user: {}, session: {} },
         error: null,
@@ -256,7 +256,7 @@ describe('Login Page Integration Tests', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+        expect(mockPush).toHaveBeenCalledWith('/console');
       });
     });
 
@@ -268,7 +268,7 @@ describe('Login Page Integration Tests', () => {
       render(<LoginPage />);
 
       await waitFor(() => {
-        expect(mockPush).toHaveBeenCalledWith('/dashboard');
+        expect(mockPush).toHaveBeenCalledWith('/console');
       });
     });
   });
