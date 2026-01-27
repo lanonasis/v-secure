@@ -38,7 +38,7 @@ Create `.env.local`:
 ```bash
 # Supabase Configuration
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
 
 # Domain Configuration  
 VITE_APP_URL=https://admin.connectionpoint.tech
@@ -191,8 +191,8 @@ module.exports = {
     env: {
       NODE_ENV: 'production',
       PORT: 3001,
-      SUPABASE_URL=https://<project-ref>.supabase.co
-      SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+https://<project-ref>.supabase.co
+REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
     }
   }]
 };

@@ -293,7 +293,7 @@ metadata:
     vortex-secure/rotation-frequency: "30d"
 type: Opaque
 stringData:
-  DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+postgresql://<user>:<password>@<host>:<port>/<db>
   API_KEY: "{{ vortex.secret('api_key') }}"
 ```
 

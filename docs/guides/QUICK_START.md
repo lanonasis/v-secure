@@ -30,9 +30,9 @@ nano .env
 
 **Minimum required configuration:**
 ```env
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-JWT_SECRET=REDACTED_JWT_SECRET
+https://<project-ref>.supabase.co
+REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
 API_KEY_ENCRYPTION_KEY=your-encryption-key-min-32-chars
 ```
 
@@ -104,7 +104,7 @@ const secretService = new SecretService();
 
 await secretService.storeSecret(
   'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-  'postgresql://<user>:<password>@<host>:<port>/<db>'
+  'postgresql://<user>:<password>@<host>:<port>/<db>
 );
 ```
 

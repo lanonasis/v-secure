@@ -448,7 +448,7 @@ curl -X POST "https://api.lanonasis.com/oauth/token" \
 ### Test User Sync Pipeline
 
 ```bash
-WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
+REDACTED_WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
 
 # 1. Trigger sync from Main DB
 curl -X POST "https://mxtsdgkwzjzlttpotole.supabase.co/functions/v1/batch-sync-users" \
@@ -602,19 +602,19 @@ Examples:
 
 ### Main DB (mxtsdgkwzjzlttpotole)
 ```env
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
+https://<project-ref>.supabase.co
+REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+REDACTED_WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
 ```
 
 ### Auth-Gateway (ptnrwrgzrsbocgxlpvhd)
 ```env
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-NEON_DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
-MAIN_SUPABASE_URL=https://<project-ref>.supabase.co
+https://<project-ref>.supabase.co
+REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+postgresql://<user>:<password>@<host>:<port>/<db>
+postgresql://<user>:<password>@<host>:<port>/<db>
+REDACTED_WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
+https://<project-ref>.supabase.co
 MAIN_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
 ```
 

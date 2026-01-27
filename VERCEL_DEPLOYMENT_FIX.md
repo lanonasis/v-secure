@@ -179,7 +179,7 @@ For **vortex-secure** app:
 ```
 VC_MICROFRONTENDS_CONFIG=../microfrontends.json
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
 ```
 
 ## Next Steps

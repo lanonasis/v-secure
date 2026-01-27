@@ -122,7 +122,7 @@ Create a `.env` file or export these variables:
 # Neon Database Connection
 # ⚠️ NEVER commit real credentials! Use environment variables.
 # Example format:
-DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+postgresql://<user>:<password>@<host>:<port>/<db>
 
 # Get your connection string from Neon dashboard:
 # https://console.neon.tech/app/projects → Connection Details
@@ -135,7 +135,7 @@ DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
 # Security Keys
 API_KEY_ENCRYPTION_KEY=your-encryption-key-min-32-chars
 ENCRYPTION_KEY=your-encryption-key-min-32-chars
-JWT_SECRET=REDACTED_JWT_SECRET
+REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
 
 # Server Configuration
 PORT=3000

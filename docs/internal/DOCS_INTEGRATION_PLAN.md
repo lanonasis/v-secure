@@ -444,7 +444,7 @@ const secretService = new SecretService();
 
 await secretService.storeSecret(
   'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-  'postgresql://<user>:<password>@<host>:<port>/<db>',
+  'postgresql://<user>:<password>@<host>:<port>/<db>
   {
     tags: ['database', 'production'],
     expiresAt: '2024-12-31'

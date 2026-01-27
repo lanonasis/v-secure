@@ -365,7 +365,7 @@ describe('SecretService', () => {
       const result = await secretService.getSecret(key, userId);
 
       // Assert
-      expect(result).toBe('postgresql://<user>:<password>@<host>:<port>/<db>');
+      expect(result).toBe('postgresql://<user>:<password>@<host>:<port>/<db>);
     });
 
     it('should return null for non-existent key', async () => {

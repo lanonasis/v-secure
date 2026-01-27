@@ -163,16 +163,16 @@ What Auth-Gateway does:
 
 ### Main DB Edge Functions
 ```
-SUPABASE_URL=https://<project-ref>.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
+https://<project-ref>.supabase.co
+REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+REDACTED_WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
 ```
 
 ### Auth-Gateway Edge Functions
 ```
-DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
-NEON_DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+postgresql://<user>:<password>@<host>:<port>/<db>
+REDACTED_WEBHOOK_SECRET=REDACTED_WEBHOOK_SECRET
+postgresql://<user>:<password>@<host>:<port>/<db>
 ```
 
 ## Current User Counts
