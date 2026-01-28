@@ -32,5 +32,5 @@ vi.mock('next/link', () => ({
 }));
 
 // Mock environment variables
-vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
-vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://test-project.supabase.co');
+vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'test-anon-key-for-tests');

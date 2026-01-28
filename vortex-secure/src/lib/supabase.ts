@@ -4,8 +4,8 @@
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '../types/database';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Cookie domain for cross-subdomain auth (auth.lanonasis.com <-> dashboard.lanonasis.com)
 const cookieDomain = import.meta.env.PROD ? '.lanonasis.com' : undefined;

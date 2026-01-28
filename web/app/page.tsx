@@ -255,7 +255,7 @@ const secretService = new SecretService();
 
 // Store a secret
 await secretService.storeSecret(
-  'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  'DATABASE_URL',
   'postgresql://<user>:<password>@<host>:<port>/<db>',
   {
     tags: ['database', 'production'],
@@ -264,7 +264,7 @@ await secretService.storeSecret(
 );
 
 // Retrieve a secret
-const dbUrl = await secretService.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+const dbUrl = await secretService.getSecret('DATABASE_URL');`}</code>
               </pre>
             </div>
 

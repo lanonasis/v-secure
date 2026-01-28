@@ -51,10 +51,10 @@ function getAiChatUrl(): string {
     return process.env.NEXT_PUBLIC_AI_CHAT_URL
   }
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) return ''
 
-  // 2. If SUPABASE_URL=https://<project-ref>.supabase.co
+  // 2. If it's already a full edge function URL, return as-is
   if (supabaseUrl.includes('/functions/v1/ai-chat')) {
     return supabaseUrl
   }
@@ -70,7 +70,7 @@ function getAiChatUrl(): string {
 }
 
 const AI_CHAT_URL = getAiChatUrl()
-const SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // Check if the AI chat is configured
 const isConfigured = AI_CHAT_URL.length > 0 && !AI_CHAT_URL.includes('your-project')
@@ -112,7 +112,7 @@ export function AiDemo() {
   // Send to AI with full conversation history for context
   const sendToAI = async (conversationHistory: ChatMessage[]): Promise<string> => {
     if (!isConfigured) {
-      throw new Error('AI Chat not configured. Set NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+      throw new Error('AI Chat not configured. Set NEXT_PUBLIC_SUPABASE_URL in your environment variables.');
     }
 
     // Build prompt with conversation context
@@ -124,8 +124,8 @@ export function AiDemo() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-        'apikey': SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY!}`,
+        'apikey': SUPABASE_ANON_KEY!
       },
       body: JSON.stringify({
         prompt: contextPrompt,
@@ -212,10 +212,10 @@ export function AiDemo() {
                 Configure the Supabase edge function to enable the AI assistant.
               </p>
               <code className="text-sm bg-slate-800 px-3 py-1 rounded text-vortex-cyan block mb-2">
-                NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+                NEXT_PUBLIC_SUPABASE_URL=your-project.supabase.co
               </code>
               <code className="text-sm bg-slate-800 px-3 py-1 rounded text-vortex-cyan block">
-                NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+                NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
               </code>
             </div>
           </div>

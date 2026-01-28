@@ -16,16 +16,16 @@ function extractBaseSupabaseUrl(url: string | undefined): string | undefined {
 }
 
 // Environment validation
-const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+const rawSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseUrl = extractBaseSupabaseUrl(rawSupabaseUrl);
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || supabaseUrl.includes('your-project')) {
-  console.warn('NEXT_PUBLIC_SUPABASE_URL=https://<project-ref>.supabase.co
+  console.warn('⚠️  NEXT_PUBLIC_SUPABASE_URL is not configured. Please set it in your environment variables.');
 }
 
 if (!supabaseAnonKey || supabaseAnonKey === 'your_supabase_anon_key') {
-  console.warn('NEXT_PUBLIC_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+  console.warn('⚠️  NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured. Please set it in your environment variables.');
 }
 
 // Cookie domain for cross-subdomain auth (auth.lanonasis.com <-> dashboard.lanonasis.com)

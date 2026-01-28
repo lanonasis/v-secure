@@ -186,7 +186,7 @@ export default function ConsolePage() {
             {[
               { action: 'Secret accessed', target: 'STRIPE_API_KEY', time: '2 minutes ago', type: 'access' },
               { action: 'API key rotated', target: 'prod-api-key-001', time: '1 hour ago', type: 'rotate' },
-              { action: 'New secret created', target: 'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+              { action: 'New secret created', target: 'DATABASE_URL', time: '3 hours ago', type: 'create' },
               { action: 'MCP session started', target: 'claude-code-assistant', time: '5 hours ago', type: 'mcp' },
             ].map((activity, i) => (
               <div key={i} className="flex items-center justify-between px-6 py-4 hover:bg-slate-800/50 transition">
