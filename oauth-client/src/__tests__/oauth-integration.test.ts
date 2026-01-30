@@ -242,7 +242,7 @@ describe('OAuth 2.1 Integration Tests', () => {
   });
 
   describe('Supabase OAuth Server (auth.connectionpoint.tech)', () => {
-    const SUPABASE_URL=https://<project-ref>.supabase.co
+    const SUPABASE_URL = 'https://<project-ref>.supabase.co';
     const CONSENT_URL = 'https://auth.connectionpoint.tech';
 
     describe('Consent Page', () => {
@@ -293,7 +293,7 @@ describe('OAuth 2.1 Integration Tests', () => {
         });
 
         // Note: Actual registration endpoint may vary based on Supabase implementation
-        const response = await fetch(`${SUPABASE_URL=https://<project-ref>.supabase.co
+        const response = await fetch(`${SUPABASE_URL}/oauth/register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(registrationRequest),
@@ -319,14 +319,14 @@ describe('OAuth 2.1 Integration Tests', () => {
           ]),
         });
 
-        const authUrl = `${SUPABASE_URL=https://<project-ref>.supabase.co
+        const authUrl = `${SUPABASE_URL}/oauth/authorize?` + new URLSearchParams({
           client_id: 'mcp-client',
           redirect_uri: 'http://localhost:8888/callback',
           response_type: 'code',
           scope: 'openid email',
           code_challenge: 'test_challenge',
           code_challenge_method: 'S256',
-        });
+        }).toString();
 
         expect(authUrl).toContain('response_type=code');
       });
@@ -345,7 +345,7 @@ describe('OAuth 2.1 Integration Tests', () => {
           json: () => Promise.resolve(tokenResponse),
         });
 
-        const response = await fetch(`${SUPABASE_URL=https://<project-ref>.supabase.co
+        const response = await fetch(`${SUPABASE_URL}/oauth/token`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: new URLSearchParams({

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { AuthGatewayClient } from '../client/auth-gateway-client';
-import { AuthValidationResult, AuthTokenType } from '../types';
+import { AuthGatewayClient } from '../client/auth-gateway-client.js';
+import { AuthValidationResult, AuthTokenType } from '../types.js';
 
 // Mock cross-fetch
 vi.mock('cross-fetch', () => ({
@@ -146,7 +146,7 @@ describe('AuthGatewayClient', () => {
         })
       } as Response);
 
-      const jwtToken = 'REDACTED_JWT';
+      const jwtToken = 'REDACTED.JWT.TOKEN';
       await client.validateToken(jwtToken);
 
       expect(mockedFetch).toHaveBeenCalledWith(
