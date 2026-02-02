@@ -54,7 +54,7 @@ export const supabase = createClient();
 // Auth URLs - centralized on auth.lanonasis.com in production
 const AUTH_CALLBACK_URL = process.env.NODE_ENV === 'production'
   ? 'https://auth.lanonasis.com/auth/callback'
-  : `${typeof window !== 'undefined' ? window.location.origin : ''}/auth/callback`;
+  : (typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : '');
 
 // Auth helper functions
 export async function signInWithProvider(provider: 'github' | 'google') {
