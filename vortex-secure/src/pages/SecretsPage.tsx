@@ -13,20 +13,65 @@ import {
   Key,
   Shield,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
+import { useSecrets } from '../hooks/useSecrets';
 
 export function SecretsPage() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const stats = {
-    total: 1247,
-    active: 1189,
-    rotationDue: 23,
-    compromised: 0
-  };
+  const { stats, loading, error, refresh } = useSecrets(selectedEnvironment);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Secrets Management</h1>
+            <p className="text-gray-600 mt-1">Loading...</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900">Secrets Management</h1>
+        </div>
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-3">
+              <AlertTriangle className="h-6 w-6 text-red-600" />
+              <div>
+                <h3 className="font-medium text-red-900">Error loading secrets</h3>
+                <p className="text-sm text-red-700">{error}</p>
+              </div>
+            </div>
+            <Button variant="outline" className="mt-4" onClick={refresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

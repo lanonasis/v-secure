@@ -5,3 +5,5 @@ export { useAPIKeys } from './useAPIKeys';
 export { useMCPServices } from './useMCPServices';
 export { useDashboard } from './useDashboard';
 export { useMCPUsage } from './useMCPUsage';
+export { useSecrets } from './useSecrets';
+export { useMemories } from './useMemories';

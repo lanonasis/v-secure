@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  allowedDevOrigins: ['*'],
+  allowedDevOrigins: [
+    'localhost:5000',
+    '*.replit.dev',
+    '*.picard.replit.dev',
+  ],
   images: {
     unoptimized: true,
   },

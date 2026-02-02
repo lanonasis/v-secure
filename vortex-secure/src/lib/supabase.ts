@@ -4,22 +4,38 @@
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '../types/database';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key';
 
-// Cookie domain for cross-subdomain auth (auth.lanonasis.com <-> dashboard.lanonasis.com)
+if (!import.meta.env.VITE_SUPABASE_URL || import.meta.env.VITE_SUPABASE_URL.includes('placeholder')) {
+  console.warn('VITE_SUPABASE_URL is not configured. Please set it in environment variables.');
+}
+
+if (!import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_ANON_KEY === 'placeholder-key') {
+  console.warn('VITE_SUPABASE_ANON_KEY is not configured. Please set it in environment variables.');
+}
+
+// Cookie domain for cross-subdomain auth
 const cookieDomain = import.meta.env.PROD ? '.lanonasis.com' : undefined;
 
-// Use createBrowserClient for cookie-based auth (shares session with v-secure landing page)
+// Use createBrowserClient for cookie-based auth
 export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
   cookieOptions: {
-    // Set cookies on parent domain for subdomain sharing
     domain: cookieDomain,
     path: '/',
     sameSite: 'lax',
     secure: import.meta.env.PROD,
   },
 });
+
+export function isSupabaseConfigured(): boolean {
+  return Boolean(
+    import.meta.env.VITE_SUPABASE_URL &&
+    !import.meta.env.VITE_SUPABASE_URL.includes('placeholder') &&
+    import.meta.env.VITE_SUPABASE_ANON_KEY &&
+    import.meta.env.VITE_SUPABASE_ANON_KEY !== 'placeholder-key'
+  );
+}
 
 // Database Schema Setup SQL
 export const setupSchema = `

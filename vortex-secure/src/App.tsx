@@ -19,7 +19,7 @@ import { User } from '@supabase/supabase-js';
 import './App.css';
 
 // Demo mode - set to true for testing without Supabase auth
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true' || true;
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
 
 // Demo user for testing
 const DEMO_USER = {
