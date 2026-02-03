@@ -85,7 +85,7 @@ export function useAPIKeys(): UseAPIKeysReturn {
 
     // Generate the API key
     const prefix = 'lms_prod';
-    const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+    const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(24)))
       .map(b => b.toString(16).padStart(2, '0'))
       .join('');
     const fullKey = `${prefix}_${randomPart}`;
