@@ -82,10 +82,14 @@ function LoginForm() {
       setLoading('email');
       await signInWithEmail(email, password);
       router.push(redirectTo);
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error('Email login failed:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please check your credentials.';
-      setError(errorMessage);
+      // More specific error handling for 401
+      if (err.status === 401 || err.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials or sign up if you don\'t have an account.');
+      } else {
+        setError(err.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(null);
     }

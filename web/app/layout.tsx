@@ -193,10 +193,12 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <script
+          key="jsonld-software"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <script
+          key="jsonld-org"
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
