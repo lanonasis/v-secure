@@ -12,11 +12,11 @@ async function basicExample() {
 
   // Store a secret
   console.log('Storing secret...');
-  await secretService.storeSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  await secretService.storeSecret('DATABASE_URL', 'postgresql://user:pass@localhost:5432/db');
 
   // Retrieve a secret
   console.log('Retrieving secret...');
-  const dbUrl = await secretService.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  const dbUrl = await secretService.getSecret('DATABASE_URL');
   console.log('Database URL:', dbUrl);
 
   // Create an API key

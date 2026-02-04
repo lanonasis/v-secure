@@ -3,9 +3,9 @@ import crypto from 'crypto';
 import { z } from 'zod';
 
 // Environment configuration
-const supabaseUrl = process.env.SUPABASE_URL=https://<project-ref>.supabase.co
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY || process.env.JWT_SECRET=REDACTED_JWT_SECRET
+const supabaseUrl = process.env.SUPABASE_URL
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY
+const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY || process.env.JWT_SECRET
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

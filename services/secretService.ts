@@ -7,13 +7,14 @@ export class SecretService {
   private supabase: SupabaseClient;
 
   constructor() {
-    if (!process.env.SUPABASE_URL=https://<project-ref>.supabase.co
-      throw new Error('Missing SUPABASE_URL=https://<project-ref>.supabase.co
+    const supabaseUrl = process.env.SUPABASE_URL || '';
+    const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('SUPABASE_URL and SUPABASE_SERVICE_KEY are required');
     }
-    this.supabase = createClient(
-      process.env.SUPABASE_URL=https://<project-ref>.supabase.co
-      process.env.SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-    );
+
+    this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 
   /**

@@ -242,7 +242,7 @@ describe('OAuth 2.1 Integration Tests', () => {
   });
 
   describe('Supabase OAuth Server (auth.connectionpoint.tech)', () => {
-    const SUPABASE_URL = 'https://<project-ref>.supabase.co';
+    const SUPABASE_URL = process.env.SUPABASE_URL || 'https://test.supabase.co';
     const CONSENT_URL = 'https://auth.connectionpoint.tech';
 
     describe('Consent Page', () => {

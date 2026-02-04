@@ -123,7 +123,7 @@ app.get('/api/secrets', verifySession(), async (req: SessionRequest, res: Respon
       },
       {
         id: 'demo-2',
-        name: 'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+        name: 'DATABASE_URL',
         environment: 'production',
         status: 'active'
       }

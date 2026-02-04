@@ -53,7 +53,7 @@ export const authMiddleware = async (
 
     try {
       // Verify JWT token
-      const decoded = jwt.verify(token, config.JWT_SECRET=REDACTED_JWT_SECRET
+      const decoded = jwt.verify(token, config.JWT_SECRET);
       
       // Add user info to request
       req.user = decoded;
