@@ -1,5 +1,5 @@
 // Vortex Secure - VPS Management Dashboard
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,53 +10,24 @@ import {
   Wifi, 
   WifiOff,
   Power,
-  PowerOff,
   RefreshCw,
   AlertTriangle,
   CheckCircle,
   Activity,
-  HardDrive,
-  Cpu,
-  MemoryStick,
-  Network,
   Lock,
-  Unlock,
   Play,
-  Square,
   RotateCcw,
   Eye,
-  Settings,
-  Shield
+  Settings
 } from 'lucide-react';
-
-interface VPSServer {
-  id: string;
-  name: string;
-  ip: string;
-  location: string;
-  status: 'online' | 'offline' | 'error' | 'maintenance';
-  sshStatus: 'connected' | 'timeout' | 'refused' | 'unknown';
-  uptime: string;
-  load: number;
-  memory: { used: number; total: number };
-  disk: { used: number; total: number };
-  network: { in: number; out: number };
-  services: ServiceStatus[];
-  lastCheck: string;
-}
-
-interface ServiceStatus {
-  name: string;
-  status: 'running' | 'stopped' | 'error';
-  port?: number;
-  pid?: number;
-  memory?: number;
-  restart_count?: number;
-}
+import { vpsAPI, type VPSServer } from '@/lib/vps-api';
 
 export function VPSManagementPage() {
   const [servers, setServers] = useState<VPSServer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [monitorConfigured, setMonitorConfigured] = useState<boolean | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const [selectedServer, setSelectedServer] = useState<string | null>(null);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
   const [command, setCommand] = useState('');
@@ -71,52 +42,21 @@ export function VPSManagementPage() {
 
   const loadVPSData = async () => {
     setLoading(true);
-    // Mock VPS data - replace with actual API calls
-    setTimeout(() => {
-      setServers([
-        {
-          id: 'vps-1',
-          name: 'connection-point-main',
-          ip: '45.123.456.789',
-          location: 'New York, US',
-          status: 'online',
-          sshStatus: 'timeout',
-          uptime: '15d 4h 32m',
-          load: 0.65,
-          memory: { used: 3.2, total: 8.0 },
-          disk: { used: 45.6, total: 80.0 },
-          network: { in: 1.2, out: 2.4 },
-          lastCheck: new Date().toISOString(),
-          services: [
-            { name: 'nginx', status: 'running', port: 80, pid: 1234, memory: 45, restart_count: 0 },
-            { name: 'node (api)', status: 'stopped', port: 3000, restart_count: 3 },
-            { name: 'postgresql', status: 'running', port: 5432, pid: 5678, memory: 120, restart_count: 0 },
-            { name: 'redis', status: 'running', port: 6379, pid: 9101, memory: 25, restart_count: 1 },
-            { name: 'pm2', status: 'error', restart_count: 2 }
-          ]
-        },
-        {
-          id: 'vps-2',
-          name: 'backup-server',
-          ip: '45.123.456.790',
-          location: 'London, UK',
-          status: 'online',
-          sshStatus: 'connected',
-          uptime: '7d 12h 15m',
-          load: 0.25,
-          memory: { used: 1.8, total: 4.0 },
-          disk: { used: 120.5, total: 200.0 },
-          network: { in: 0.8, out: 1.1 },
-          lastCheck: new Date().toISOString(),
-          services: [
-            { name: 'nginx', status: 'running', port: 80, pid: 2345, memory: 35 },
-            { name: 'backup-sync', status: 'running', pid: 3456, memory: 80 },
-            { name: 'monitoring', status: 'running', port: 9090, pid: 4567, memory: 60 }
-          ]
-        }
-      ]);
+    setError(null);
+    try {
+      const status = await vpsAPI.getStatus();
+      setMonitorConfigured(status.configured);
+
+      const { servers: nextServers, lastUpdated: updatedAt } = await vpsAPI.getServers();
+      setServers(nextServers);
+      setLastUpdated(updatedAt ?? null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'VPS health data unavailable';
+      setError(message);
+      setMonitorConfigured(false);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const executeCommand = async (serverId: string, cmd: string) => {
@@ -125,40 +65,28 @@ export function VPSManagementPage() {
     setExecutingCommand(true);
     setTerminalOutput(prev => [...prev, `$ ${cmd}`]);
     
-    // Mock command execution - replace with actual SSH API
-    setTimeout(() => {
-      let output = '';
-      switch (cmd.toLowerCase()) {
-        case 'systemctl status nginx':
-          output = '● nginx.service - A high performance web server\n   Loaded: loaded\n   Active: active (running)';
-          break;
-        case 'pm2 list':
-          output = '┌─────┬────────┬─────────────┬─────────┬─────────┬──────────┬────────┬──────┬───────────┬──────────┬──────────┬──────────┬──────────┐\n│ id  │ name   │ namespace   │ version │ mode    │ pid      │ uptime │ ↺    │ status    │ cpu      │ mem      │ user     │ watching │\n├─────┼────────┼─────────────┼─────────┼─────────┼──────────┼────────┼──────┼───────────┼──────────┼──────────┼──────────┼──────────┤\n│ 0   │ api    │ default     │ 1.0.0   │ fork    │ 0        │ 0      │ 3    │ stopped   │ 0%       │ 0b       │ root     │ disabled │\n└─────┴────────┴─────────────┴─────────┴─────────┴──────────┴────────┴──────┴───────────┴──────────┴──────────┴──────────┴──────────┘';
-          break;
-        case 'pm2 restart api':
-          output = '[PM2] Restarting /path/to/api\n[PM2] Process successfully started';
-          break;
-        case 'free -h':
-          output = '              total        used        free      shared  buff/cache   available\nMem:           8.0G        3.2G        1.5G        256M        3.3G        4.5G\nSwap:          2.0G          0B        2.0G';
-          break;
-        case 'df -h':
-          output = 'Filesystem      Size  Used Avail Use% Mounted on\n/dev/sda1        80G   46G   31G  60% /\n/dev/sda2       200G  121G   69G  64% /backup';
-          break;
-        case 'netstat -tlnp | grep :80':
-          output = 'tcp        0      0 0.0.0.0:80              0.0.0.0:*               LISTEN      1234/nginx';
-          break;
-        default:
-          output = `Command '${cmd}' executed on ${serverId}`;
-      }
-      
+    try {
+      const { output } = await vpsAPI.executeCommand(serverId, cmd);
       setTerminalOutput(prev => [...prev, output, '']);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Command execution failed';
+      setTerminalOutput(prev => [...prev, `Error: ${message}`, '']);
+    } finally {
       setExecutingCommand(false);
       setCommand('');
-    }, 1500);
+    }
   };
 
   const restartService = async (serverId: string, serviceName: string) => {
-    setTerminalOutput(prev => [...prev, `$ sudo systemctl restart ${serviceName}`, `Restarting ${serviceName}...`, 'Service restarted successfully', '']);
+    setTerminalOutput(prev => [...prev, `$ sudo systemctl restart ${serviceName}`]);
+
+    try {
+      await vpsAPI.restartService(serverId, serviceName);
+      setTerminalOutput(prev => [...prev, `Restarting ${serviceName}...`, 'Service restarted successfully', '']);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to restart service';
+      setTerminalOutput(prev => [...prev, `Error: ${message}`, '']);
+    }
     
     // Update service status
     setServers(prev => prev.map(server => 
@@ -172,16 +100,19 @@ export function VPSManagementPage() {
   };
 
   const fixSSHConnection = async (serverId: string) => {
-    setTerminalOutput(prev => [...prev, 
-      '$ sudo systemctl restart sshd',
-      'Restarting SSH daemon...',
-      '$ sudo ufw allow 2222/tcp',
-      'SSH port 2222 opened',
-      '$ sudo service networking restart',
-      'Network services restarted',
-      'SSH connection should be restored',
-      ''
-    ]);
+    setTerminalOutput(prev => [...prev, '$ sudo systemctl restart sshd']);
+
+    try {
+      await vpsAPI.fixSSH(serverId);
+      setTerminalOutput(prev => [...prev, 
+        'Restarting SSH daemon...',
+        'SSH connection should be restored',
+        ''
+      ]);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to fix SSH connection';
+      setTerminalOutput(prev => [...prev, `Error: ${message}`, '']);
+    }
 
     // Update SSH status
     setServers(prev => prev.map(server => 
@@ -254,6 +185,29 @@ export function VPSManagementPage() {
           </Button>
         </div>
       </div>
+
+      {(error || monitorConfigured === false) && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">VPS health data unavailable</h3>
+              <p className="text-sm text-red-700 mt-1">
+                The VPS monitoring service may be offline or not configured.
+              </p>
+              {error && (
+                <p className="text-xs text-red-600 mt-2">{error}</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {lastUpdated && (
+        <p className="text-xs text-gray-500">
+          Last updated: {new Date(lastUpdated).toLocaleString()}
+        </p>
+      )}
 
       {/* Server Overview Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
