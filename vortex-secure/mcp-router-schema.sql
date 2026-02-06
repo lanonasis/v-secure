@@ -1,6 +1,25 @@
+-- ========================================================================================
 -- MCP Router Platform - Database Schema Extension
--- Zapier-like router for external API services (Stripe, GitHub, etc.)
+-- ========================================================================================
+--
+-- Zapier-like router for external API services (Stripe, GitHub, OpenAI, etc.)
+-- Provides secure, audited access to external APIs via Model Context Protocol (MCP)
+--
+-- Architecture:
+-- - Tier 1: Service Catalog (platform-maintained available services)
+-- - Tier 2: User Configurations (per-user service setups)
+-- - Tier 3: API Keys (scoped keys with rate limits)
+-- - Tier 4: Request Logging (audit trail for all API calls)
+--
+-- Security Model:
+-- - Row Level Security (RLS) on all tables
+-- - Encrypted credential storage
+-- - Scoped API keys with rate limiting
+-- - Audit logging with tamper-proof hashes
+-- - Zero-trust: keys never leave the server
+--
 -- Run this script after supabase-schema.sql
+-- ========================================================================================
 
 -- =============================================
 -- MCP ROUTER PLATFORM TABLES
@@ -27,8 +46,11 @@ CREATE TABLE IF NOT EXISTS mcp_service_catalog (
 
   -- MCP server configuration
   mcp_command TEXT, -- Command to spawn MCP server, e.g., 'npx @stripe/mcp-server'
-  mcp_args JSONB DEFAULT '[]', -- Additional CLI arguments
-  mcp_env_mapping JSONB DEFAULT '{}', -- How credentials map to env vars: {"api_key": "STRIPE_SECRET_KEY"}
+  mcp_args JSONB DEFAULT '[]', -- Additional CLI arguments as JSON array
+  mcp_env_mapping JSONB DEFAULT '{}', -- Maps credential keys to environment variables
+  -- Example Stripe: {"secret_key": "STRIPE_SECRET_KEY"}
+  -- Example GitHub: {"token": "GITHUB_TOKEN", "base_url": "GITHUB_API_URL"}
+  -- Example OpenAI: {"api_key": "OPENAI_API_KEY", "organization": "OPENAI_ORG_ID"}
 
   -- Service metadata
   documentation_url TEXT,
