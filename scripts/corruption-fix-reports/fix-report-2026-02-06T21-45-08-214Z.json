@@ -1,0 +1,109 @@
+{
+  "timestamp": "2026-02-06T21:45:08.209Z",
+  "report": "/tmp/corruption-report.json",
+  "mode": "fix",
+  "files": [
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/apps/lanonasis-maas/tests/setup.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/apps/mcp-core/src/__tests__/auth-handler.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/__tests__/integration/apiKeyAuth.integration.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/__tests__/setup.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/config/environment.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/middleware/__tests__/auth.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/services/__tests__/memoryService.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/services/__tests__/queueService.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/onasis-mcp/src/services/__tests__/searchService.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/packages/oauth-client/src/__tests__/oauth-integration.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/packages/shared-db/src/config.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    },
+    {
+      "path": "/Users/seyederick/DevOps/_project_folders/lan-onasis-monorepo/packages/shared-db/test/compatibility.test.ts",
+      "originalCorruptions": 0,
+      "appliedFixes": 0,
+      "changes": [],
+      "backupPath": "",
+      "validationPassed": false
+    }
+  ],
+  "stats": {
+    "totalFiles": 12,
+    "filesFixed": 0,
+    "totalFixes": 0,
+    "validationErrors": 0
+  }
+}

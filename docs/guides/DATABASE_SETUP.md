@@ -10,7 +10,7 @@ Complete database configuration and verification for the v-secure repository.
 - **Provider**: Neon (Serverless PostgreSQL)
 - **Version**: PostgreSQL 17.5
 - **Status**: ✅ Connected and Verified
-- **Connection String**: `DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+- **Connection String**: `DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>`
 
 ### Required Extensions
 All required PostgreSQL extensions are installed:
@@ -122,15 +122,15 @@ Create a `.env` file or export these variables:
 # Neon Database Connection
 # ⚠️ NEVER commit real credentials! Use environment variables.
 # Example format:
-postgresql://<user>:<password>@<host>:<port>/<db>
+DATABASE_URL=your_database_url
 
 # Get your connection string from Neon dashboard:
 # https://console.neon.tech/app/projects → Connection Details
 
 # Alternative: Supabase Configuration (if using Supabase instead)
-# SUPABASE_URL=https://<project-ref>.supabase.co
-# SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-# SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+# SUPABASE_URL=your_supabase_url
+# SUPABASE_ANON_KEY=your_anon_key
+# SUPABASE_SERVICE_KEY=your_service_role_key
 
 # Security Keys
 API_KEY_ENCRYPTION_KEY=your-encryption-key-min-32-chars
@@ -229,18 +229,18 @@ All sensitive tables have RLS enabled:
 
 ### oauth-client
 ```typescript
-// Uses DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+// Uses DATABASE_URL from the environment
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
-  process.env.SUPABASE_URL=https://<project-ref>.supabase.co
-  process.env.SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
 );
 
 // For direct PostgreSQL (when not using Supabase):
 import { Client } from 'pg';
 const client = new Client({
-  connectionString: process.env.DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  connectionString: process.env.DATABASE_URL,
 });
 ```
 
@@ -259,7 +259,7 @@ const encrypted = security.encrypt(apiKey, 'context');
 import { Pool } from 'pg';
 
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
 });
 
@@ -284,13 +284,13 @@ Run the schema migration:
 
 ```bash
 # Using psql
-psql "$DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+psql "$DATABASE_URL"
 
 # Or using node
 node -e "
 const { Client } = require('pg');
 const fs = require('fs');
-const client = new Client({ connectionString: process.env.DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+const client = new Client({ connectionString: process.env.DATABASE_URL,
 
 (async () => {
   await client.connect();
@@ -314,7 +314,7 @@ Create `test-db.js`:
 const { Client } = require('pg');
 
 const client = new Client({
-  connectionString: process.env.DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+  connectionString: process.env.DATABASE_URL,
 });
 
 (async () => {
@@ -397,13 +397,13 @@ SELECT cleanup_old_analytics(12); -- Keep 12 months
 
 ```bash
 # Hourly: Clean expired codes and sessions
-0 * * * * psql "$DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+0 * * * * psql "$DATABASE_URL"
 
 # Daily: Clean expired tokens
-0 0 * * * psql "$DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+0 0 * * * psql "$DATABASE_URL"
 
 # Monthly: Archive old analytics
-0 0 1 * * psql "$DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+0 0 1 * * psql "$DATABASE_URL"
 ```
 
 ---

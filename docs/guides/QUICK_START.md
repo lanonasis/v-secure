@@ -80,7 +80,7 @@ curl -X POST http://localhost:3000/api/v1/secrets \
   -H "Content-Type: application/json" \
   -d '{
     "key": "TEST_SECRET",
-    "value": "my-secret-value"
+    "value": "<YOUR_VALUE>"
   }'
 ```
 
@@ -103,8 +103,8 @@ import { SecretService } from './security-service';
 const secretService = new SecretService();
 
 await secretService.storeSecret(
-  'DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-  'postgresql://<user>:<password>@<host>:<port>/<db>
+  'DATABASE_URL',
+  '<YOUR_VALUE>'
 );
 ```
 
@@ -179,7 +179,7 @@ Import directly into your project:
 import { SecretService } from './security-service';
 
 const secretService = new SecretService();
-const secret = await secretService.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+const secret = await secretService.getSecret('DATABASE_URL');
 ```
 
 ### Option 3: NPM Package
@@ -226,9 +226,9 @@ docker build -t security-service .
 # Run container
 docker run -d \
   -p 3000:3000 \
-  -e SUPABASE_URL=https://<project-ref>.supabase.co
-  -e SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-  -e JWT_SECRET=REDACTED_JWT_SECRET
+  -e SUPABASE_URL=<YOUR_VALUE>
+  -e SUPABASE_SERVICE_KEY=<YOUR_VALUE>
+  -e JWT_SECRET=<YOUR_VALUE>
   --name security-service \
   security-service
 ```
@@ -285,7 +285,7 @@ Before going to production, ensure:
 cat .env
 
 # Verify database connection
-psql $SUPABASE_URL=https://<project-ref>.supabase.co
+psql $SUPABASE_URL=<YOUR_VALUE>
 
 # Check logs
 npm run dev
@@ -295,7 +295,7 @@ npm run dev
 
 ```bash
 # Verify JWT secret is set
-echo $JWT_SECRET=REDACTED_JWT_SECRET
+echo $JWT_SECRET=<YOUR_VALUE>
 
 # Test with a valid token
 curl -H "Authorization: Bearer YOUR_TOKEN" \
@@ -309,7 +309,7 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 ./scripts/migrate.sh
 
 # Check database tables
-psql $SUPABASE_URL=https://<project-ref>.supabase.co
+psql $SUPABASE_URL=<YOUR_VALUE>
 ```
 
 ---

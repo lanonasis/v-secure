@@ -39,8 +39,8 @@ const security = new LanonasisSecurityClient({
 });
 
 // Start using it!
-await security.createSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-const secret = await security.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+await security.createSecret('DATABASE_URL', '<YOUR_VALUE>');
+const secret = await security.getSecret('DATABASE_URL');
 ```
 
 ---
@@ -66,7 +66,7 @@ v-secure supports **three authentication methods**, each designed for specific u
 
 **Example:**
 ```bash
-curl https://mcp.lanonasis.com/api/v1/secrets/DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+curl https://mcp.lanonasis.com/api/v1/secrets/DATABASE_URL
   -H "x-api-key: lano_your_api_key_here"
 ```
 
@@ -238,7 +238,7 @@ async function getSecret(key: string): Promise<string> {
 // Use in your app
 app.get('/connect-db', async (req, res) => {
   try {
-    const dbUrl = await getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+    const dbUrl = await getSecret('DATABASE_URL');
     // Connect to database with dbUrl
     res.json({ status: 'connected' });
   } catch (error) {
@@ -446,11 +446,11 @@ const prodClient = new VSecureClient({
 });
 
 // Same secret key, different values per environment
-const dbUrl = await devClient.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-// Returns: postgresql://<user>:<password>@<host>:<port>/<db>
+const dbUrl = await devClient.getSecret('DATABASE_URL');
+// Returns: development database URL
 
-const prodDbUrl = await prodClient.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-// Returns: postgresql://<user>:<password>@<host>:<port>/<db>
+const prodDbUrl = await prodClient.getSecret('DATABASE_URL');
+// Returns: production database URL
 ```
 
 ---

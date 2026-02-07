@@ -69,11 +69,11 @@ nano .env
 
 **Required Environment Variables:**
 ```env
-https://<project-ref>.supabase.co
-REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
-API_KEY_ENCRYPTION_KEY=your-encryption-key-min-32-chars
+SUPABASE_URL=<YOUR_VALUE>
+SUPABASE_ANON_KEY=<YOUR_VALUE>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_VALUE>
+JWT_SECRET=<YOUR_VALUE>
+API_KEY_ENCRYPTION_KEY=<YOUR_VALUE>
 ```
 
 ### Step 4: Run Database Migrations
@@ -83,9 +83,9 @@ API_KEY_ENCRYPTION_KEY=your-encryption-key-min-32-chars
 ./scripts/migrate.sh
 
 # Or manually
-psql $DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-psql $DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-psql $DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+psql $DATABASE_URL=<YOUR_VALUE>
+psql $DATABASE_URL=<YOUR_VALUE>
+psql $DATABASE_URL=<YOUR_VALUE>
 ```
 
 ### Step 5: Build and Start
@@ -153,7 +153,7 @@ const secretService = new SecretService();
 const apiKeyService = new ApiKeyService();
 
 // Use directly
-const secret = await secretService.getSecret('DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+const secret = await secretService.getSecret('DATABASE_URL');
 ```
 
 ### Option 3: As an NPM Package
@@ -185,11 +185,11 @@ const secretService = new SecretService();
 NODE_ENV=development
 PORT=3000
 LOG_LEVEL=debug
-https://<project-ref>.supabase.co
-REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
-API_KEY_ENCRYPTION_KEY=dev-encryption-key-min-32-chars
+SUPABASE_URL=<YOUR_VALUE>
+SUPABASE_ANON_KEY=<YOUR_VALUE>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_VALUE>
+JWT_SECRET=<YOUR_VALUE>
+API_KEY_ENCRYPTION_KEY=<YOUR_VALUE>
 
 # Optional: Local Redis
 REDIS_URL=redis://localhost:6379
@@ -201,11 +201,11 @@ REDIS_URL=redis://localhost:6379
 NODE_ENV=staging
 PORT=3000
 LOG_LEVEL=info
-https://<project-ref>.supabase.co
-REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
-API_KEY_ENCRYPTION_KEY=staging-encryption-key-min-32-chars
+SUPABASE_URL=<YOUR_VALUE>
+SUPABASE_ANON_KEY=<YOUR_VALUE>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_VALUE>
+JWT_SECRET=<YOUR_VALUE>
+API_KEY_ENCRYPTION_KEY=<YOUR_VALUE>
 
 # Redis for rate limiting
 REDIS_URL=redis://staging-redis:6379
@@ -222,11 +222,11 @@ ENABLE_MONITORING=true
 NODE_ENV=production
 PORT=3000
 LOG_LEVEL=warn
-https://<project-ref>.supabase.co
-REDACTED_SUPABASE_ANON_KEY=REDACTED_SUPABASE_ANON_KEY
-REDACTED_SUPABASE_SERVICE_ROLE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
-REDACTED_JWT_SECRET=REDACTED_JWT_SECRET
-API_KEY_ENCRYPTION_KEY=prod-encryption-key-min-32-chars-CHANGE-THIS
+SUPABASE_URL=<YOUR_VALUE>
+SUPABASE_ANON_KEY=<YOUR_VALUE>
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_VALUE>
+JWT_SECRET=<YOUR_VALUE>
+API_KEY_ENCRYPTION_KEY=<YOUR_VALUE>
 
 # Production Redis
 REDIS_URL=redis://prod-redis:6379
@@ -341,7 +341,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - SUPABASE_URL=https://<project-ref>.supabase.co
+      - SUPABASE_URL=<YOUR_VALUE>
       - SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
       - JWT_SECRET=REDACTED_JWT_SECRET
       - API_KEY_ENCRYPTION_KEY=${API_KEY_ENCRYPTION_KEY}
@@ -393,7 +393,7 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
-        - name: SUPABASE_URL=https://<project-ref>.supabase.co
+        - name: SUPABASE_URL=<YOUR_VALUE>
           valueFrom:
             secretKeyRef:
               name: security-service-secrets
@@ -559,10 +559,10 @@ secretAccessCounter.inc();
 #### 1. Database Connection Errors
 ```bash
 # Check database connectivity
-psql $SUPABASE_URL=https://<project-ref>.supabase.co
+psql $SUPABASE_URL=<YOUR_VALUE>
 
 # Verify credentials
-echo $SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+echo $SUPABASE_SERVICE_KEY=<YOUR_VALUE>
 ```
 
 #### 2. Encryption Errors
@@ -574,7 +574,7 @@ echo $API_KEY_ENCRYPTION_KEY | wc -c  # Should be >= 32
 #### 3. Authentication Failures
 ```bash
 # Verify JWT secret
-echo $JWT_SECRET=REDACTED_JWT_SECRET
+echo $JWT_SECRET=<YOUR_VALUE>
 
 # Test JWT token
 curl -X GET http://localhost:3000/api/v1/secrets \

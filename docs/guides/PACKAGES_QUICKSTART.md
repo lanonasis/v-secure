@@ -29,7 +29,7 @@ https://mcp.lanonasis.com/dashboard → API Keys → Create New Key
 # Copy: lano_live_abc123xyz789...
 
 # 2. Use it in any HTTP request
-curl https://mcp.lanonasis.com/api/v1/secrets/DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+curl https://mcp.lanonasis.com/api/v1/secrets/DATABASE_URL
   -H "x-api-key: lano_live_abc123xyz789..."
 
 # 3. Store it in environment variables
@@ -368,13 +368,13 @@ npm start
 # Create/update secret
 POST /api/v1/secrets
 {
-  "key": "DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
-  "value": "postgresql://<user>:<password>@<host>:<port>/<db>",
+  "key": "DATABASE_URL",
+  "value": "your_database_url_value",
   "tags": ["database", "production"]
 }
 
 # Get secret
-GET /api/v1/secrets/DATABASE_URL=postgresql://<user>:<password>@<host>:<port>/<db>
+GET /api/v1/secrets/DATABASE_URL
 Header: x-api-key: lano_your_key
 
 # List secrets

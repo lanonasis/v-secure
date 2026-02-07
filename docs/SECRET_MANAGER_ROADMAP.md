@@ -9,8 +9,8 @@ This document outlines the concrete steps to deliver a multi-functional secret m
 
   export class SecretService {
     private supabase = createClient(
-      process.env.SUPABASE_URL=https://<project-ref>.supabase.co
-      process.env.SUPABASE_SERVICE_KEY=REDACTED_SUPABASE_SERVICE_ROLE_KEY
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_KEY
     );
 
     async storeSecret(key: string, value: string): Promise<void> {
@@ -92,4 +92,3 @@ Next steps (outside this patch):
 3. Write unit tests for SecretService and API routes.
 4. Expand SDK, CLI, Dashboard & IDE extensions per SECRET_MANAGER_ROADMAP.md.
 5. Publish packages and update CI fragments (Phase 11) to validate the secret‑manager build.
-
