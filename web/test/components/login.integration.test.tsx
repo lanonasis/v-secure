@@ -129,7 +129,7 @@ describe('Login Page Integration Tests', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/invalid login credentials/i)).toBeInTheDocument();
+        expect(screen.getByText(/invalid email or password/i)).toBeInTheDocument();
       });
     });
 
