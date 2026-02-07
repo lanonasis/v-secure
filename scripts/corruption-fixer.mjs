@@ -225,7 +225,7 @@ function fixLine(line, context) {
     return { line: out, changed: true, reason: 'deno-env-get' };
   }
 
-  // Fix process.env.X=<placeholder>
+  // Fix process.env.X
   out = out.replace(PLACEHOLDER_REGEX.processEnvAssignment, (full, obj, key) => {
     if (context.isTest) {
       const value = dummyFor(key) || 'REPLACE_ME';
@@ -251,7 +251,7 @@ function fixLine(line, context) {
     return { line: out, changed: true, reason: 'env-object-assignment' };
   }
 
-  // Fix inline process.env assignment: const X = process.env.Y=<placeholder>
+  // Fix inline process.env assignment: const X = process.env.Y
   out = out.replace(PLACEHOLDER_REGEX.processEnvInlineAssignment, (full, decl, localName, envKey) => {
     return `${decl} ${localName} = process.env.${envKey}`;
   });
