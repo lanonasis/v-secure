@@ -54,7 +54,7 @@
     "build:cjs": "tsc -p tsconfig.cjs.json && node scripts/fix-cjs.js",
     "build:types": "tsc -p tsconfig.types.json",
     "dev": "tsc -p tsconfig.esm.json --watch",
-    "test": "vitest run",
+    "test": "[ -d node_modules/axios ] || npm ci --ignore-scripts; vitest run",
     "lint": "eslint src --ext .ts",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build"
