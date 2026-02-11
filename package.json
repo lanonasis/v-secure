@@ -10,7 +10,7 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "test": "npm run test:packages",
-    "test:packages": "npm install --ignore-scripts --no-package-lock --prefix oauth-client && npm install --ignore-scripts --no-package-lock --prefix security-sdk && npm install --ignore-scripts --no-package-lock --prefix web && npm install --ignore-scripts --no-package-lock --prefix vortex-secure/packages/vortex-mcp-sdk && npm run test --prefix oauth-client && npm run test --prefix security-sdk && npm run test --prefix web && npm run test --prefix vortex-secure/packages/vortex-mcp-sdk",
+    "test:packages": "npm --prefix oauth-client install --ignore-scripts --no-package-lock && npm --prefix security-sdk install --ignore-scripts --no-package-lock && npm --prefix web install --ignore-scripts --no-package-lock && npm --prefix vortex-secure/packages/vortex-mcp-sdk install --ignore-scripts --no-package-lock && npm --prefix oauth-client run test && npm --prefix security-sdk run test && npm --prefix web run test && npm --prefix vortex-secure/packages/vortex-mcp-sdk run test",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "lint": "eslint .",
