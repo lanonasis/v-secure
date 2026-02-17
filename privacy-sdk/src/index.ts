@@ -77,6 +77,11 @@ export interface PrivacyConfig {
 
   // Logging
   logLevel: 'none' | 'basic' | 'verbose';
+
+  /** Optional: Onasis Gateway URL for due-diligence (KYC/KYB) – central point for verification */
+  gatewayUrl?: string;
+  /** Optional: API key for gateway (e.g. x-api-key); set with gatewayUrl to enable verifyIdentity / getVerificationStatus */
+  apiKey?: string;
 }
 
 export interface AuditEntry {
@@ -879,9 +884,63 @@ export class PrivacySDK {
   getConfig(): PrivacyConfig {
     return { ...this.config };
   }
+
+  /** Call gateway verification; no-op if gatewayUrl/apiKey not set. */
+  private async gatewayFetch<T>(operation: string, body: Record<string, unknown>): Promise<T | null> {
+    const base = this.config.gatewayUrl?.replace(/\/+$/, '');
+    const key = this.config.apiKey;
+    if (!base || !key) return null;
+    const res = await fetch(`${base}/api/v1/verification/${operation}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': key },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error((err as { message?: string }).message || res.statusText);
+    }
+    return res.json() as Promise<T>;
+  }
+
+  /** Verify identity via Onasis Gateway (KYC). Returns null if gateway not configured. */
+  async verifyIdentity(args: { document_type: string; document_number: string; customer_id: string; country?: string }): Promise<{ success: boolean; data?: unknown; error?: { message: string } } | null> {
+    return this.gatewayFetch('identity', args);
+  }
+
+  /** Get verification status via gateway. Returns null if gateway not configured. */
+  async getVerificationStatus(args: { reference?: string; verification_id?: string }): Promise<{ success: boolean; data?: unknown; error?: { message: string } } | null> {
+    return this.gatewayFetch('status', args);
+  }
 }
 
 // ============================================
+// EXPORTS
+// ============================================
+
+// Default instance
+export const privacy = new PrivacySDK();
+
+// Convenience functions
+export const mask = (data: string, type: PIIType, options?: Partial<MaskingOptions>) =>
+  privacy.mask(data, type, options);
+
+export const detect = (text: string, options?: { locale?: Locale }) =>
+  privacy.detect(text, options);
+
+export const detectAndMask = (text: string, options?: { locale?: Locale }) =>
+  privacy.detectAndMask(text, options);
+
+export const scan = (obj: unknown, options?: ScanOptions) =>
+  privacy.scan(obj, options);
+
+export const sanitize = <T extends Record<string, unknown>>(
+  obj: T,
+  fieldMappings: Record<string, PIIType | MaskingOptions>
+) => privacy.sanitizeObject(obj, fieldMappings);
+
+// Re-export config
+export { DEFAULT_CONFIG };
+==
 // EXPORTS
 // ============================================
 
