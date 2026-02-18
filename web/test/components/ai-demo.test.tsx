@@ -213,17 +213,39 @@ describe('AiDemo component', () => {
       })
 
       render(<AiDemo />)
-      
+
       const input = screen.getByPlaceholderText(/Ask about security/i)
       const buttons = screen.getAllByRole('button')
       const submitButton = buttons.find(btn => btn.getAttribute('type') === 'submit')!
-      
+
       fireEvent.change(input, { target: { value: 'Test' } })
       fireEvent.click(submitButton)
-      
+
       await waitFor(() => {
         expect(screen.getByText(/Debug:/i)).toBeInTheDocument()
       }, { timeout: 3000 })
     })
+  })
+})
+
+// ---
+// Not-configured state — requires module reset so isConfigured re-evaluates without env vars
+// ---
+describe('AiDemo — not configured', () => {
+  it('shows gateway configuration guide when env vars are absent', async () => {
+    // Remove env stubs so the fresh module import evaluates isConfigured = false
+    vi.unstubAllEnvs()
+    vi.resetModules()
+
+    const { AiDemo: UnconfiguredDemo } = await import('../../app/components/ai-demo')
+    render(<UnconfiguredDemo />)
+
+    expect(screen.getByText(/Configure the Onasis Gateway/i)).toBeInTheDocument()
+    expect(screen.getByText(/NEXT_PUBLIC_API_URL/)).toBeInTheDocument()
+    expect(screen.getByText(/NEXT_PUBLIC_LANONASIS_API_KEY/)).toBeInTheDocument()
+
+    // Restore stubs for any subsequent test files
+    vi.stubEnv('NEXT_PUBLIC_API_URL', 'https://gateway.lanonasis.com')
+    vi.stubEnv('NEXT_PUBLIC_LANONASIS_API_KEY', 'lano_test_key')
   })
 })
