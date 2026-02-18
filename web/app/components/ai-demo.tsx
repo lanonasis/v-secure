@@ -40,40 +40,11 @@ interface ChatMessage {
   content: string
 }
 
-// AI Chat edge function config (from environment variables)
-// Supports multiple URL formats:
-// - Full edge function URL: https://project.supabase.co/functions/v1/ai-chat
-// - Base Supabase URL: https://project.supabase.co (will append /functions/v1/ai-chat)
-// - Explicit AI chat URL via NEXT_PUBLIC_AI_CHAT_URL
-function getAiChatUrl(): string {
-  // 1. Explicit AI chat URL takes priority
-  if (process.env.NEXT_PUBLIC_AI_CHAT_URL) {
-    return process.env.NEXT_PUBLIC_AI_CHAT_URL
-  }
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  if (!supabaseUrl) return ''
-
-  // 2. If it's already a full edge function URL, return as-is
-  if (supabaseUrl.includes('/functions/v1/ai-chat')) {
-    return supabaseUrl
-  }
-
-  // 3. If it's a base URL or other edge function, extract base and add ai-chat
-  if (supabaseUrl.includes('/functions/')) {
-    const baseUrl = supabaseUrl.substring(0, supabaseUrl.indexOf('/functions/'))
-    return `${baseUrl}/functions/v1/ai-chat`
-  }
-
-  // 4. It's a base Supabase URL, append the edge function path
-  return `${supabaseUrl}/functions/v1/ai-chat`
-}
-
-const AI_CHAT_URL = getAiChatUrl()
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// Check if the AI chat is configured
-const isConfigured = AI_CHAT_URL.length > 0 && !AI_CHAT_URL.includes('your-project')
+// Gateway config (onboarding guide §2.1)
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || '').replace(/\/+$/, '')
+const API_KEY = process.env.NEXT_PUBLIC_LANONASIS_API_KEY || ''
+const isConfigured = API_URL.length > 0 && API_KEY.length > 0
+  && !API_URL.includes('your-api') && !API_KEY.includes('lano_your')
 
 // VortexShield AI identity and capabilities
 const SYSTEM_PROMPT = `You are **VortexShield AI**, an intelligent security assistant built by Lanonasis.
@@ -82,7 +53,7 @@ const SYSTEM_PROMPT = `You are **VortexShield AI**, an intelligent security assi
 - Name: VortexShield AI
 - Built by: Lanonasis (https://lanonasis.com)
 - Purpose: Interactive security assistant for developers and security professionals
-- Powered by: @lanonasis/ai-sdk with memory persistence
+- Powered by: Onasis-CORE with memory persistence
 
 ## Capabilities
 - Security Analysis: Audit code, identify vulnerabilities, suggest fixes
@@ -109,28 +80,25 @@ You're running in VortexShield, a security platform demo. The user may ask about
 Remember: You are VortexShield AI. Introduce yourself briefly on first interaction.`
 
 export function AiDemo() {
+  const [providerBadge, setProviderBadge] = useState<string>('')
+
   // Send to AI with full conversation history for context
   const sendToAI = async (conversationHistory: ChatMessage[]): Promise<string> => {
     if (!isConfigured) {
-      throw new Error('AI Chat not configured. Set NEXT_PUBLIC_SUPABASE_URL in your environment variables.');
+      throw new Error('Gateway not configured. Set NEXT_PUBLIC_API_URL and NEXT_PUBLIC_LANONASIS_API_KEY in your environment variables.')
     }
 
-    // Build prompt with conversation context
-    const contextPrompt = conversationHistory
-      .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-      .join('\n\n')
-
-    const response = await fetch(AI_CHAT_URL, {
+    const response = await fetch(`${API_URL}/api/v1/ai/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SUPABASE_ANON_KEY!}`,
-        'apikey': SUPABASE_ANON_KEY!
+        'X-API-Key': API_KEY,
+        'X-Project-Scope': 'v-secure',
+        'X-Request-ID': crypto.randomUUID(),
       },
       body: JSON.stringify({
-        prompt: contextPrompt,
-        system_prompt: SYSTEM_PROMPT,
         messages: conversationHistory.map(m => ({ role: m.role, content: m.content })),
+        system_prompt: SYSTEM_PROMPT,
       }),
     })
 
@@ -140,7 +108,10 @@ export function AiDemo() {
     }
 
     const data = await response.json()
-    return data.response || data.message || 'No response'
+    if (data.onasis_metadata?.actual_provider) {
+      setProviderBadge(data.onasis_metadata.actual_provider)
+    }
+    return data.message?.content || data.response || data.choices?.[0]?.message?.content || 'No response'
   }
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -186,6 +157,7 @@ export function AiDemo() {
   function clearChat() {
     setMessages([])
     setError('')
+    setProviderBadge('')
   }
 
   // Show configuration message if not set up
@@ -201,7 +173,7 @@ export function AiDemo() {
               <div>
                 <h3 className="text-2xl font-bold text-gray-100">VortexShield AI Chat</h3>
                 <p className="text-sm text-gray-400">
-                  Powered by @lanonasis/ai-sdk — interactive security assistant
+                  Powered by Onasis-CORE — interactive security assistant
                 </p>
               </div>
             </div>
@@ -209,13 +181,13 @@ export function AiDemo() {
               <LanonasisIcon className="w-16 h-16 mx-auto mb-4" />
               <h4 className="text-lg font-semibold text-gray-200 mb-2">AI Chat Demo</h4>
               <p className="text-gray-400 mb-4">
-                Configure the Supabase edge function to enable the AI assistant.
+                Configure the Onasis Gateway to enable the AI assistant.
               </p>
               <code className="text-sm bg-slate-800 px-3 py-1 rounded text-vortex-cyan block mb-2">
-                NEXT_PUBLIC_SUPABASE_URL=your-project.supabase.co
+                NEXT_PUBLIC_API_URL=https://gateway.lanonasis.com
               </code>
               <code className="text-sm bg-slate-800 px-3 py-1 rounded text-vortex-cyan block">
-                NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+                NEXT_PUBLIC_LANONASIS_API_KEY=lano_your_api_key_here
               </code>
             </div>
           </div>
@@ -236,7 +208,7 @@ export function AiDemo() {
               <div>
                 <h3 className="text-2xl font-bold text-gray-100">VortexShield AI Chat</h3>
                 <p className="text-sm text-gray-400">
-                  Powered by @lanonasis/ai-sdk — interactive security assistant
+                  Powered by Onasis-CORE{providerBadge ? ` · ${providerBadge}` : ''}
                 </p>
               </div>
             </div>
