@@ -5,6 +5,23 @@ All notable changes to `@lanonasis/oauth-client` will be documented in this file
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+## [2.0.4] - 2026-03-27
+
+### Fixed
+- Restore a semver-compliant optional React peer dependency range (`^18.0.0 || ^19.0.0`) instead of the non-semver `latest` dist-tag in package metadata.
+
+## [2.0.3] - 2026-03-26
+
+### Fixed
+- Use ESM-safe lazy loading for `keytar` in Node environments so secure storage works when the package is imported through the ESM bundle.
+- Preserve raw API keys in secure storage for outbound `X-API-Key` and `Authorization` header use instead of transforming them at rest.
+
+### Changed
+- Return the standalone package to a TypeScript 5.9 toolchain so the current `tsup` DTS build and `typescript-eslint` stack remain stable for publishing.
+- Pin patched `flatted`, `picomatch`, and `rollup` transitive versions in the standalone package to keep `bun audit` clean during release verification.
+
 ## [2.0.0] - 2026-01-20
 
 ### Added

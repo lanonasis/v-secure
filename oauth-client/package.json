@@ -1,6 +1,6 @@
 {
   "name": "@lanonasis/oauth-client",
-  "version": "2.0.2",
+  "version": "2.0.4",
   "type": "module",
   "description": "OAuth and API Key authentication client for Lan Onasis MCP integration",
   "license": "MIT",
@@ -84,25 +84,30 @@
     "desktop"
   ],
   "dependencies": {
-    "cross-fetch": "^4.0.0",
-    "eventsource": "^2.0.2",
+    "cross-fetch": "^4.1.0",
+    "eventsource": "^4.1.0",
     "keytar": "^7.9.0",
-    "open": "^9.1.0"
+    "open": "^11.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.17.0",
-    "@types/node": "^20.0.0",
-    "@types/react": "^19.0.0",
-    "@vitest/coverage-v8": "^2.0.0",
-    "eslint": "^9.17.0",
-    "globals": "^16.4.0",
-    "tsup": "^8.5.0",
-    "typescript": "^5.3.3",
-    "typescript-eslint": "^8.18.1",
-    "vitest": "^2.0.0"
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@vitest/coverage-v8": "^4.1.2",
+    "eslint": "^10.1.0",
+    "globals": "^17.4.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.2",
+    "vitest": "^4.1.2"
+  },
+  "overrides": {
+    "flatted": "^3.4.0",
+    "picomatch": "^4.0.4",
+    "rollup": "^4.59.0"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.0.0",
+    "@supabase/supabase-js": "^2.100.1",
     "react": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {

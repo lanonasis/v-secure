@@ -110,6 +110,19 @@ describe('ApiKeyStorage', () => {
     });
   });
 
+  describe('API key normalization', () => {
+    it('preserves raw API keys for outbound auth headers', async () => {
+      const result = await (storage as any).normalizeApiKey('  lano_test123456789  ');
+      expect(result).toBe('lano_test123456789');
+    });
+
+    it('leaves legacy SHA-256-looking values untouched', async () => {
+      const legacyHash = 'a'.repeat(64);
+      const result = await (storage as any).normalizeApiKey(legacyHash);
+      expect(result).toBe(legacyHash);
+    });
+  });
+
   describe('updateMetadata', () => {
     it('should throw error when no API key exists in fresh storage', async () => {
       // Create a fresh storage instance with mocked retrieve
@@ -153,7 +166,7 @@ describe('ApiKeyStorage - API Key Format Validation', () => {
     });
   });
 
-  describe('SHA-256 Key Detection', () => {
+  describe('Legacy SHA-256 Key Detection', () => {
     it('should identify a valid SHA-256 hex digest (64 chars)', () => {
       const sha256Key = 'a'.repeat(64);
       const isValidSha256 = /^[a-f0-9]{64}$/i.test(sha256Key);

@@ -34,17 +34,29 @@ export interface TokenStorageAdapter {
 export class TokenStorage implements TokenStorageAdapter {
   private readonly storageKey = 'lanonasis_mcp_tokens';
   private readonly webEncryptionKeyStorage = 'lanonasis_web_token_enc_key';
-  private keytar: any;
+  private keytar: any = null;
+  private keytarLoadAttempted = false;
 
-  constructor() {
-    // Lazy load keytar only in Node environment
-    if (this.isNode()) {
-      try {
-        this.keytar = require('keytar');
-      } catch (e) {
-        console.warn('Keytar not available - falling back to file storage');
-      }
+  private async getKeytar(): Promise<any | null> {
+    if (!this.isNode()) {
+      return null;
     }
+
+    if (this.keytarLoadAttempted) {
+      return this.keytar;
+    }
+
+    this.keytarLoadAttempted = true;
+
+    try {
+      const keytarModule = await import('keytar');
+      this.keytar = (keytarModule as any).default ?? keytarModule;
+    } catch {
+      this.keytar = null;
+      console.warn('Keytar not available - falling back to file storage');
+    }
+
+    return this.keytar;
   }
 
   async store(tokens: TokenResponse): Promise<void> {
@@ -58,8 +70,9 @@ export class TokenStorage implements TokenStorageAdapter {
 
     if (this.isNode()) {
       // Terminal: Use system keychain if available
-      if (this.keytar) {
-        await this.keytar.setPassword('lanonasis-mcp', 'tokens', tokenString);
+      const keytar = await this.getKeytar();
+      if (keytar) {
+        await keytar.setPassword('lanonasis-mcp', 'tokens', tokenString);
       } else {
         // Fallback to encrypted file
         await this.storeToFile(tokenString);
@@ -83,8 +96,9 @@ export class TokenStorage implements TokenStorageAdapter {
     try {
       if (this.isNode()) {
         // Terminal: Try keychain first
-        if (this.keytar) {
-          tokenString = await this.keytar.getPassword('lanonasis-mcp', 'tokens');
+        const keytar = await this.getKeytar();
+        if (keytar) {
+          tokenString = await keytar.getPassword('lanonasis-mcp', 'tokens');
         }
         
         // Fallback to file if not in keychain
@@ -115,8 +129,9 @@ export class TokenStorage implements TokenStorageAdapter {
 
   async clear(): Promise<void> {
     if (this.isNode()) {
-      if (this.keytar) {
-        await this.keytar.deletePassword('lanonasis-mcp', 'tokens');
+      const keytar = await this.getKeytar();
+      if (keytar) {
+        await keytar.deletePassword('lanonasis-mcp', 'tokens');
       }
       await this.deleteFile();
     } else if (this.isElectron()) {

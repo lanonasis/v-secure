@@ -177,14 +177,19 @@ await storage.store(tokens);
 const restored = await storage.retrieve();
 ```
 
-### API key storage (hashes to SHA-256)
+In Node and Electron environments, secure storage now lazy-loads `keytar` so the ESM bundle can still use the native OS keychain when available. If native keychain access is unavailable, storage falls back to the encrypted local file backend automatically.
+
+### API key storage
 ```ts
 import { ApiKeyStorage } from '@lanonasis/oauth-client';
 
 const apiKeys = new ApiKeyStorage();
 await apiKeys.store({ apiKey: 'lns_abc123', environment: 'production' });
-const hashed = await apiKeys.getApiKey(); // returns sha256 hex digest
+const apiKey = await apiKeys.getApiKey(); // returns the original key for outbound auth headers
 ```
+
+Node/Electron secure storage preserves the original secret value so clients can send it back
+in `X-API-Key` or `Authorization` headers when talking to remote services.
 
 ## Configuration
 
@@ -208,10 +213,11 @@ const hashed = await apiKeys.getApiKey(); // returns sha256 hex digest
 - The terminal/device code flow remains Node-only; in browser previews use API key or desktop flow.
 
 ## Publishing (maintainers)
-1) Build artifacts: `npm install && npm run build`
-2) Verify contents: ensure `dist`, `README.md`, `LICENSE` are present.
-3) Publish: `npm publish --access public` (registry must have 2FA as configured).
-4) Tag in git (optional): `git tag oauth-client-v1.0.0 && git push --tags`
+1) Install and verify: `npm install && npm test && npm run build`
+2) Audit release deps: `bun audit`
+3) Verify contents: ensure `dist`, `README.md`, and `LICENSE` are present.
+4) Publish: `npm publish --access public` (registry must have 2FA as configured).
+5) Tag in git (optional): `git tag oauth-client-vX.Y.Z && git push --tags`
 
 ## Files shipped
 - `dist/*` compiled CJS/ESM bundles + types

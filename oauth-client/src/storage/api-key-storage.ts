@@ -42,18 +42,30 @@ export class ApiKeyStorage {
   private readonly storageKey = 'lanonasis_api_key';
   private readonly legacyConfigKey = 'lanonasis_legacy_api_key';
   private readonly webEncryptionKeyStorage = 'lanonasis_web_enc_key';
-  private keytar: any;
+  private keytar: any = null;
+  private keytarLoadAttempted = false;
   private migrationCompleted = false;
 
-  constructor() {
-    // Lazy load keytar only in Node environment
-    if (this.isNode()) {
-      try {
-        this.keytar = require('keytar');
-      } catch (e) {
-        console.warn('Keytar not available - falling back to encrypted file storage');
-      }
+  private async getKeytar(): Promise<any | null> {
+    if (!this.isNode()) {
+      return null;
     }
+
+    if (this.keytarLoadAttempted) {
+      return this.keytar;
+    }
+
+    this.keytarLoadAttempted = true;
+
+    try {
+      const keytarModule = await import('keytar');
+      this.keytar = (keytarModule as any).default ?? keytarModule;
+    } catch {
+      this.keytar = null;
+      console.warn('Keytar not available - falling back to encrypted file storage');
+    }
+
+    return this.keytar;
   }
 
   /**
@@ -79,9 +91,10 @@ export class ApiKeyStorage {
 
     if (this.isNode()) {
       // Terminal: Use system keychain if available
-      if (this.keytar) {
+      const keytar = await this.getKeytar();
+      if (keytar) {
         try {
-          await this.keytar.setPassword('lanonasis-mcp', this.storageKey, keyString);
+          await keytar.setPassword('lanonasis-mcp', this.storageKey, keyString);
           return;
         } catch (error) {
           console.warn('Keytar storage failed, falling back to file:', error);
@@ -115,9 +128,10 @@ export class ApiKeyStorage {
     try {
       if (this.isNode()) {
         // Terminal: Try keychain first
-        if (this.keytar) {
+        const keytar = await this.getKeytar();
+        if (keytar) {
           try {
-            keyString = await this.keytar.getPassword('lanonasis-mcp', this.storageKey);
+            keyString = await keytar.getPassword('lanonasis-mcp', this.storageKey);
           } catch (error) {
             console.warn('Keytar retrieval failed, trying file:', error);
           }
@@ -191,9 +205,10 @@ export class ApiKeyStorage {
    */
   async clear(): Promise<void> {
     if (this.isNode()) {
-      if (this.keytar) {
+      const keytar = await this.getKeytar();
+      if (keytar) {
         try {
-          await this.keytar.deletePassword('lanonasis-mcp', this.storageKey);
+          await keytar.deletePassword('lanonasis-mcp', this.storageKey);
         } catch (error) {
           console.warn('Keytar deletion failed:', error);
         }
@@ -600,29 +615,18 @@ export class ApiKeyStorage {
   }
 
   /**
-   * Normalize API keys to a SHA-256 hex digest.
-   * Accepts pre-hashed input and lowercases it to prevent double hashing.
+   * Normalize stored credentials without transforming their value.
+   *
+   * These secrets are stored in encrypted local storage/keychains and must remain
+   * usable for outbound authentication headers (for example X-API-Key or Bearer).
+   * Hashing here would make the original credential unrecoverable and break
+   * clients that need to send the raw key/token back to a remote service.
    */
   private async normalizeApiKey(apiKey: string): Promise<string> {
     const value = apiKey?.trim();
     if (!value) {
       throw new Error('API key must be a non-empty string');
     }
-
-    if (/^[a-f0-9]{64}$/i.test(value)) {
-      return value.toLowerCase();
-    }
-
-    // Use Web Crypto when available, fallback to Node crypto
-    if (typeof globalThis !== 'undefined' && (globalThis as any).crypto?.subtle) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(value);
-      const hashBuffer = await (globalThis as any).crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    const nodeCrypto = await import('crypto');
-    return nodeCrypto.createHash('sha256').update(value).digest('hex');
+    return value;
   }
 }
