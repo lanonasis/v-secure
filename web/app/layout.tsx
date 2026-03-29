@@ -96,7 +96,7 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   alternates: {
-    canonical: 'https://vortexshield.lanonasis.com',
+    canonical: './',
   },
   category: 'technology',
   classification: 'Business',
