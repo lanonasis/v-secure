@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     description: 'Enterprise-grade security infrastructure for cross-border safety. AES-256 encrypted secret management, API key lifecycle, MCP integration. SOC 2, ISO 27001, GDPR compliant.',
     images: [
       {
-        url: '/og-image.png',
+        url: 'https://vortexshield.lanonasis.com/og-image.png',
         width: 1200,
         height: 630,
         alt: 'VortexShield - Enterprise Security Infrastructure',
@@ -64,11 +64,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    site: '@LanOnasis',
-    creator: '@LanOnasis',
-    title: 'VortexShield - Enterprise Security Infrastructure',
-    description: 'Enterprise-grade security infrastructure for cross-border safety. AES-256 encrypted secret management, API key lifecycle, MCP integration.',
-    images: ['/twitter-image.png'],
+    site: '@lanonasis',
+    creator: '@lanonasis',
   },
   robots: {
     index: true,
@@ -96,7 +93,10 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   alternates: {
-    canonical: './',
+    canonical: '/',
+    languages: {
+      en: 'https://vortexshield.lanonasis.com',
+    },
   },
   category: 'technology',
   classification: 'Business',

@@ -23,7 +23,7 @@ const CONFIG = {
   enableUserAgentBlocking: true,
   enablePathBlocking: true,
   enableLogging: true,
-
+  
   // Response behavior
   honeypotDelay: 2000, // ms - slow down bots
   blockResponse: 404,  // 404 looks like "nothing here" vs 403 which says "protected"
@@ -106,7 +106,7 @@ const HONEYPOT_URLS = [
   /^\/config\.php/i,
   /^\/db\.php/i,
   /^\/database\.php/i,
-  /^\/\.well-known\/security\.txt$/i,
+  // /.well-known/security.txt is intentionally excluded — serve a real one (RFC 9116)
   /^\/actuator/i,          // Spring Boot
   /^\/api\/v1\/pods/i,     // Kubernetes
   /^\/console/i,           // Various admin consoles
@@ -175,10 +175,9 @@ const MALICIOUS_USER_AGENTS = [
   /go-http-client/i,
   /java\/\d/i,
   /okhttp/i,
-  /axios/i,
-  /node-fetch/i,
+  // Note: axios, node-fetch, undici omitted — used by legitimate services
+  // (Stripe webhooks, monitoring tools, CI runners, Node.js v18+ fetch)
   /got \(/i,
-  /undici/i,
   /headlesschrome/i,
   /phantomjs/i,
   /slimerjs/i,
@@ -211,8 +210,8 @@ const SUSPICIOUS_PATTERNS = [
   /onload=/i,                  // XSS
   /onerror=/i,                 // XSS
   /onclick=/i,                 // XSS
-  /' or '/i,                   // SQL injection
-  /" or "/i,                   // SQL injection
+  /\' or \'/i,                 // SQL injection
+  /\" or \"/i,                 // SQL injection
   /union select/i,             // SQL injection
   /concat\(/i,                 // SQL injection
   /group_concat/i,             // SQL injection
@@ -292,7 +291,7 @@ async function createHoneypotResponse(): Promise<Response> {
   if (CONFIG.honeypotDelay > 0) {
     await new Promise(resolve => setTimeout(resolve, CONFIG.honeypotDelay));
   }
-
+  
   return new Response("Not Found", {
     status: 404,
     headers: {
@@ -308,7 +307,7 @@ async function createHoneypotResponse(): Promise<Response> {
 // ============================================
 
 export default async function securityShield(
-  req: Request,
+  req: Request, 
   context: Context
 ): Promise<Response> {
   const url = new URL(req.url);
@@ -317,10 +316,10 @@ export default async function securityShield(
   const method = req.method;
   const userAgent = req.headers.get("user-agent") || "";
   const referer = req.headers.get("referer") || "";
-
+  
   const requestId = generateRequestId();
   const geo = context.geo || {};
-
+  
   const baseLog: Omit<SecurityLog, "type" | "reason"> = {
     id: requestId,
     path: pathname,
@@ -371,7 +370,7 @@ export default async function securityShield(
       });
       return createBlockResponse(403);
     }
-
+    
     // Block known malicious user agents
     if (matchesAny(userAgent, MALICIOUS_USER_AGENTS)) {
       logSecurityEvent({
@@ -409,14 +408,15 @@ export default async function securityShield(
   }
 
   // ----------------------------------------
-  // 6. Additional checks for POST requests
+  // 6. Log non-GET requests for monitoring
+  // Using "SUSPICIOUS" only for non-standard methods;
+  // POST is normal for forms/APIs — log as neutral REQUEST.
   // ----------------------------------------
-  if (method === "POST") {
-    // Log all POST requests for monitoring (could be webhook probing)
+  if (method !== "GET" && method !== "HEAD" && method !== "OPTIONS") {
     logSecurityEvent({
       ...baseLog,
-      type: "SUSPICIOUS",
-      reason: "POST_REQUEST_LOGGED",
+      type: method === "POST" ? "SUSPICIOUS" : "ATTACK",
+      reason: `${method}_REQUEST_LOGGED`,
     });
   }
 

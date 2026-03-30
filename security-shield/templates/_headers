@@ -1,32 +1,37 @@
 # ============================================
-# LanOnasis Security Headers v2.0
+# LanOnasis Security Headers v2.1
 # ============================================
 
 # Global security headers for all pages
 /*
   # Prevent clickjacking
   X-Frame-Options: DENY
-  
+
   # Prevent MIME type sniffing
   X-Content-Type-Options: nosniff
-  
+
   # Enable XSS filter (legacy browsers)
   X-XSS-Protection: 1; mode=block
-  
+
   # Control referrer information
   Referrer-Policy: strict-origin-when-cross-origin
-  
+
   # Restrict browser features
   Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), battery=(), camera=(), cross-origin-isolated=(), display-capture=(), document-domain=(), encrypted-media=(), execution-while-not-rendered=(), execution-while-out-of-viewport=(), fullscreen=(self), geolocation=(), gyroscope=(), keyboard-map=(), magnetometer=(), microphone=(), midi=(), navigation-override=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), xr-spatial-tracking=()
-  
+
   # Strict Transport Security (HTTPS only)
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-  
-  # Content Security Policy (adjust as needed for your site)
-  # Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.lanonasis.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
-  
-  # Tell crawlers not to cache sensitive responses
-  X-Robots-Tag: noarchive
+
+  # Protect against cross-origin attacks (Spectre mitigations)
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Resource-Policy: same-site
+
+  # Prevent Adobe Flash and Acrobat cross-domain requests
+  X-Permitted-Cross-Domain-Policies: none
+
+  # Content Security Policy — uncomment and tune for your site:
+  # Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://api.lanonasis.com https://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
 
 # ============================================
 # Sensitive file protection
@@ -56,7 +61,7 @@
   X-Robots-Tag: noindex, nofollow, noarchive
 
 # ============================================
-# API routes protection
+# API routes — no indexing, no caching
 # ============================================
 
 /api/*
@@ -72,7 +77,9 @@
   Cache-Control: no-store
 
 # ============================================
-# Admin/internal paths
+# Admin / internal paths — block indexing and framing
+# NOTE: noarchive moved here (off global scope) so
+# public marketing pages can be cached by Google.
 # ============================================
 
 /admin/*
@@ -80,10 +87,17 @@
   X-Frame-Options: DENY
 
 /dashboard/*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, nofollow, noarchive
+  X-Frame-Options: DENY
+
+/settings/*
+  X-Robots-Tag: noindex, nofollow, noarchive
+
+/account/*
+  X-Robots-Tag: noindex, nofollow, noarchive
 
 # ============================================
-# Static assets - allow caching
+# Static assets — aggressive caching
 # ============================================
 
 /_next/static/*
@@ -105,5 +119,9 @@
   Cache-Control: public, max-age=31536000, immutable
 
 /*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/*.woff
   Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *

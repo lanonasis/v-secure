@@ -1,0 +1,152 @@
+<!--
+  LanOnasis SEO Meta Template
+  Copy into your <head> and replace all {{PLACEHOLDERS}}
+
+  CHECKLIST:
+    [ ] Title: 50-60 chars, includes primary keyword
+    [ ] Description: 150-160 chars, action-oriented
+    [ ] og:image: 1200×630px minimum, absolute URL
+    [ ] canonical: matches the URL users see (no trailing slash inconsistency)
+    [ ] Replace {{DOMAIN}} throughout (no trailing slash)
+    [ ] Replace {{PAGE_PATH}} with path relative to domain (e.g. /features)
+    [ ] Set correct og:type — "website" for homepages, "article" for blog posts
+-->
+
+<!-- ================================================ -->
+<!-- PRIMARY META                                     -->
+<!-- ================================================ -->
+<title>{{PAGE_TITLE}} | Lan Onasis</title>
+<meta name="description" content="{{PAGE_DESCRIPTION_150_160_CHARS}}">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{DOMAIN}}{{PAGE_PATH}}">
+
+<!-- ================================================ -->
+<!-- OPEN GRAPH (Facebook, LinkedIn, WhatsApp, Slack) -->
+<!-- ================================================ -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Lan Onasis">
+<meta property="og:title" content="{{PAGE_TITLE}} | Lan Onasis">
+<meta property="og:description" content="{{PAGE_DESCRIPTION_150_160_CHARS}}">
+<meta property="og:url" content="{{DOMAIN}}{{PAGE_PATH}}">
+<meta property="og:image" content="{{DOMAIN}}/og/{{OG_IMAGE_FILENAME}}.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{OG_IMAGE_ALT_TEXT}}">
+<meta property="og:locale" content="en_US">
+
+<!-- ================================================ -->
+<!-- TWITTER CARD                                     -->
+<!-- ================================================ -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@lanonasis">
+<meta name="twitter:creator" content="@lanonasis">
+<meta name="twitter:title" content="{{PAGE_TITLE}} | Lan Onasis">
+<meta name="twitter:description" content="{{PAGE_DESCRIPTION_150_160_CHARS}}">
+<meta name="twitter:image" content="{{DOMAIN}}/og/{{OG_IMAGE_FILENAME}}.png">
+<meta name="twitter:image:alt" content="{{OG_IMAGE_ALT_TEXT}}">
+
+<!-- ================================================ -->
+<!-- JSON-LD STRUCTURED DATA                         -->
+<!-- Choose the schema type that matches the page.   -->
+<!-- ================================================ -->
+
+<!-- OPTION A: Organization (homepage / about) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Lan Onasis",
+  "url": "{{DOMAIN}}",
+  "logo": "{{DOMAIN}}/logo.png",
+  "description": "{{PAGE_DESCRIPTION_150_160_CHARS}}",
+  "sameAs": [
+    "https://twitter.com/lanonasis",
+    "https://linkedin.com/company/lanonasis",
+    "https://github.com/lanonasis"
+  ]
+}
+</script>
+
+<!-- OPTION B: SoftwareApplication (product / features page) -->
+<!--
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "{{PRODUCT_NAME}}",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "{{DOMAIN}}{{PAGE_PATH}}",
+  "description": "{{PAGE_DESCRIPTION_150_160_CHARS}}",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "provider": {
+    "@type": "Organization",
+    "name": "Lan Onasis",
+    "url": "{{DOMAIN}}"
+  }
+}
+</script>
+-->
+
+<!-- OPTION C: Article / BlogPosting -->
+<!--
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{PAGE_TITLE}}",
+  "description": "{{PAGE_DESCRIPTION_150_160_CHARS}}",
+  "url": "{{DOMAIN}}{{PAGE_PATH}}",
+  "datePublished": "{{ISO_DATE_PUBLISHED}}",
+  "dateModified": "{{ISO_DATE_MODIFIED}}",
+  "author": {
+    "@type": "Organization",
+    "name": "Lan Onasis",
+    "url": "{{DOMAIN}}"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Lan Onasis",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "{{DOMAIN}}/logo.png"
+    }
+  },
+  "image": "{{DOMAIN}}/og/{{OG_IMAGE_FILENAME}}.png"
+}
+</script>
+-->
+
+<!-- OPTION D: BreadcrumbList (any page with navigation depth > 1) -->
+<!--
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "{{DOMAIN}}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{SECTION_NAME}}",
+      "item": "{{DOMAIN}}/{{SECTION_PATH}}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{PAGE_TITLE}}",
+      "item": "{{DOMAIN}}{{PAGE_PATH}}"
+    }
+  ]
+}
+</script>
+-->

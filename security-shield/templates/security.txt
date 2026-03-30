@@ -1,0 +1,39 @@
+# ============================================
+# LanOnasis Security Contact (RFC 9116)
+# Deploy at: /.well-known/security.txt
+# Signed with PGP if possible (optional but recommended)
+#
+# Replace {{PLACEHOLDERS}} before deploying.
+# Generate expiry: date -u -v+1y "+%Y-%m-%dT%H:%M:%SZ" (macOS)
+#                  date -u -d "+1 year" "+%Y-%m-%dT%H:%M:%SZ" (Linux)
+# ============================================
+
+Contact: mailto:security@lanonasis.com
+Contact: https://lanonasis.com/security
+
+# Policy: what you will and won't act on, response SLA, reward info
+Policy: https://lanonasis.com/security/policy
+
+# Scope: which domains/services are in scope
+# Scope: https://lanonasis.com
+# Scope: https://api.lanonasis.com
+# Scope: https://dashboard.lanonasis.com
+
+# Out-of-scope (uncomment to specify)
+# Scope: !https://staging.lanonasis.com
+
+# PGP key for encrypted reports (optional — generate with `gpg --gen-key`)
+# Encryption: https://lanonasis.com/.well-known/pgp-key.txt
+
+# Preferred language for reports
+Preferred-Languages: en
+
+# Acknowledgements page (hall of fame)
+# Acknowledgments: https://lanonasis.com/security/acknowledgements
+
+# Canonical URL of this file
+Canonical: https://lanonasis.com/.well-known/security.txt
+
+# Expiry — REQUIRED by RFC 9116. Rotate annually.
+# Crawlers treat expired security.txt as invalid.
+Expires: {{EXPIRY_DATE_ISO8601}}

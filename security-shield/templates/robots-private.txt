@@ -1,0 +1,12 @@
+# ============================================
+# LanOnasis robots.txt - PRIVATE APP variant
+# Use for: dashboards, admin panels, authenticated apps
+# (dashboard.lanonasis.com, console.lanonasis.com, etc.)
+# ============================================
+
+# Block all crawlers — this is a private authenticated app.
+# No public content should appear in search results.
+User-agent: *
+Disallow: /
+
+# Sitemap intentionally omitted — no indexable content

@@ -254,6 +254,8 @@
   status = 404
   force = true
 
+# ⚠️  PROJECT-SPECIFIC: Remove this block if /console/* is a real route in your app
+# (e.g. console.lanonasis.com routes everything through /console — keep that rule out)
 [[redirects]]
   from = "/console/*"
   to = "/404.html"
@@ -299,7 +301,9 @@
   status = 404
   force = true
 
-# API doc probing (if you don't have public docs)
+# API doc probing
+# ⚠️  PROJECT-SPECIFIC: Remove /swagger-ui and /api-docs blocks if this project
+# intentionally serves public API documentation (e.g. docs.lanonasis.com/api-docs)
 [[redirects]]
   from = "/swagger-ui/*"
   to = "/404.html"

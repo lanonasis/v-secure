@@ -1,0 +1,216 @@
+# ============================================
+# LanOnasis robots.txt - PUBLIC SITE variant
+# Use for: marketing sites, docs, landing pages
+# (lanonasis.com, docs.lanonasis.com, maplehub.lanonasis.com, etc.)
+# ============================================
+
+# Allow all legitimate search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: Yandex
+Allow: /
+
+# ============================================
+# Allow social media crawlers
+# ============================================
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: Twitterbot
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# ============================================
+# Allow AI discovery crawlers (public sites)
+# Blocking these hurts visibility in ChatGPT,
+# Gemini, Perplexity, and Claude answers.
+# ============================================
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+# Claude / Anthropic — allow content indexing
+# (blocks training data collection but allows retrieval)
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+# ============================================
+# Block aggressive scrapers (not search engines)
+# ============================================
+User-agent: CCBot
+Disallow: /
+
+User-agent: FacebookBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: AhrefsSiteAudit
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+User-agent: BLEXBot
+Disallow: /
+
+User-agent: PetalBot
+Disallow: /
+
+User-agent: MegaIndex.ru
+Disallow: /
+
+User-agent: SEOkicks
+Disallow: /
+
+User-agent: SEOkicks-Robot
+Disallow: /
+
+User-agent: Sistrix
+Disallow: /
+
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: AwarioBot
+Disallow: /
+
+User-agent: AwarioSmartBot
+Disallow: /
+
+# ============================================
+# Block Known Malicious/Aggressive Bots
+# ============================================
+User-agent: python-requests
+Disallow: /
+
+User-agent: Python-urllib
+Disallow: /
+
+User-agent: Go-http-client
+Disallow: /
+
+User-agent: Java
+Disallow: /
+
+User-agent: wget
+Disallow: /
+
+User-agent: curl
+Disallow: /
+
+User-agent: libwww-perl
+Disallow: /
+
+User-agent: Scrapy
+Disallow: /
+
+User-agent: Nutch
+Disallow: /
+
+User-agent: HTTrack
+Disallow: /
+
+User-agent: Offline Explorer
+Disallow: /
+
+User-agent: WebCopier
+Disallow: /
+
+User-agent: WebZIP
+Disallow: /
+
+User-agent: Teleport
+Disallow: /
+
+# ============================================
+# Block Security Scanners
+# ============================================
+User-agent: Nikto
+Disallow: /
+
+User-agent: Nmap
+Disallow: /
+
+User-agent: sqlmap
+Disallow: /
+
+User-agent: masscan
+Disallow: /
+
+User-agent: ZmEu
+Disallow: /
+
+User-agent: Morfeus
+Disallow: /
+
+User-agent: WPScan
+Disallow: /
+
+User-agent: Nuclei
+Disallow: /
+
+# ============================================
+# Generic rules — all unlisted bots
+# ============================================
+User-agent: *
+Disallow: /.env
+Disallow: /.git/
+Disallow: /.svn/
+Disallow: /.htaccess
+Disallow: /wp-admin/
+Disallow: /wp-login.php
+Disallow: /wp-content/
+Disallow: /wp-includes/
+Disallow: /xmlrpc.php
+Disallow: /phpmyadmin/
+Disallow: /admin/
+Disallow: /administrator/
+Disallow: /config.php
+Disallow: /backup/
+Disallow: /database/
+Disallow: /cgi-bin/
+Disallow: /private/
+Disallow: /secrets/
+Disallow: /*.sql
+Disallow: /*.bak
+Crawl-delay: 1
+
+# Sitemap — replace {{SITEMAP_URL}} with your actual sitemap
+Sitemap: {{SITEMAP_URL}}
