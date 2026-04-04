@@ -940,30 +940,3 @@ export const sanitize = <T extends Record<string, unknown>>(
 
 // Re-export config
 export { DEFAULT_CONFIG };
-==
-// EXPORTS
-// ============================================
-
-// Default instance
-export const privacy = new PrivacySDK();
-
-// Convenience functions
-export const mask = (data: string, type: PIIType, options?: Partial<MaskingOptions>) =>
-  privacy.mask(data, type, options);
-
-export const detect = (text: string, options?: { locale?: Locale }) =>
-  privacy.detect(text, options);
-
-export const detectAndMask = (text: string, options?: { locale?: Locale }) =>
-  privacy.detectAndMask(text, options);
-
-export const scan = (obj: unknown, options?: ScanOptions) =>
-  privacy.scan(obj, options);
-
-export const sanitize = <T extends Record<string, unknown>>(
-  obj: T,
-  fieldMappings: Record<string, PIIType | MaskingOptions>
-) => privacy.sanitizeObject(obj, fieldMappings);
-
-// Re-export config
-export { DEFAULT_CONFIG };
