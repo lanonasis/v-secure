@@ -210,8 +210,8 @@ const SUSPICIOUS_PATTERNS = [
   /onload=/i,                  // XSS
   /onerror=/i,                 // XSS
   /onclick=/i,                 // XSS
-  /\' or \'/i,                 // SQL injection
-  /\" or \"/i,                 // SQL injection
+  /' or '/i,                   // SQL injection
+  /" or "/i,                   // SQL injection
   /union select/i,             // SQL injection
   /concat\(/i,                 // SQL injection
   /group_concat/i,             // SQL injection
