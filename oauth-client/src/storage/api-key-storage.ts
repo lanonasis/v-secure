@@ -551,7 +551,7 @@ export class ApiKeyStorage {
       return existing;
     }
 
-    let raw = '';
+    let raw: string;
     if (typeof window !== 'undefined' && window.crypto?.getRandomValues) {
       const buf = new Uint8Array(32);
       window.crypto.getRandomValues(buf);

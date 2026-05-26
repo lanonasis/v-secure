@@ -128,7 +128,7 @@ export class MCPClient {
           return;
         } catch (error) {
           console.error('Token refresh failed:', error);
-          throw new Error('Token expired and refresh failed');
+          throw new Error('Token expired and refresh failed', { cause: error });
         }
       } else {
         throw new Error('Token expired and no refresh token available');
