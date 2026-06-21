@@ -140,14 +140,14 @@ export class SecuritySDK {
 
       // Create decipher
       const decipher = crypto.createDecipheriv(
-        encryptedData.algorithm as any,
+        encryptedData.algorithm,
         decryptionKey,
         Buffer.from(encryptedData.iv, "hex")
       );
 
-      // Set auth tag (for GCM mode)
+      // Set auth tag (for GCM mode) - narrow to DecipherGCM only once algorithm is confirmed
       if (encryptedData.algorithm === "aes-256-gcm" && encryptedData.authTag) {
-        decipher.setAuthTag(Buffer.from(encryptedData.authTag, "hex"));
+        (decipher as crypto.DecipherGCM).setAuthTag(Buffer.from(encryptedData.authTag, "hex"));
       }
 
       // Decrypt
@@ -164,7 +164,7 @@ export class SecuritySDK {
   /**
    * Decrypt and parse as JSON
    */
-  decryptJSON<T = any>(encryptedData: EncryptedData, context: string): T {
+  decryptJSON<T = unknown>(encryptedData: EncryptedData, context: string): T {
     const decrypted = this.decrypt(encryptedData, context);
     return JSON.parse(decrypted);
   }
@@ -309,13 +309,16 @@ export class SecuritySDK {
   /**
    * Validate encrypted data structure
    */
-  isValidEncryptedData(data: any): data is EncryptedData {
+  isValidEncryptedData(data: unknown): data is EncryptedData {
+    if (!data || typeof data !== "object") {
+      return false;
+    }
+    const candidate = data as Record<string, unknown>;
     return (
-      data &&
-      typeof data.encrypted === "string" &&
-      typeof data.iv === "string" &&
-      typeof data.keyId === "string" &&
-      typeof data.algorithm === "string"
+      typeof candidate.encrypted === "string" &&
+      typeof candidate.iv === "string" &&
+      typeof candidate.keyId === "string" &&
+      typeof candidate.algorithm === "string"
     );
   }
 

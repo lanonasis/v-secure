@@ -71,7 +71,7 @@ export class TerminalOAuthFlow extends BaseOAuthFlow {
       
       console.log('Opening browser...');
       await open(url);
-    } catch (error) {
+    } catch {
       console.log('Please open the URL manually in your browser.');
     }
   }
@@ -105,11 +105,11 @@ export class TerminalOAuthFlow extends BaseOAuthFlow {
         const token = await this.checkDeviceCode(deviceResponse.device_code);
         console.log('✅ Authorization successful!\n');
         return token;
-      } catch (error: any) {
-        if (error.message === 'authorization_pending') {
+      } catch (error) {
+        if (error instanceof Error && error.message === 'authorization_pending') {
           // Continue polling
           process.stdout.write('.');
-        } else if (error.message === 'slow_down') {
+        } else if (error instanceof Error && error.message === 'slow_down') {
           // Increase polling interval
           this.pollInterval += 5;
         } else {

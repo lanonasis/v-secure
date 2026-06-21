@@ -1,7 +1,8 @@
 /**
  * Tests for @lanonasis/oauth-client/server exports
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+import type { ServerRequest, ServerResponse } from '../server/types';
 
 describe('Server Exports', () => {
   describe('Module Exports', () => {
@@ -250,11 +251,11 @@ describe('Middleware', () => {
           [COOKIE_NAMES.SESSION]: 'token',
           [COOKIE_NAMES.USER]: encodeURIComponent(JSON.stringify(user)),
         },
-      } as any;
+      } as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -265,12 +266,12 @@ describe('Middleware', () => {
       const { requireAuth } = await import('../server/middleware');
       const middleware = requireAuth();
 
-      const req = { cookies: {} } as any;
+      const req = { cookies: {} } as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
         clearCookie: vi.fn(), // Middleware clears invalid cookies
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -290,8 +291,8 @@ describe('Middleware', () => {
       const { optionalAuth } = await import('../server/middleware');
       const middleware = optionalAuth();
 
-      const req = {} as any;
-      const res = {} as any;
+      const req = {} as unknown as ServerRequest;
+      const res = {} as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -308,8 +309,8 @@ describe('Middleware', () => {
           [COOKIE_NAMES.SESSION]: 'token',
           [COOKIE_NAMES.USER]: encodeURIComponent(JSON.stringify(user)),
         },
-      } as any;
-      const res = {} as any;
+      } as unknown as ServerRequest;
+      const res = {} as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -331,11 +332,11 @@ describe('Middleware', () => {
 
       // requireRole expects req.user to be pre-populated (use after requireAuth)
       const user = { id: '123', email: 'test@example.com', role: 'admin' };
-      const req = { user } as any;
+      const req = { user } as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -348,11 +349,11 @@ describe('Middleware', () => {
 
       // requireRole expects req.user to be pre-populated (use after requireAuth)
       const user = { id: '123', email: 'test@example.com', role: 'user' };
-      const req = { user } as any;
+      const req = { user } as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -365,11 +366,11 @@ describe('Middleware', () => {
       const middleware = requireRole('admin');
 
       // No user attached - should return 401
-      const req = {} as any;
+      const req = {} as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);
@@ -383,11 +384,11 @@ describe('Middleware', () => {
 
       // requireRole expects req.user to be pre-populated (use after requireAuth)
       const user = { id: '123', email: 'test@example.com', role: 'moderator' };
-      const req = { user } as any;
+      const req = { user } as unknown as ServerRequest;
       const res = {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
-      } as any;
+      } as unknown as ServerResponse;
       const next = vi.fn();
 
       middleware(req, res, next);

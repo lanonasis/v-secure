@@ -23,8 +23,8 @@ export class MCPClient {
   private authFlow: BaseOAuthFlow;
   private config: MCPClientConfig;
   private authMode: 'oauth' | 'apikey';
-  private ws: any = null;
-  private eventSource: any = null;
+  private ws: WebSocket | null = null;
+  private eventSource: EventSource | null = null;
   private accessToken: string | null = null;
   private refreshTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -71,7 +71,7 @@ export class MCPClient {
             try {
               tokens = await this.authFlow.refreshToken(tokens.refresh_token);
               await this.tokenStorage.store(tokens);
-            } catch (error) {
+            } catch {
               tokens = await this.authenticate();
             }
           } else {
@@ -210,7 +210,7 @@ export class MCPClient {
     }
   }
 
-  private handleMessage(message: any): void {
+  private handleMessage(message: unknown): void {
     // Handle MCP messages
     console.log('MCP message:', message);
   }

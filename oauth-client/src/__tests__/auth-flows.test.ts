@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { APIKeyFlow } from '../flows/apikey-flow';
-import { TokenResponse, OAuthConfig } from '../types';
+import { TokenResponse } from '../types';
 
 // Mock cross-fetch
 vi.mock('cross-fetch', () => ({

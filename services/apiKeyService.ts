@@ -84,7 +84,7 @@ export interface ApiKey {
   lastRotated: string;
   rotationFrequency: number;
   expiresAt?: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
   createdBy: string;
   createdAt: string;
   updatedAt: string;
@@ -97,7 +97,7 @@ export interface ApiKeyProject {
   organizationId: string;
   ownerId: string;
   teamMembers: string[];
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }
@@ -132,6 +132,66 @@ export interface MCPSession {
   expiresAt: string;
   endedAt?: string;
   createdAt: string;
+}
+
+// Raw Supabase row shapes (snake_case), consumed only by the mapXFromDb() functions below.
+interface ApiKeyProjectRow {
+  id: string;
+  name: string;
+  description?: string;
+  organization_id: string;
+  owner_id: string;
+  team_members?: string[];
+  settings?: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiKeyRow {
+  id: string;
+  name: string;
+  key_type: string;
+  environment: string;
+  project_id: string;
+  organization_id: string;
+  access_level: string;
+  status: string;
+  tags?: string[];
+  usage_count?: number;
+  last_rotated: string;
+  rotation_frequency: number;
+  expires_at?: string;
+  metadata?: Record<string, unknown>;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MCPToolRow {
+  id: string;
+  tool_id: string;
+  tool_name: string;
+  organization_id: string;
+  permissions: MCPTool['permissions'];
+  webhook_url?: string;
+  auto_approve: boolean;
+  risk_level: string;
+  created_by: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface MCPSessionRow {
+  session_id: string;
+  request_id: string;
+  tool_id: string;
+  organization_id: string;
+  key_names: string[];
+  environment: string;
+  expires_at: string;
+  ended_at?: string;
+  created_at: string;
 }
 
 // Encryption utilities
@@ -287,7 +347,7 @@ export class ApiKeyService {
 
   async updateApiKey(keyId: string, data: z.infer<typeof UpdateApiKeySchema>, userId: string): Promise<ApiKey> {
     const validated = UpdateApiKeySchema.parse(data);
-    const updateData: any = { ...validated };
+    const updateData: Record<string, unknown> = { ...validated };
 
     // Encrypt new value if provided
     if (validated.value) {
@@ -506,7 +566,7 @@ export class ApiKeyService {
   }
 
   // Analytics and monitoring
-  async getUsageAnalytics(organizationId: string, keyId?: string, days: number = 30): Promise<any[]> {
+  async getUsageAnalytics(organizationId: string, keyId?: string, days: number = 30): Promise<Record<string, unknown>[]> {
     const fromDate = new Date(Date.now() - (days * 24 * 60 * 60 * 1000)).toISOString();
     
     let query = supabase
@@ -526,7 +586,7 @@ export class ApiKeyService {
     return data;
   }
 
-  async getSecurityEvents(organizationId: string, severity?: string): Promise<any[]> {
+  async getSecurityEvents(organizationId: string, severity?: string): Promise<Record<string, unknown>[]> {
     let query = supabase
       .from('key_security_events')
       .select('*')
@@ -556,7 +616,7 @@ export class ApiKeyService {
     return this.mapProjectFromDb(project);
   }
 
-  private async logUsageAnalytics(keyId: string, organizationId: string, userId: string, operation: string, success: boolean, metadata: any = {}): Promise<void> {
+  private async logUsageAnalytics(keyId: string, organizationId: string, userId: string, operation: string, success: boolean, metadata: Record<string, unknown> = {}): Promise<void> {
     await supabase
       .from('key_usage_analytics')
       .insert({
@@ -569,7 +629,7 @@ export class ApiKeyService {
       });
   }
 
-  private async logSecurityEvent(keyId: string | undefined, eventType: string, severity: string, description: string, metadata: any = {}): Promise<void> {
+  private async logSecurityEvent(keyId: string | undefined, eventType: string, severity: string, description: string, metadata: Record<string, unknown> = {}): Promise<void> {
     await supabase
       .from('key_security_events')
       .insert({
@@ -581,7 +641,7 @@ export class ApiKeyService {
       });
   }
 
-  private async logAuditEvent(eventType: string, toolId: string | undefined, organizationId: string, userId: string | undefined, sessionId: string | undefined, metadata: any = {}): Promise<void> {
+  private async logAuditEvent(eventType: string, toolId: string | undefined, organizationId: string, userId: string | undefined, sessionId: string | undefined, metadata: Record<string, unknown> = {}): Promise<void> {
     await supabase
       .from('mcp_key_audit_log')
       .insert({
@@ -595,7 +655,7 @@ export class ApiKeyService {
   }
 
   // Mapping functions
-  private mapProjectFromDb(project: any): ApiKeyProject {
+  private mapProjectFromDb(project: ApiKeyProjectRow): ApiKeyProject {
     return {
       id: project.id,
       name: project.name,
@@ -609,7 +669,7 @@ export class ApiKeyService {
     };
   }
 
-  private mapApiKeyFromDb(key: any): ApiKey {
+  private mapApiKeyFromDb(key: ApiKeyRow): ApiKey {
     return {
       id: key.id,
       name: key.name,
@@ -631,7 +691,7 @@ export class ApiKeyService {
     };
   }
 
-  private mapMCPToolFromDb(tool: any): MCPTool {
+  private mapMCPToolFromDb(tool: MCPToolRow): MCPTool {
     return {
       id: tool.id,
       toolId: tool.tool_id,
@@ -648,7 +708,7 @@ export class ApiKeyService {
     };
   }
 
-  private mapMCPSessionFromDb(session: any): MCPSession {
+  private mapMCPSessionFromDb(session: MCPSessionRow): MCPSession {
     return {
       sessionId: session.session_id,
       requestId: session.request_id,

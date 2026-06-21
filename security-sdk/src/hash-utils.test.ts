@@ -37,8 +37,8 @@ describe("hash-utils", () => {
 
     it("throws on invalid input", () => {
       expect(() => hashApiKey("")).toThrow();
-      expect(() => hashApiKey(null as any)).toThrow();
-      expect(() => hashApiKey(undefined as any)).toThrow();
+      expect(() => hashApiKey(null as unknown as string)).toThrow();
+      expect(() => hashApiKey(undefined as unknown as string)).toThrow();
     });
   });
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AuthGatewayClient } from '../client/auth-gateway-client.js';
-import { AuthValidationResult, AuthTokenType } from '../types.js';
+import { AuthTokenType } from '../types.js';
 
 // Mock cross-fetch
 vi.mock('cross-fetch', () => ({

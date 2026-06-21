@@ -375,9 +375,10 @@ router.post('/', [
       organizationId: apiKey.organizationId
     });
 
-    // Remove sensitive data from response
-    const safeApiKey = { ...apiKey };
-    delete (safeApiKey as any).value;
+    // Remove sensitive data from response (ApiKey has no `value` field today, but
+    // this stays as a safety net in case the DB mapping ever starts including one)
+    const safeApiKey = { ...apiKey } as Record<string, unknown>;
+    delete safeApiKey.value;
 
     res.status(201).json(safeApiKey);
   } catch (error: unknown) {

@@ -7,6 +7,14 @@
 
 import crypto from "crypto";
 
+/** Minimal Web Crypto shape this module needs (tsconfig has no "dom" lib here). */
+interface MinimalSubtleCrypto {
+  digest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer>;
+}
+interface GlobalWithCrypto {
+  crypto?: { subtle?: MinimalSubtleCrypto };
+}
+
 /**
  * Determine if the provided value is already a SHA-256 hex digest
  * 
@@ -51,7 +59,7 @@ export async function hashApiKeyBrowser(apiKey: string): Promise<string> {
   }
   
   // Use Web Crypto API
-  const subtle = (globalThis as any)?.crypto?.subtle || (crypto as any).webcrypto?.subtle;
+  const subtle = (globalThis as GlobalWithCrypto)?.crypto?.subtle || crypto.webcrypto?.subtle;
   if (!subtle) {
     // Fallback to Node.js hash when Web Crypto is unavailable
     return hashApiKey(apiKey);

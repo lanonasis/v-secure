@@ -38,15 +38,42 @@ export interface ApiKeyData {
   metadata?: Record<string, unknown>;
 }
 
+/** `keytar` ships no type declarations; this covers the 3 methods this module uses. */
+interface MinimalKeytar {
+  getPassword(service: string, account: string): Promise<string | null>;
+  setPassword(service: string, account: string, password: string): Promise<void>;
+  deletePassword(service: string, account: string): Promise<boolean>;
+}
+
+/** Runtime bridge injected by the Electron host app. */
+interface ElectronWindow {
+  electronAPI?: {
+    secureStore: {
+      set(key: string, value: unknown): Promise<void>;
+      get(key: string): Promise<unknown>;
+      delete(key: string): Promise<void>;
+    };
+  };
+}
+
+/** Runtime bridge injected by the mobile WebView host app. */
+interface MobileWindow {
+  SecureStorage?: {
+    set(key: string, value: string): Promise<void>;
+    get(key: string): Promise<string | null>;
+    remove(key: string): Promise<void>;
+  };
+}
+
 export class ApiKeyStorage {
   private readonly storageKey = 'lanonasis_api_key';
   private readonly legacyConfigKey = 'lanonasis_legacy_api_key';
   private readonly webEncryptionKeyStorage = 'lanonasis_web_enc_key';
-  private keytar: any = null;
+  private keytar: MinimalKeytar | null = null;
   private keytarLoadAttempted = false;
   private migrationCompleted = false;
 
-  private async getKeytar(): Promise<any | null> {
+  private async getKeytar(): Promise<MinimalKeytar | null> {
     if (!this.isNode()) {
       return null;
     }
@@ -59,7 +86,7 @@ export class ApiKeyStorage {
 
     try {
       const keytarModule = await import('keytar');
-      this.keytar = (keytarModule as any).default ?? keytarModule;
+      this.keytar = ((keytarModule as { default?: unknown }).default ?? keytarModule) as MinimalKeytar;
     } catch {
       this.keytar = null;
       console.warn('Keytar not available - falling back to encrypted file storage');
@@ -106,11 +133,11 @@ export class ApiKeyStorage {
       
     } else if (this.isElectron()) {
       // Desktop: Use Electron secure storage (SecretStorage API)
-      await (window as any).electronAPI.secureStore.set(this.storageKey, dataWithTimestamp);
-      
+      await (window as unknown as ElectronWindow).electronAPI!.secureStore.set(this.storageKey, dataWithTimestamp);
+
     } else if (this.isMobile()) {
       // Mobile: Use secure storage plugin
-      await (window as any).SecureStorage.set(this.storageKey, keyString);
+      await (window as unknown as MobileWindow).SecureStorage!.set(this.storageKey, keyString);
       
     } else {
       // Web: Use encrypted localStorage
@@ -144,12 +171,12 @@ export class ApiKeyStorage {
         
       } else if (this.isElectron()) {
         // Desktop: Use Electron secure storage
-        const data = await (window as any).electronAPI.secureStore.get(this.storageKey);
-        return data || null;
-        
+        const data = await (window as unknown as ElectronWindow).electronAPI!.secureStore.get(this.storageKey);
+        return (data as ApiKeyData | null) || null;
+
       } else if (this.isMobile()) {
         // Mobile: Use secure storage plugin
-        keyString = await (window as any).SecureStorage.get(this.storageKey);
+        keyString = await (window as unknown as MobileWindow).SecureStorage!.get(this.storageKey);
         
       } else {
         // Web: Use encrypted localStorage
@@ -216,10 +243,10 @@ export class ApiKeyStorage {
       await this.deleteFile();
       
     } else if (this.isElectron()) {
-      await (window as any).electronAPI.secureStore.delete(this.storageKey);
-      
+      await (window as unknown as ElectronWindow).electronAPI!.secureStore.delete(this.storageKey);
+
     } else if (this.isMobile()) {
-      await (window as any).SecureStorage.remove(this.storageKey);
+      await (window as unknown as MobileWindow).SecureStorage!.remove(this.storageKey);
       
     } else {
       localStorage.removeItem(this.storageKey);
@@ -364,7 +391,7 @@ export class ApiKeyStorage {
       decrypted += decipher.final('utf8');
       
       return decrypted;
-    } catch (error) {
+    } catch {
       // File doesn't exist or decryption failed
       return null;
     }
@@ -378,7 +405,7 @@ export class ApiKeyStorage {
     
     try {
       await fs.promises.unlink(keyFile);
-    } catch (error) {
+    } catch {
       // Ignore if file doesn't exist
     }
   }
@@ -578,13 +605,13 @@ export class ApiKeyStorage {
   }
 
   private isElectron(): boolean {
-    return typeof window !== 'undefined' && 
-           (window as any).electronAPI !== undefined;
+    return typeof window !== 'undefined' &&
+           (window as unknown as ElectronWindow).electronAPI !== undefined;
   }
 
   private isMobile(): boolean {
-    return typeof window !== 'undefined' && 
-           (window as any).SecureStorage !== undefined;
+    return typeof window !== 'undefined' &&
+           (window as unknown as MobileWindow).SecureStorage !== undefined;
   }
 
   private base64Encode(bytes: Uint8Array): string {

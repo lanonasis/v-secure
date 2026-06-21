@@ -233,14 +233,14 @@ const PATTERNS: PatternDefinition[] = [
   // Date of Birth (various formats)
   {
     type: 'dob',
-    pattern: /\b(?:0?[1-9]|1[0-2])[-\/](?:0?[1-9]|[12]\d|3[01])[-\/](?:19|20)\d{2}\b/g, // MM/DD/YYYY
+    pattern: /\b(?:0?[1-9]|1[0-2])[-/](?:0?[1-9]|[12]\d|3[01])[-/](?:19|20)\d{2}\b/g, // MM/DD/YYYY
     sensitivity: 'high',
     regulations: ['GDPR', 'HIPAA'],
     locale: ['US'],
   },
   {
     type: 'dob',
-    pattern: /\b(?:0?[1-9]|[12]\d|3[01])[-\/](?:0?[1-9]|1[0-2])[-\/](?:19|20)\d{2}\b/g, // DD/MM/YYYY
+    pattern: /\b(?:0?[1-9]|[12]\d|3[01])[-/](?:0?[1-9]|1[0-2])[-/](?:19|20)\d{2}\b/g, // DD/MM/YYYY
     sensitivity: 'high',
     regulations: ['GDPR'],
     locale: ['UK', 'EU'],
@@ -317,11 +317,13 @@ interface CryptoProvider {
 // Node.js crypto provider
 const nodeCrypto: CryptoProvider = {
   hash: (data: string): string => {
-    // Dynamic import for Node.js
+    // require (not import) so this module stays browser-bundleable; see getCrypto() below.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require('crypto');
     return crypto.createHash('sha256').update(data).digest('hex');
   },
   randomBytes: (length: number): string => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const crypto = require('crypto');
     return crypto.randomBytes(length).toString('hex');
   },
@@ -356,6 +358,7 @@ const browserCrypto: CryptoProvider = {
 const getCrypto = (): CryptoProvider => {
   if (typeof window === 'undefined') {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       require('crypto');
       return nodeCrypto;
     } catch {

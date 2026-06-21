@@ -31,13 +31,40 @@ export interface TokenStorageAdapter {
   isTokenExpired(tokens: TokenResponse & { issued_at?: number }): boolean;
 }
 
+/** `keytar` ships no type declarations; this covers the 3 methods this module uses. */
+interface MinimalKeytar {
+  getPassword(service: string, account: string): Promise<string | null>;
+  setPassword(service: string, account: string, password: string): Promise<void>;
+  deletePassword(service: string, account: string): Promise<boolean>;
+}
+
+/** Runtime bridge injected by the Electron host app. */
+interface ElectronWindow {
+  electronAPI?: {
+    secureStore: {
+      set(key: string, value: unknown): Promise<void>;
+      get(key: string): Promise<unknown>;
+      delete(key: string): Promise<void>;
+    };
+  };
+}
+
+/** Runtime bridge injected by the mobile WebView host app. */
+interface MobileWindow {
+  SecureStorage?: {
+    set(key: string, value: string): Promise<void>;
+    get(key: string): Promise<string | null>;
+    remove(key: string): Promise<void>;
+  };
+}
+
 export class TokenStorage implements TokenStorageAdapter {
   private readonly storageKey = 'lanonasis_mcp_tokens';
   private readonly webEncryptionKeyStorage = 'lanonasis_web_token_enc_key';
-  private keytar: any = null;
+  private keytar: MinimalKeytar | null = null;
   private keytarLoadAttempted = false;
 
-  private async getKeytar(): Promise<any | null> {
+  private async getKeytar(): Promise<MinimalKeytar | null> {
     if (!this.isNode()) {
       return null;
     }
@@ -50,7 +77,7 @@ export class TokenStorage implements TokenStorageAdapter {
 
     try {
       const keytarModule = await import('keytar');
-      this.keytar = (keytarModule as any).default ?? keytarModule;
+      this.keytar = ((keytarModule as { default?: unknown }).default ?? keytarModule) as MinimalKeytar;
     } catch {
       this.keytar = null;
       console.warn('Keytar not available - falling back to file storage');
@@ -79,10 +106,10 @@ export class TokenStorage implements TokenStorageAdapter {
       }
     } else if (this.isElectron()) {
       // Desktop: Use Electron secure storage
-      await (window as any).electronAPI.secureStore.set(this.storageKey, tokensWithTimestamp);
+      await (window as unknown as ElectronWindow).electronAPI!.secureStore.set(this.storageKey, tokensWithTimestamp);
     } else if (this.isMobile()) {
       // Mobile: Use secure storage plugin
-      await (window as any).SecureStorage.set(this.storageKey, tokenString);
+      await (window as unknown as MobileWindow).SecureStorage!.set(this.storageKey, tokenString);
     } else {
       // Web: Use encrypted localStorage
       const encrypted = await this.encrypt(tokenString);
@@ -107,11 +134,11 @@ export class TokenStorage implements TokenStorageAdapter {
         }
       } else if (this.isElectron()) {
         // Desktop: Use Electron secure storage
-        const tokens = await (window as any).electronAPI.secureStore.get(this.storageKey);
-        return tokens || null;
+        const tokens = await (window as unknown as ElectronWindow).electronAPI!.secureStore.get(this.storageKey);
+        return (tokens as TokenResponse | null) || null;
       } else if (this.isMobile()) {
         // Mobile: Use secure storage plugin
-        tokenString = await (window as any).SecureStorage.get(this.storageKey);
+        tokenString = await (window as unknown as MobileWindow).SecureStorage!.get(this.storageKey);
       } else {
         // Web: Use encrypted localStorage
         const encrypted = localStorage.getItem(this.storageKey);
@@ -135,9 +162,9 @@ export class TokenStorage implements TokenStorageAdapter {
       }
       await this.deleteFile();
     } else if (this.isElectron()) {
-      await (window as any).electronAPI.secureStore.delete(this.storageKey);
+      await (window as unknown as ElectronWindow).electronAPI!.secureStore.delete(this.storageKey);
     } else if (this.isMobile()) {
-      await (window as any).SecureStorage.remove(this.storageKey);
+      await (window as unknown as MobileWindow).SecureStorage!.remove(this.storageKey);
     } else {
       localStorage.removeItem(this.storageKey);
     }
@@ -225,7 +252,7 @@ export class TokenStorage implements TokenStorageAdapter {
       }
 
       throw new Error('Invalid encrypted token format');
-    } catch (error) {
+    } catch {
       return null;
     }
   }
@@ -238,7 +265,7 @@ export class TokenStorage implements TokenStorageAdapter {
     
     try {
       await fs.promises.unlink(tokenFile);
-    } catch (error) {
+    } catch {
       // Ignore if file doesn't exist
     }
   }
@@ -352,13 +379,13 @@ export class TokenStorage implements TokenStorageAdapter {
   }
 
   private isElectron(): boolean {
-    return typeof window !== 'undefined' && 
-           (window as any).electronAPI !== undefined;
+    return typeof window !== 'undefined' &&
+           (window as unknown as ElectronWindow).electronAPI !== undefined;
   }
 
   private isMobile(): boolean {
-    return typeof window !== 'undefined' && 
-           (window as any).SecureStorage !== undefined;
+    return typeof window !== 'undefined' &&
+           (window as unknown as MobileWindow).SecureStorage !== undefined;
   }
 
   private base64Encode(bytes: Uint8Array): string {

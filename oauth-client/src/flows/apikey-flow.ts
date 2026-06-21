@@ -55,7 +55,7 @@ export class APIKeyFlow extends BaseOAuthFlow {
   /**
    * API keys don't need refresh
    */
-  async refreshToken(refreshToken: string): Promise<TokenResponse> {
+  async refreshToken(_refreshToken: string): Promise<TokenResponse> {
     throw new Error('API keys do not support token refresh');
   }
 

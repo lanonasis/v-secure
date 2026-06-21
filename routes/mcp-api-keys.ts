@@ -117,7 +117,12 @@ router.post('/request-access', [
       autoApproved: !!session
     });
 
-    const response: any = {
+    const response: {
+      requestId: string;
+      status: 'approved' | 'pending';
+      message: string;
+      sessionId?: string;
+    } = {
       requestId,
       status: session ? 'approved' : 'pending',
       message: session ? 'Access approved and session created' : 'Access request pending approval'

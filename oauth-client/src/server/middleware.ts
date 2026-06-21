@@ -3,7 +3,7 @@
  * @module @lanonasis/oauth-client/server
  */
 
-import { DEFAULT_AUTH_GATEWAY, DEFAULT_COOKIE_DOMAIN, DEFAULT_PROJECT_SCOPE, COOKIE_NAMES } from '../cookies/constants';
+import { DEFAULT_AUTH_GATEWAY, DEFAULT_COOKIE_DOMAIN, COOKIE_NAMES } from '../cookies/constants';
 import { getSSOUserFromRequest, hasSSOfromRequest } from './cookie-utils';
 import type { ServerRequest, ServerResponse, NextFunction, MiddlewareConfig } from './types';
 

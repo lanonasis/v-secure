@@ -14,13 +14,30 @@ export interface MCPClientConfig extends Partial<OAuthConfig> {
   tokenStorage?: TokenStorageAdapter;
 }
 
+/** Minimal shape this client needs from either the global WebSocket or the `ws` package. */
+interface MinimalSocketLike {
+  onopen: (() => void) | null;
+  onerror: ((error: unknown) => void) | null;
+  onclose: ((event: { code: number; reason: string }) => void) | null;
+  onmessage: ((event: { data: string }) => void) | null;
+  close(): void;
+}
+
+/** Minimal shape this client needs from either the global EventSource or the `eventsource` package. */
+interface MinimalEventSourceLike {
+  onopen: (() => void) | null;
+  onerror: ((error: unknown) => void) | null;
+  onmessage: ((event: { data: string }) => void) | null;
+  close(): void;
+}
+
 export class MCPClient {
   private tokenStorage: TokenStorageAdapter;
   private authFlow: BaseOAuthFlow;
   private config: MCPClientConfig;
   private authMode: 'oauth' | 'apikey';  // ← NEW: Track auth mode
-  private ws: any = null;
-  private eventSource: any = null;
+  private ws: MinimalSocketLike | null = null;
+  private eventSource: MinimalEventSourceLike | null = null;
   private accessToken: string | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
 
@@ -71,7 +88,7 @@ export class MCPClient {
             try {
               tokens = await this.authFlow.refreshToken(tokens.refresh_token);
               await this.tokenStorage.store(tokens);
-            } catch (error) {
+            } catch {
               tokens = await this.authenticate();
             }
           } else {
@@ -190,7 +207,7 @@ export class MCPClient {
 
     if (typeof WebSocket !== 'undefined') {
       // Browser environment
-      this.ws = new WebSocket(wsUrl.toString());
+      this.ws = new WebSocket(wsUrl.toString()) as unknown as MinimalSocketLike;
     } else {
       // Node.js environment - use appropriate auth header
       const { default: WS } = await import('ws');
@@ -200,42 +217,42 @@ export class MCPClient {
           headers: {
             'x-api-key': this.accessToken!
           }
-        });
+        }) as unknown as MinimalSocketLike;
       } else {
         this.ws = new WS(wsUrl.toString(), {
           headers: {
             'Authorization': `Bearer ${this.accessToken}`
           }
-        });
+        }) as unknown as MinimalSocketLike;
       }
     }
-    
+
     return new Promise((resolve, reject) => {
       if (!this.ws) {
         reject(new Error('WebSocket not initialized'));
         return;
       }
-      
+
       this.ws.onopen = () => {
         console.log('MCP WebSocket connected');
         resolve();
       };
-      
-      this.ws.onerror = (error: any) => {
+
+      this.ws.onerror = (error: unknown) => {
         console.error('WebSocket error:', error);
         reject(error);
       };
-      
-      this.ws.onclose = (event: any) => {
+
+      this.ws.onclose = (event: { code: number; reason: string }) => {
         console.log('WebSocket closed:', event.code, event.reason);
-        
+
         // Attempt reconnection for non-auth errors
         if (event.code !== 1008 && event.code !== 4001) {
           setTimeout(() => this.reconnect(), 5000);
         }
       };
-      
-      this.ws.onmessage = (event: any) => {
+
+      this.ws.onmessage = (event: { data: string }) => {
         this.handleMessage(event.data);
       };
     });
@@ -247,11 +264,15 @@ export class MCPClient {
 
     if (typeof EventSource !== 'undefined') {
       // Browser environment
-      this.eventSource = new EventSource(sseUrl.toString());
+      this.eventSource = new EventSource(sseUrl.toString()) as unknown as MinimalEventSourceLike;
     } else {
       // Node.js environment - use eventsource polyfill with appropriate auth header
       const EventSourceModule = await import('eventsource');
-      const ES = (EventSourceModule as any).default || EventSourceModule;
+      type EventSourceConstructor = new (
+        url: string,
+        options?: { headers?: Record<string, string> }
+      ) => MinimalEventSourceLike;
+      const ES = ((EventSourceModule as { default?: unknown }).default ?? EventSourceModule) as EventSourceConstructor;
 
       if (this.authMode === 'apikey') {
         this.eventSource = new ES(sseUrl.toString(), {
@@ -267,24 +288,24 @@ export class MCPClient {
         });
       }
     }
-    
+
     this.eventSource.onopen = () => {
       console.log('MCP SSE connected');
     };
-    
-    this.eventSource.onerror = (error: any) => {
+
+    this.eventSource.onerror = (error: unknown) => {
       console.error('SSE error:', error);
-      
+
       // Attempt reconnection
       setTimeout(() => this.reconnect(), 5000);
     };
     
-    this.eventSource.onmessage = (event: any) => {
+    this.eventSource.onmessage = (event: { data: string }) => {
       this.handleMessage(event.data);
     };
   }
 
-  private handleMessage<T = unknown>(data: string): void {
+  private handleMessage(data: string): void {
     try {
       const message = JSON.parse(data);
       // Handle MCP protocol messages

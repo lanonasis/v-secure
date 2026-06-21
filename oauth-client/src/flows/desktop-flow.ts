@@ -1,6 +1,16 @@
 import { BaseOAuthFlow } from './base-flow';
 import { TokenResponse, OAuthConfig, PKCEChallenge } from '../types';
 
+/** Minimal shape of Electron's BrowserWindow this module needs (electron isn't a dependency here). */
+interface ElectronBrowserWindowLike {
+  loadURL(url: string): void;
+  close(): void;
+  webContents: {
+    on(event: 'will-redirect', listener: (event: { preventDefault(): void }, url: string) => void): void;
+  };
+  on(event: 'closed', listener: () => void): void;
+}
+
 export class DesktopOAuthFlow extends BaseOAuthFlow {
   private readonly redirectUri: string;
   private authWindow: Window | null = null;
@@ -140,7 +150,7 @@ export class DesktopOAuthFlow extends BaseOAuthFlow {
             reject(new Error('No authorization code received'));
           }
         }
-      } catch (e) {
+      } catch {
         // Cross-origin error - ignore and continue checking
       }
     }, 500);
@@ -155,8 +165,8 @@ export class DesktopOAuthFlow extends BaseOAuthFlow {
     // This would be implemented in Electron main process
     // Using IPC to communicate with renderer
     const { BrowserWindow } = require('electron');
-    
-    const authWindow = new BrowserWindow({
+
+    const authWindow: ElectronBrowserWindowLike = new BrowserWindow({
       width: 500,
       height: 700,
       webPreferences: {
@@ -167,7 +177,7 @@ export class DesktopOAuthFlow extends BaseOAuthFlow {
 
     authWindow.loadURL(authUrl);
 
-    authWindow.webContents.on('will-redirect', (event: any, url: string) => {
+    authWindow.webContents.on('will-redirect', (event, url: string) => {
       if (url.startsWith(this.redirectUri)) {
         event.preventDefault();
         authWindow.close();

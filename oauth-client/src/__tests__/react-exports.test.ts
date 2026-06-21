@@ -1,7 +1,7 @@
 /**
  * Tests for @lanonasis/oauth-client/react exports
  */
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Test that all exports are available
 describe('React Exports', () => {
@@ -45,11 +45,13 @@ describe('React Exports', () => {
 
   describe('Type Exports', () => {
     it('should have proper TypeScript types', async () => {
-      // This test verifies types compile correctly
-      const module = await import('../react/index');
+      // This test verifies types compile correctly. Using `typeof import(...)` as a
+      // type query (rather than binding the module to a variable) avoids an unused
+      // local purely for its type, since these tests never need the runtime value.
+      type ReactModule = typeof import('../react/index');
 
       // Type assertions (these would fail at compile time if types are wrong)
-      const cookieNames: typeof module.COOKIE_NAMES = {
+      const cookieNames: ReactModule['COOKIE_NAMES'] = {
         SESSION: 'lanonasis_session',
         USER: 'lanonasis_user',
       };

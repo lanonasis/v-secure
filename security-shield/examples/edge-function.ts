@@ -4,10 +4,11 @@
  * Copy this to: netlify/edge-functions/security.ts
  */
 
-import { 
-  createSecurityShield, 
+import {
+  createSecurityShield,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- kept for the commented "Option 1" example below
   standardConfig,
-  type SecurityConfig 
+  type SecurityConfig
 } from '@lanonasis/security-shield';
 
 // Option 1: Use a preset

@@ -9,6 +9,31 @@ import type {
   TokenResponse
 } from '../types';
 
+interface ApiKeyVerifyResponse {
+  valid?: boolean;
+  error?: string;
+  message?: string;
+  userId?: string;
+  projectScope?: string;
+  permissions?: string[];
+}
+
+interface TokenVerifyResponse {
+  valid?: boolean;
+  type?: string;
+  error?: string;
+  user?: { id?: string; email?: string; role?: string };
+  expires_at?: string | null;
+}
+
+interface TokenIntrospectResponse {
+  active?: boolean;
+  user_id?: string;
+  sub?: string;
+  scope?: string;
+  exp?: number;
+}
+
 class GatewayOAuthFlow extends BaseOAuthFlow {
   async authenticate(): Promise<TokenResponse> {
     throw new Error('Interactive authentication is not supported in AuthGatewayClient.');
@@ -47,7 +72,7 @@ export class AuthGatewayClient {
     const projectScope = options.projectScope || this.projectScope;
     const platform = options.platform || 'web';
 
-    return this.requestJson('/v1/auth/token/exchange', {
+    return this.requestJson<TokenExchangeResponse>('/v1/auth/token/exchange', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -91,7 +116,7 @@ export class AuthGatewayClient {
 
   async verifyApiKey(apiKey: string): Promise<AuthValidationResult> {
     try {
-      const data = await this.requestJson('/v1/auth/verify-api-key', {
+      const data = await this.requestJson<ApiKeyVerifyResponse>('/v1/auth/verify-api-key', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -116,19 +141,20 @@ export class AuthGatewayClient {
         permissions: data.permissions || [],
         raw: data
       };
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as (Error & { data?: unknown }) | undefined;
       return {
         valid: false,
         type: 'api_key',
-        error: error?.message || 'API key validation failed',
-        raw: error?.data
+        error: err?.message || 'API key validation failed',
+        raw: err?.data
       };
     }
   }
 
   async verifyToken(token: string): Promise<AuthValidationResult> {
     try {
-      const data = await this.requestJson('/v1/auth/verify-token', {
+      const data = await this.requestJson<TokenVerifyResponse>('/v1/auth/verify-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
@@ -152,19 +178,20 @@ export class AuthGatewayClient {
         expiresAt: data.expires_at || null,
         raw: data
       };
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as (Error & { data?: unknown }) | undefined;
       return {
         valid: false,
         type: 'jwt',
-        error: error?.message || 'Token verification failed',
-        raw: error?.data
+        error: err?.message || 'Token verification failed',
+        raw: err?.data
       };
     }
   }
 
   async introspectToken(token: string): Promise<AuthValidationResult> {
     try {
-      const data = await this.requestJson('/oauth/introspect', {
+      const data = await this.requestJson<TokenIntrospectResponse>('/oauth/introspect', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token })
@@ -187,12 +214,13 @@ export class AuthGatewayClient {
         expiresAt: data.exp ? new Date(data.exp * 1000).toISOString() : null,
         raw: data
       };
-    } catch (error: any) {
+    } catch (error) {
+      const err = error as (Error & { data?: unknown }) | undefined;
       return {
         valid: false,
         type: 'oauth',
-        error: error?.message || 'Token introspection failed',
-        raw: error?.data
+        error: err?.message || 'Token introspection failed',
+        raw: err?.data
       };
     }
   }
@@ -203,27 +231,28 @@ export class AuthGatewayClient {
     return 'jwt';
   }
 
-  private async requestJson(path: string, options: RequestInit): Promise<any> {
+  private async requestJson<T = unknown>(path: string, options: RequestInit): Promise<T> {
     const response = await fetch(`${this.authBaseUrl}${path.startsWith('/') ? path : `/${path}`}`, options);
     const text = await response.text();
-    let data: any = null;
+    let data: unknown = null;
 
     if (text) {
       try {
         data = JSON.parse(text);
-      } catch (parseError) {
+      } catch {
         data = { raw: text };
       }
     }
 
     if (!response.ok) {
-      const message = data?.message || data?.error || `Request failed (${response.status})`;
-      const error = new Error(message) as Error & { status?: number; data?: any };
+      const parsed = data as { message?: string; error?: string } | null;
+      const message = parsed?.message || parsed?.error || `Request failed (${response.status})`;
+      const error = new Error(message) as Error & { status?: number; data?: unknown };
       error.status = response.status;
       error.data = data;
       throw error;
     }
 
-    return data;
+    return data as T;
   }
 }

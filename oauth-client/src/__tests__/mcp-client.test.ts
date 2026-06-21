@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { MCPClient, MCPClientConfig } from '../client/mcp-client';
-import { TokenResponse } from '../types';
+import { MCPClient } from '../client/mcp-client';
+import { TokenStorageAdapter } from '../storage/token-storage';
 
 // Mock cross-fetch
 vi.mock('cross-fetch', () => ({
@@ -250,7 +250,7 @@ describe('MCPClient', () => {
         tokenStorage: mockStorage
       });
 
-      const result = await client.request('test/method');
+      await client.request('test/method');
 
       expect(mockedFetch).toHaveBeenCalledWith(
         expect.any(String),
@@ -379,7 +379,7 @@ describe('MCPClient', () => {
 
 describe('MCPClient - Memory Operations', () => {
   let client: MCPClient;
-  let mockStorage: any;
+  let mockStorage: TokenStorageAdapter;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -488,7 +488,7 @@ describe('MCPClient - Memory Operations', () => {
         })
       } as Response);
 
-      const result = await client.updateMemory('memory_123', { title: 'Updated Title' });
+      await client.updateMemory('memory_123', { title: 'Updated Title' });
 
       expect(mockedFetch).toHaveBeenCalledWith(
         expect.any(String),
@@ -541,7 +541,7 @@ describe('MCPClient - Token Refresh', () => {
         isTokenExpired: vi.fn().mockReturnValue(false)
       };
 
-      const client = new MCPClient({
+      new MCPClient({
         autoRefresh: true,
         tokenStorage: mockStorage
       });

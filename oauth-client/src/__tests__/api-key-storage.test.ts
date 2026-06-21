@@ -111,14 +111,18 @@ describe('ApiKeyStorage', () => {
   });
 
   describe('API key normalization', () => {
+    // normalizeApiKey is private; expose it minimally for these unit tests.
+    const normalizeApiKey = (key: string): Promise<string> =>
+      (storage as unknown as { normalizeApiKey(apiKey: string): Promise<string> }).normalizeApiKey(key);
+
     it('preserves raw API keys for outbound auth headers', async () => {
-      const result = await (storage as any).normalizeApiKey('  lano_test123456789  ');
+      const result = await normalizeApiKey('  lano_test123456789  ');
       expect(result).toBe('lano_test123456789');
     });
 
     it('leaves legacy SHA-256-looking values untouched', async () => {
       const legacyHash = 'a'.repeat(64);
-      const result = await (storage as any).normalizeApiKey(legacyHash);
+      const result = await normalizeApiKey(legacyHash);
       expect(result).toBe(legacyHash);
     });
   });
@@ -127,7 +131,6 @@ describe('ApiKeyStorage', () => {
     it('should throw error when no API key exists in fresh storage', async () => {
       // Create a fresh storage instance with mocked retrieve
       const mockStorage = new ApiKeyStorage();
-      const originalRetrieve = mockStorage.retrieve.bind(mockStorage);
 
       // Mock retrieve to return null
       vi.spyOn(mockStorage, 'retrieve').mockResolvedValue(null);
