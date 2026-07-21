@@ -473,7 +473,7 @@ router.get('/:keyId', [
       return;
     }
 
-    const keyId = req.params.keyId;
+    const keyId = String(req.params.keyId);
     if (!keyId) {
       res.status(400).json({ error: 'Key ID is required' });
       return;
@@ -576,7 +576,7 @@ router.put('/:keyId', [
       return;
     }
 
-    const keyId = req.params.keyId;
+    const keyId = String(req.params.keyId);
     if (!keyId) {
       res.status(400).json({ error: 'Key ID is required' });
       return;
@@ -635,7 +635,7 @@ router.delete('/:keyId', [
       return;
     }
 
-    const keyId = req.params.keyId;
+    const keyId = String(req.params.keyId);
     if (!keyId) {
       res.status(400).json({ error: 'Key ID is required' });
       return;
@@ -973,7 +973,7 @@ router.post('/mcp/sessions/:sessionId/proxy-token', [
       return;
     }
 
-    const sessionId = req.params.sessionId;
+    const sessionId = String(req.params.sessionId);
     if (!sessionId) {
       res.status(400).json({ error: 'Session ID is required' });
       return;

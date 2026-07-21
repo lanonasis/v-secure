@@ -205,8 +205,8 @@ router.post('/sessions/:sessionId/keys/:keyName/proxy-token', [
   param('keyName').isLength({ min: 1 }).withMessage('Key name is required')
 ], validateRequest, async (req: express.Request, res: express.Response) => {
   try {
-    const sessionId = req.params.sessionId;
-    const keyName = req.params.keyName;
+    const sessionId = String(req.params.sessionId);
+    const keyName = String(req.params.keyName);
     
     if (!sessionId || !keyName) {
       res.status(400).json({ error: 'Session ID and key name are required' });
@@ -284,7 +284,7 @@ router.post('/proxy-tokens/:proxyToken/resolve', [
   param('proxyToken').isLength({ min: 1 }).withMessage('Proxy token is required')
 ], validateRequest, async (req: express.Request, res: express.Response) => {
   try {
-    const proxyToken = req.params.proxyToken;
+    const proxyToken = String(req.params.proxyToken);
     
     if (!proxyToken) {
       res.status(400).json({ error: 'Proxy token is required' });
