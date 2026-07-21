@@ -201,13 +201,34 @@ const PATTERNS: PatternDefinition[] = [
     regulations: ['PCI-DSS', 'GDPR', 'CCPA'],
   },
 
-  // IBAN
+  // IBAN (mod-97 checksum validated — see validate())
   {
     type: 'iban',
-    pattern: /\b[A-Z]{2}\d{2}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{0,14}\b/gi,
+    // Case-sensitive (no /i): IBAN country codes are uppercase. The coarse pattern still
+    // over-matches UUIDs/hex/base64 that begin with 2 letters + 2 digits, so validate() below
+    // is the real gate — without it this detector produced ~11.7k false positives on transcripts.
+    pattern: /\b[A-Z]{2}\d{2}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{4}[-\s]?[A-Z0-9]{0,14}\b/g,
     sensitivity: 'high',
     regulations: ['GDPR', 'PCI-DSS'],
     locale: ['EU', 'UK'],
+    // ISO 13616 / ISO 7064 mod-97-10 checksum: move the first 4 chars to the end, map letters
+    // to digits (A=10 … Z=35), interpret as one integer, and require value mod 97 === 1.
+    // Mirrors the Luhn check the credit-card detector already runs. Rejects UUIDs, hex hashes,
+    // base64 blobs and session ids; keeps every valid IBAN.
+    validate: (value: string): boolean => {
+      const clean = value.replace(/[-\s]/g, '').toUpperCase();
+      if (clean.length < 15 || clean.length > 34) return false;
+      if (!/^[A-Z]{2}\d{2}[A-Z0-9]+$/.test(clean)) return false;
+      const rearranged = clean.slice(4) + clean.slice(0, 4);
+      let remainder = 0;
+      for (const ch of rearranged) {
+        const mapped = ch >= '0' && ch <= '9' ? ch : (ch.charCodeAt(0) - 55).toString(); // A→"10" … Z→"35"
+        for (let i = 0; i < mapped.length; i++) {
+          remainder = (remainder * 10 + (mapped.charCodeAt(i) - 48)) % 97;
+        }
+      }
+      return remainder === 1;
+    },
   },
 
   // IPv4
