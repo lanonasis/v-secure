@@ -29,7 +29,11 @@ jobs:
           cache-dependency-path: riskgpt/package-lock.json
       - run: npm ci --ignore-scripts
         working-directory: riskgpt
+      - run: npm run lint
+        working-directory: riskgpt
       - run: npm run typecheck
         working-directory: riskgpt
       - run: npm test
+        working-directory: riskgpt
+      - run: npm run build
         working-directory: riskgpt
