@@ -99,11 +99,19 @@ export class TokenStorage implements TokenStorageAdapter {
       // Terminal: Use system keychain if available
       const keytar = await this.getKeytar();
       if (keytar) {
-        await keytar.setPassword('lanonasis-mcp', 'tokens', tokenString);
+        try {
+          await keytar.setPassword('lanonasis-mcp', 'tokens', tokenString);
+          return;
+        } catch {
+          // A keytar module can load even when the host keyring is unavailable
+          // (for example, in headless Linux CI). Preserve the documented file
+          // fallback rather than failing token storage outright.
+        }
       } else {
-        // Fallback to encrypted file
-        await this.storeToFile(tokenString);
+        console.warn('Keytar not available - falling back to file storage');
       }
+      // Fallback to encrypted file when keytar is absent or its backend fails.
+      await this.storeToFile(tokenString);
     } else if (this.isElectron()) {
       // Desktop: Use Electron secure storage
       await (window as unknown as ElectronWindow).electronAPI!.secureStore.set(this.storageKey, tokensWithTimestamp);
@@ -125,7 +133,13 @@ export class TokenStorage implements TokenStorageAdapter {
         // Terminal: Try keychain first
         const keytar = await this.getKeytar();
         if (keytar) {
-          tokenString = await keytar.getPassword('lanonasis-mcp', 'tokens');
+          try {
+            tokenString = await keytar.getPassword('lanonasis-mcp', 'tokens');
+          } catch {
+            // Continue to the encrypted-file fallback when the keyring daemon
+            // is unavailable rather than treating the storage as empty.
+            tokenString = null;
+          }
         }
         
         // Fallback to file if not in keychain
@@ -158,7 +172,12 @@ export class TokenStorage implements TokenStorageAdapter {
     if (this.isNode()) {
       const keytar = await this.getKeytar();
       if (keytar) {
-        await keytar.deletePassword('lanonasis-mcp', 'tokens');
+        try {
+          await keytar.deletePassword('lanonasis-mcp', 'tokens');
+        } catch {
+          // The encrypted-file fallback must still be removable when a loaded
+          // keytar module cannot reach the host keyring service.
+        }
       }
       await this.deleteFile();
     } else if (this.isElectron()) {
