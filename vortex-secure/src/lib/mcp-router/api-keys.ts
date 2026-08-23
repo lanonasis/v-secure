@@ -1,8 +1,27 @@
 // MCP Router - API Key Management
 // Tier 3: API key scoping and access control
+//
+// create/list/get/revoke/reactivate/delete/update rewritten 2026-08-23 to
+// call auth-gateway's /api/v1/mcp/api-keys instead of writing to Supabase
+// directly from the browser (was "encrypting" client-side with a master
+// password that fell back to a hardcoded string or a localStorage value
+// when unconfigured, against a schema that didn't exist on the live
+// database). These methods have no live caller in this app today
+// (useAPIKeys.ts, used by APIKeysPage.tsx, is the real management path —
+// fixed separately) — kept in sync for consistency so this class doesn't
+// stay a live insecure pattern next to the real one.
+//
+// validateAPIKey/checkIPAccess/checkRateLimit/checkServiceAccess/
+// checkActionAccess/incrementRateLimit are UNCHANGED — router.ts's
+// request-routing/enforcement hot path uses these, likely against a
+// separate vortex-secure-specific Supabase project (secrets/projects/
+// rotation_policies schema, not MXT or PTNR). Out of scope here; needs its
+// own investigation before touching. updateScopes/setAllowedActions/
+// getAPIKeyStats have no caller anywhere in this app either — left as-is,
+// not worth converting for zero live callers.
 
 import { supabase } from '../supabase';
-import { VortexEncryption } from '../encryption';
+import { mcpRouterKeysApi } from './api-client';
 import type {
   APIKey,
   APIKeyScope,
@@ -14,11 +33,10 @@ import type {
 } from '../../types/mcp-router';
 
 export class APIKeyManager {
-  private masterPassword: string;
-
-  constructor(masterPassword: string) {
-    this.masterPassword = masterPassword;
-  }
+  // masterPassword is no longer used — encryption (such as it exists) now
+  // happens server-side. Kept as an accepted constructor param so callers
+  // (router.ts) don't need to change their instantiation.
+  constructor(private masterPassword?: string) {}
 
   /**
    * Create a new API key
@@ -26,136 +44,27 @@ export class APIKeyManager {
   async createAPIKey(
     request: CreateAPIKeyRequest
   ): Promise<CreateAPIKeyResponse> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    // Generate the API key (lms = LanOnasis)
-    const prefix = 'lms_prod';
-    const fullKey = VortexEncryption.generateAPIKey(prefix);
-    const keyPrefix = fullKey.substring(0, 12);
-
-    // Hash the key for lookup
-    const keyHash = await this.hashAPIKey(fullKey);
-
-    // Encrypt the full key for storage
-    const encryptedKey = await VortexEncryption.encrypt(
-      fullKey,
-      this.masterPassword
-    );
-
-    // Insert the API key
-    const { data: apiKeyData, error: apiKeyError } = await supabase
-      .from('api_keys')
-      .insert([
-        {
-          user_id: user.id,
-          key_prefix: keyPrefix,
-          key_hash: keyHash,
-          name: request.name,
-          description: request.description,
-          encrypted_key: encryptedKey,
-          scope_type: request.scope_type,
-          allowed_environments:
-            request.allowed_environments || ['production'],
-          rate_limit_per_minute: request.rate_limit_per_minute || 60,
-          rate_limit_per_day: request.rate_limit_per_day || 10000,
-          allowed_ips: request.allowed_ips || [],
-          expires_at: request.expires_at,
-          is_active: true,
-        },
-      ])
-      .select()
-      .single();
-
-    if (apiKeyError) {
-      throw new Error(`Failed to create API key: ${apiKeyError.message}`);
-    }
-
-    // If scope_type is 'specific', create scope entries
-    if (
-      request.scope_type === 'specific' &&
-      request.service_keys &&
-      request.service_keys.length > 0
-    ) {
-      const scopes = request.service_keys.map(serviceKey => ({
-        api_key_id: apiKeyData.id,
-        service_key: serviceKey,
-      }));
-
-      const { error: scopeError } = await supabase
-        .from('api_key_scopes')
-        .insert(scopes);
-
-      if (scopeError) {
-        // Rollback: delete the API key
-        await supabase.from('api_keys').delete().eq('id', apiKeyData.id);
-        throw new Error(`Failed to create scopes: ${scopeError.message}`);
-      }
-    }
-
-    // Fetch the complete API key with scopes
-    const apiKey = await this.getAPIKey(apiKeyData.id);
-
-    return {
-      api_key: apiKey!,
-      full_key: fullKey,
-    };
+    return mcpRouterKeysApi.create<CreateAPIKeyResponse>(request);
   }
 
   /**
    * Get all API keys for the current user
    */
   async getAPIKeys(): Promise<APIKey[]> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select(`
-        *,
-        scopes:api_key_scopes(
-          *,
-          service:mcp_service_catalog(*)
-        )
-      `)
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      throw new Error(`Failed to fetch API keys: ${error.message}`);
-    }
-
-    return (data || []).map(this.mapAPIKeyFromDB);
+    const response = await mcpRouterKeysApi.list<{ api_keys: APIKey[] }>();
+    return response.api_keys || [];
   }
 
   /**
    * Get a single API key by ID
    */
   async getAPIKey(id: string): Promise<APIKey | null> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { data, error } = await supabase
-      .from('api_keys')
-      .select(`
-        *,
-        scopes:api_key_scopes(
-          *,
-          service:mcp_service_catalog(*)
-        )
-      `)
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null;
-      }
-      throw new Error(`Failed to fetch API key: ${error.message}`);
+    try {
+      const response = await mcpRouterKeysApi.get<{ api_key: APIKey }>(id);
+      return response.api_key;
+    } catch {
+      return null;
     }
-
-    return this.mapAPIKeyFromDB(data);
   }
 
   /**
@@ -208,10 +117,8 @@ export class APIKeyManager {
         id: apiKeyData.id,
         user_id: apiKeyData.user_id,
         key_prefix: apiKeyData.key_prefix,
-        key_hash: keyHash,
         name: apiKeyData.name,
         description: undefined,
-        encrypted_key: '',
         scope_type: apiKeyData.scope_type as ScopeType,
         allowed_environments: apiKeyData.allowed_environments || [],
         rate_limit_per_minute: apiKeyData.rate_limit_per_minute,
@@ -401,64 +308,22 @@ export class APIKeyManager {
    * Revoke an API key
    */
   async revokeAPIKey(id: string, reason?: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('api_keys')
-      .update({
-        is_active: false,
-        revoked_at: new Date().toISOString(),
-        revoked_reason: reason,
-      })
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (error) {
-      throw new Error(`Failed to revoke API key: ${error.message}`);
-    }
+    await mcpRouterKeysApi.revoke(id, reason);
   }
 
   /**
    * Re-activate a revoked API key
    */
   async reactivateAPIKey(id: string): Promise<APIKey> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('api_keys')
-      .update({
-        is_active: true,
-        revoked_at: null,
-        revoked_reason: null,
-      })
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (error) {
-      throw new Error(`Failed to reactivate API key: ${error.message}`);
-    }
-
-    return (await this.getAPIKey(id))!;
+    const response = await mcpRouterKeysApi.reactivate<{ api_key: APIKey }>(id);
+    return response.api_key;
   }
 
   /**
    * Delete an API key permanently
    */
   async deleteAPIKey(id: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('api_keys')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (error) {
-      throw new Error(`Failed to delete API key: ${error.message}`);
-    }
+    await mcpRouterKeysApi.remove(id);
   }
 
   /**
@@ -475,33 +340,8 @@ export class APIKeyManager {
       expires_at?: string | null;
     }
   ): Promise<APIKey> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const updateData: Record<string, any> = {};
-    if (updates.name !== undefined) updateData.name = updates.name;
-    if (updates.description !== undefined)
-      updateData.description = updates.description;
-    if (updates.rate_limit_per_minute !== undefined)
-      updateData.rate_limit_per_minute = updates.rate_limit_per_minute;
-    if (updates.rate_limit_per_day !== undefined)
-      updateData.rate_limit_per_day = updates.rate_limit_per_day;
-    if (updates.allowed_ips !== undefined)
-      updateData.allowed_ips = updates.allowed_ips;
-    if (updates.expires_at !== undefined)
-      updateData.expires_at = updates.expires_at;
-
-    const { error } = await supabase
-      .from('api_keys')
-      .update(updateData)
-      .eq('id', id)
-      .eq('user_id', user.id);
-
-    if (error) {
-      throw new Error(`Failed to update API key: ${error.message}`);
-    }
-
-    return (await this.getAPIKey(id))!;
+    const response = await mcpRouterKeysApi.update<{ api_key: APIKey }>(id, updates);
+    return response.api_key;
   }
 
   /**
@@ -720,62 +560,6 @@ export class APIKeyManager {
       .join('');
   }
 
-  // Helper: Map database row to typed object
-  private mapAPIKeyFromDB(row: any): APIKey {
-    return {
-      id: row.id,
-      user_id: row.user_id,
-      key_prefix: row.key_prefix,
-      key_hash: row.key_hash,
-      name: row.name,
-      description: row.description,
-      encrypted_key: row.encrypted_key,
-      scope_type: row.scope_type,
-      allowed_environments: row.allowed_environments || [],
-      rate_limit_per_minute: row.rate_limit_per_minute,
-      rate_limit_per_day: row.rate_limit_per_day,
-      allowed_ips: row.allowed_ips || [],
-      expires_at: row.expires_at,
-      last_used_at: row.last_used_at,
-      last_used_ip: row.last_used_ip,
-      is_active: row.is_active,
-      revoked_at: row.revoked_at,
-      revoked_reason: row.revoked_reason,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      scopes: row.scopes?.map((s: any) => ({
-        id: s.id,
-        api_key_id: s.api_key_id,
-        service_key: s.service_key,
-        allowed_actions: s.allowed_actions || [],
-        max_calls_per_minute: s.max_calls_per_minute,
-        max_calls_per_day: s.max_calls_per_day,
-        created_at: s.created_at,
-        service: s.service
-          ? {
-              id: s.service.id,
-              service_key: s.service.service_key,
-              display_name: s.service.display_name,
-              description: s.service.description,
-              icon: s.service.icon,
-              category: s.service.category,
-              credential_fields: s.service.credential_fields || [],
-              mcp_command: s.service.mcp_command,
-              mcp_args: s.service.mcp_args || [],
-              mcp_env_mapping: s.service.mcp_env_mapping || {},
-              documentation_url: s.service.documentation_url,
-              base_url: s.service.base_url,
-              health_check_endpoint: s.service.health_check_endpoint,
-              is_available: s.service.is_available,
-              is_beta: s.service.is_beta,
-              requires_approval: s.service.requires_approval,
-              created_at: s.service.created_at,
-              updated_at: s.service.updated_at,
-            }
-          : undefined,
-      })),
-    };
-  }
 }
 
 export default APIKeyManager;

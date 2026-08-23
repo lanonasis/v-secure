@@ -1,6 +1,14 @@
-// Hook for managing API keys with real Supabase data
+// Hook for managing API keys — routed through auth-gateway, not Supabase
+//
+// Rewritten 2026-08-23: this used to insert directly into Supabase from the
+// browser (raw key generated client-side, only the hash stored — better
+// than mcp-router/api-keys.ts's fake "encryption", but still a browser
+// insert against a schema that didn't exist on the live database). Now
+// calls the real server-side endpoint (auth-gateway's /api/v1/mcp/api-keys,
+// matching the @vortex-secure/mcp-sdk contract) via mcpRouterKeysApi.
+
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { mcpRouterKeysApi } from '../lib/mcp-router/api-client';
 import type { APIKey, CreateAPIKeyRequest } from '../types/mcp-router';
 
 interface APIKeyStats {
@@ -32,30 +40,8 @@ export function useAPIKeys(): UseAPIKeysReturn {
     try {
       setLoading(true);
       setError(null);
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setAPIKeys([]);
-        return;
-      }
-
-      const { data, error: fetchError } = await supabase
-        .from('api_keys')
-        .select(`
-          *,
-          scopes:api_key_scopes(
-            *,
-            service:mcp_service_catalog(*)
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (fetchError) {
-        throw new Error(fetchError.message);
-      }
-
-      setAPIKeys((data || []).map(mapAPIKeyFromDB));
+      const response = await mcpRouterKeysApi.list<{ api_keys: APIKey[] }>();
+      setAPIKeys(response.api_keys || []);
     } catch (err: any) {
       setError(err.message);
       setAPIKeys([]);
@@ -80,80 +66,13 @@ export function useAPIKeys(): UseAPIKeysReturn {
   };
 
   const createAPIKey = async (request: CreateAPIKeyRequest): Promise<{ key: APIKey; fullKey: string }> => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    // Generate the API key
-    const prefix = 'lms_prod';
-    const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(24)))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-    const fullKey = `${prefix}_${randomPart}`;
-    const keyPrefix = fullKey.substring(0, 12);
-
-    // Hash the key for storage (never store the raw key)
-    const encoder = new TextEncoder();
-    const data = encoder.encode(fullKey);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const keyHash = Array.from(new Uint8Array(hashBuffer))
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-
-    // Note: The full key is only returned to the user once and never stored.
-    // We only store the hash for verification and a prefix for identification.
-    const { data: apiKeyData, error: apiKeyError } = await supabase
-      .from('api_keys')
-      .insert([{
-        user_id: user.id,
-        key_prefix: keyPrefix,
-        key_hash: keyHash,
-        name: request.name,
-        description: request.description,
-        // Do NOT store the full key - only the hash is persisted
-        scope_type: request.scope_type,
-        allowed_environments: request.allowed_environments || ['production'],
-        rate_limit_per_minute: request.rate_limit_per_minute || 60,
-        rate_limit_per_day: request.rate_limit_per_day || 10000,
-        is_active: true,
-      }])
-      .select(`
-        *,
-        scopes:api_key_scopes(
-          *,
-          service:mcp_service_catalog(*)
-        )
-      `)
-      .single();
-
-    if (apiKeyError) throw new Error(apiKeyError.message);
-
-    // Create scopes if specific
-    if (request.scope_type === 'specific' && request.service_keys?.length) {
-      const scopes = request.service_keys.map(serviceKey => ({
-        api_key_id: apiKeyData.id,
-        service_key: serviceKey,
-      }));
-
-      await supabase.from('api_key_scopes').insert(scopes);
-    }
-
-    const newKey = mapAPIKeyFromDB(apiKeyData);
-    setAPIKeys(prev => [newKey, ...prev]);
-    return { key: newKey, fullKey };
+    const response = await mcpRouterKeysApi.create<{ api_key: APIKey; full_key: string }>(request);
+    setAPIKeys(prev => [response.api_key, ...prev]);
+    return { key: response.api_key, fullKey: response.full_key };
   };
 
   const revokeAPIKey = async (id: string, reason?: string) => {
-    const { error } = await supabase
-      .from('api_keys')
-      .update({
-        is_active: false,
-        revoked_at: new Date().toISOString(),
-        revoked_reason: reason,
-      })
-      .eq('id', id);
-
-    if (error) throw new Error(error.message);
-
+    await mcpRouterKeysApi.revoke(id, reason);
     setAPIKeys(prev =>
       prev.map(k =>
         k.id === id
@@ -164,17 +83,7 @@ export function useAPIKeys(): UseAPIKeysReturn {
   };
 
   const reactivateAPIKey = async (id: string) => {
-    const { error } = await supabase
-      .from('api_keys')
-      .update({
-        is_active: true,
-        revoked_at: null,
-        revoked_reason: null,
-      })
-      .eq('id', id);
-
-    if (error) throw new Error(error.message);
-
+    await mcpRouterKeysApi.reactivate(id);
     setAPIKeys(prev =>
       prev.map(k =>
         k.id === id
@@ -185,37 +94,18 @@ export function useAPIKeys(): UseAPIKeysReturn {
   };
 
   const deleteAPIKey = async (id: string) => {
-    const { error } = await supabase
-      .from('api_keys')
-      .delete()
-      .eq('id', id);
-
-    if (error) throw new Error(error.message);
-
+    await mcpRouterKeysApi.remove(id);
     setAPIKeys(prev => prev.filter(k => k.id !== id));
   };
 
   const updateAPIKey = async (id: string, updates: Partial<APIKey>) => {
-    const { error } = await supabase
-      .from('api_keys')
-      .update({
-        name: updates.name,
-        description: updates.description,
-        rate_limit_per_minute: updates.rate_limit_per_minute,
-        rate_limit_per_day: updates.rate_limit_per_day,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id);
-
-    if (error) throw new Error(error.message);
-
-    setAPIKeys(prev =>
-      prev.map(k =>
-        k.id === id
-          ? { ...k, ...updates, updated_at: new Date().toISOString() }
-          : k
-      )
-    );
+    const response = await mcpRouterKeysApi.update<{ api_key: APIKey }>(id, {
+      name: updates.name,
+      description: updates.description,
+      rate_limit_per_minute: updates.rate_limit_per_minute,
+      rate_limit_per_day: updates.rate_limit_per_day,
+    });
+    setAPIKeys(prev => prev.map(k => (k.id === id ? response.api_key : k)));
   };
 
   return {
@@ -229,42 +119,6 @@ export function useAPIKeys(): UseAPIKeysReturn {
     deleteAPIKey,
     updateAPIKey,
     refresh: fetchAPIKeys,
-  };
-}
-
-function mapAPIKeyFromDB(row: any): APIKey {
-  return {
-    id: row.id,
-    user_id: row.user_id,
-    key_prefix: row.key_prefix,
-    key_hash: row.key_hash,
-    name: row.name,
-    description: row.description,
-    // Note: encrypted_key is intentionally not included - keys are hashed, not stored
-    encrypted_key: '', // Placeholder - actual key is never stored
-    scope_type: row.scope_type,
-    allowed_environments: row.allowed_environments || [],
-    rate_limit_per_minute: row.rate_limit_per_minute,
-    rate_limit_per_day: row.rate_limit_per_day,
-    allowed_ips: row.allowed_ips || [],
-    expires_at: row.expires_at,
-    last_used_at: row.last_used_at,
-    last_used_ip: row.last_used_ip,
-    is_active: row.is_active,
-    revoked_at: row.revoked_at,
-    revoked_reason: row.revoked_reason,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-    scopes: row.scopes?.map((s: any) => ({
-      id: s.id,
-      api_key_id: s.api_key_id,
-      service_key: s.service_key,
-      allowed_actions: s.allowed_actions || [],
-      max_calls_per_minute: s.max_calls_per_minute,
-      max_calls_per_day: s.max_calls_per_day,
-      created_at: s.created_at,
-      service: s.service,
-    })),
   };
 }
 
