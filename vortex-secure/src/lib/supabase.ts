@@ -194,13 +194,25 @@ export const getCurrentUser = async () => {
   return user;
 };
 
-// Auth callback URL - centralized on auth.lanonasis.com in production
+// Auth callback URL — redirects straight back to this app's own domain.
+//
+// Fixed 2026-08-23: this used to bounce through
+// https://auth.lanonasis.com/auth/callback?next=https://dashboard.lanonasis.com
+// — a route that doesn't exist on auth-gateway (confirmed: no /auth/callback
+// handler anywhere in its routes) and, even if it did, sent the user to
+// Dashboard's domain, not this app's. A successful OAuth login from
+// console.lanonasis.com would land on a different site entirely. Dashboard's
+// own working pattern (src/integrations/supabase/client.ts) redirects
+// directly to its own domain, never through auth.lanonasis.com — this
+// mirrors that. No dedicated /auth/callback route exists in this app's
+// router (App.tsx has no such <Route>), so this redirects to root; the
+// PKCE browser client auto-detects the session from the URL regardless of
+// path, and App.tsx's existing onAuthStateChange listener picks it up.
 const AUTH_CALLBACK_URL = import.meta.env.PROD
-  ? 'https://auth.lanonasis.com/auth/callback?next=https://dashboard.lanonasis.com'
-  : `${window.location.origin}/auth/callback?next=/dashboard`;
+  ? 'https://console.lanonasis.com/'
+  : `${window.location.origin}/`;
 
 export const signInWithProvider = async (provider: 'github' | 'google') => {
-  // Redirect to centralized auth which then redirects to dashboard
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider,
     options: {
@@ -214,4 +226,16 @@ export const signInWithProvider = async (provider: 'github' | 'google') => {
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
+};
+
+export const signInWithPassword = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) throw error;
+  return data;
+};
+
+export const signUpWithPassword = async (email: string, password: string) => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) throw error;
+  return data;
 };
