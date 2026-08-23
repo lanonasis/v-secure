@@ -114,18 +114,16 @@ export type ScopeType = 'all' | 'specific';
 
 export interface APIKey {
   id: string;
-  user_id: string;
+  user_id?: string;
 
   // Key identification
   key_prefix: string;
-  key_hash: string;
   name: string;
   description?: string;
 
-  // Encrypted key (only returned on creation)
-  encrypted_key: string;
-
-  // Full key (only available on creation, never stored in DB)
+  // Full key (only available on creation, never stored in DB — the server
+  // never persists a retrievable form of the key, only a one-way hash, so
+  // there is no encrypted_key to return here even at creation time)
   full_key?: string;
 
   // Scope configuration
