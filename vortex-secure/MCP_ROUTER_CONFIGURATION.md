@@ -1,5 +1,18 @@
 # MCP Router Configuration Guide
 
+> ## Note — 2026-08-23
+>
+> The service catalog this document describes (`mcp_service_catalog`, `credential_fields`,
+> `mcp_env_mapping`) is real and live — confirmed populated (17 rows) on the MXT Supabase project.
+> This doc's content is accurate for that part of the system.
+>
+> This document does NOT cover API key management — the scoped keys (`vx_prod_*`) that route
+> requests to these configured services. That's a separate, previously-broken piece (browser-side
+> Supabase writes against a schema that didn't exist on the live database) fixed 2026-08-23: the
+> real backend is auth-gateway's `/api/v1/mcp/api-keys/*`, matching the published
+> `@vortex-secure/mcp-sdk` client contract (`packages/vortex-mcp-sdk/src/client/api-keys.ts`). See
+> `API_KEY_ROTATION_WORKFLOW.md`'s banner for that document's (unimplemented) design.
+
 ## Overview
 
 The MCP (Model Context Protocol) Router provides secure, audited access to external API services. This document explains how to configure new services and understand the credential field placeholders.
