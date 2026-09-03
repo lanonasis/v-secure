@@ -10,7 +10,7 @@ This document is intentionally diagnostic. No code path in this repository can
 change the `TestSprite Pre-Check` status on its own, because that status is
 produced by the TestSprite **GitHub App**, whose configuration is managed in the
 TestSprite **Web Portal** (outside this repository). See
-[Where the configuration lives](#where-the-configuration-lives).
+[Where the configuration lives](#2-where-the-configuration-lives).
 
 ---
 
@@ -22,7 +22,7 @@ workflow check-run and not a repository-native CI job.
 Observed on evidence PR #131 (`test(oauth-client): cover keytar fallback paths`,
 merged as `219b7bc`, head `aa49522`):
 
-```
+```text
 context:     TestSprite Pre-Check
 state:       failure
 description: No tests detected
@@ -144,4 +144,4 @@ bypass.
 - GitHub issue: https://github.com/lanonasis/v-secure/issues/132
 - Evidence PR: https://github.com/lanonasis/v-secure/pull/131
 - TestSprite GitHub integration docs:
-  https://docs.testsprite.com/web-portal/integrations/github-integration
+  [TestSprite Web Portal → GitHub Integration](https://docs.testsprite.com/web-portal/integrations/github-integration) (official TestSprite documentation)
