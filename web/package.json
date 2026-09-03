@@ -21,7 +21,7 @@
     "@lanonasis/ai-sdk": "^0.2.2",
     "@lanonasis/brand-kit": "^1.1.0",
     "@supabase/ssr": "^0.8.0",
-    "@supabase/supabase-js": "^2.89.0",
+    "@supabase/supabase-js": "^2.112.3",
     "clsx": "^2.1.1",
     "lucide-react": "^0.562.0",
     "next": "^16.1.1",
