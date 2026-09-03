@@ -2,6 +2,19 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TokenStorage } from '../storage/token-storage';
 import { TokenResponse } from '../types';
 
+type MockKeytar = {
+  getPassword: ReturnType<typeof vi.fn>;
+  setPassword: ReturnType<typeof vi.fn>;
+  deletePassword: ReturnType<typeof vi.fn>;
+};
+
+type TokenStorageInternals = TokenStorage & {
+  getKeytar: () => Promise<MockKeytar | null>;
+  storeToFile: (tokenString: string) => Promise<void>;
+  retrieveFromFile: () => Promise<string | null>;
+  deleteFile: () => Promise<void>;
+};
+
 // Mock localStorage for web environment testing
 const createLocalStorageMock = () => {
   let store: Record<string, string> = {};
@@ -266,6 +279,80 @@ describe('TokenStorage - Error Handling', () => {
 
       const result = await storage.retrieve();
       expect(result).toBeNull();
+    });
+  });
+
+  describe('Node keytar fallback', () => {
+    it('should store to encrypted file when keytar loads but setPassword fails', async () => {
+      const storage = new TokenStorage() as TokenStorageInternals;
+      const keytar: MockKeytar = {
+        getPassword: vi.fn(),
+        setPassword: vi.fn().mockRejectedValue(new Error('keyring unavailable')),
+        deletePassword: vi.fn()
+      };
+      let storedTokenString: string | null = null;
+
+      storage.getKeytar = vi.fn().mockResolvedValue(keytar);
+      storage.storeToFile = vi.fn(async (tokenString: string) => {
+        storedTokenString = tokenString;
+      });
+
+      await storage.store({
+        access_token: 'access_123',
+        expires_in: 3600,
+        token_type: 'Bearer'
+      });
+
+      expect(keytar.setPassword).toHaveBeenCalledOnce();
+      expect(storage.storeToFile).toHaveBeenCalledOnce();
+      expect(storedTokenString).not.toBeNull();
+      expect(JSON.parse(storedTokenString!)).toMatchObject({
+        access_token: 'access_123',
+        expires_in: 3600,
+        token_type: 'Bearer'
+      });
+      expect(JSON.parse(storedTokenString!)).toHaveProperty('issued_at');
+    });
+
+    it('should retrieve from encrypted file when keytar loads but getPassword fails', async () => {
+      const storage = new TokenStorage() as TokenStorageInternals;
+      const keytar: MockKeytar = {
+        getPassword: vi.fn().mockRejectedValue(new Error('keyring unavailable')),
+        setPassword: vi.fn(),
+        deletePassword: vi.fn()
+      };
+      const fallbackToken = {
+        access_token: 'access_from_file',
+        expires_in: 3600,
+        token_type: 'Bearer',
+        issued_at: Date.now()
+      };
+
+      storage.getKeytar = vi.fn().mockResolvedValue(keytar);
+      storage.retrieveFromFile = vi.fn().mockResolvedValue(JSON.stringify(fallbackToken));
+
+      const result = await storage.retrieve();
+
+      expect(keytar.getPassword).toHaveBeenCalledOnce();
+      expect(storage.retrieveFromFile).toHaveBeenCalledOnce();
+      expect(result).toEqual(fallbackToken);
+    });
+
+    it('should still delete encrypted file when keytar loads but deletePassword fails', async () => {
+      const storage = new TokenStorage() as TokenStorageInternals;
+      const keytar: MockKeytar = {
+        getPassword: vi.fn(),
+        setPassword: vi.fn(),
+        deletePassword: vi.fn().mockRejectedValue(new Error('keyring unavailable'))
+      };
+
+      storage.getKeytar = vi.fn().mockResolvedValue(keytar);
+      storage.deleteFile = vi.fn().mockResolvedValue(undefined);
+
+      await storage.clear();
+
+      expect(keytar.deletePassword).toHaveBeenCalledOnce();
+      expect(storage.deleteFile).toHaveBeenCalledOnce();
     });
   });
 });
