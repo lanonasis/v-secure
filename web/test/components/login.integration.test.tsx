@@ -87,6 +87,13 @@ describe('Login Page Integration Tests', () => {
 
       expect(screen.getByText('Login successful')).toBeInTheDocument();
     });
+
+    it('should render a malformed URL error without crashing', async () => {
+      mockSearchParams.set('error', '%');
+      render(<LoginPage />);
+
+      expect(screen.getByText('%')).toBeInTheDocument();
+    });
   });
 
   describe('Email/Password Authentication', () => {
