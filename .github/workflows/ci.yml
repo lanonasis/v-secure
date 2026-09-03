@@ -41,13 +41,18 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
       - name: Install dependencies
         working-directory: ${{ matrix.package.path }}
-        run: npm install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Run ESLint
         working-directory: ${{ matrix.package.path }}
-        run: npm run lint --if-present
+        run: bun run lint --if-present
         continue-on-error: ${{ matrix.package.name != 'root' }}
 
   # ============================================
@@ -74,13 +79,18 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
       - name: Install dependencies
         working-directory: ${{ matrix.package.path }}
-        run: npm install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Run type check
         working-directory: ${{ matrix.package.path }}
-        run: npm run type-check --if-present
+        run: bun run type-check --if-present
 
   # ============================================
   # Run tests
@@ -98,11 +108,16 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Run tests
-        run: npm test --if-present
+        run: bun run test --if-present
         env:
           CI: true
 
@@ -141,13 +156,18 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
       - name: Install dependencies
         working-directory: ${{ matrix.package.path }}
-        run: npm install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Build package
         working-directory: ${{ matrix.package.path }}
-        run: npm run build --if-present
+        run: bun run build --if-present
         env:
           NODE_ENV: production
 
@@ -167,8 +187,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.13
+
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: bun install --frozen-lockfile --ignore-scripts
 
       - name: Run npm audit (root)
         run: npm audit --audit-level=high || true
