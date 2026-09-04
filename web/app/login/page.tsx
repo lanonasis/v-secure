@@ -9,19 +9,6 @@ import { signInWithProvider, signInWithEmail, getSession, isSupabaseConfigured }
 // Demo mode - bypass auth for testing
 const DEMO_MODE = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
-function decodeQueryNotice(value: string | null): string | null {
-  if (!value) {
-    return null;
-  }
-
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    // A malformed query string must not prevent the login form from rendering.
-    return value;
-  }
-}
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -37,8 +24,8 @@ function LoginForm() {
     ? 'https://console.lanonasis.com'
     : '/console';
   const redirectTo = searchParams.get('redirect') || defaultRedirect;
-  const queryError = decodeQueryNotice(searchParams.get('error'));
-  const message = decodeQueryNotice(searchParams.get('message'));
+  const queryError = searchParams.get('error');
+  const message = searchParams.get('message');
   const error = formError ?? queryError;
 
   useEffect(() => {

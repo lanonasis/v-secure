@@ -94,6 +94,13 @@ describe('Login Page Integration Tests', () => {
 
       expect(screen.getByText('%')).toBeInTheDocument();
     });
+
+    it('should preserve a literal percent-encoded error value', async () => {
+      mockSearchParams.set('error', 'literal%20value');
+      render(<LoginPage />);
+
+      expect(screen.getByText('literal%20value')).toBeInTheDocument();
+    });
   });
 
   describe('Email/Password Authentication', () => {
