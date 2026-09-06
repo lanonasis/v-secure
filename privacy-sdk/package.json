@@ -1,6 +1,6 @@
 {
   "name": "@lanonasis/privacy-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enterprise-grade privacy utilities: PII detection, data masking, tokenization, and GDPR compliance. Part of the LanOnasis Security Suite.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
