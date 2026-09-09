@@ -16,8 +16,7 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [formError, setError] = useState<string | null>(null);
 
   const isConfigured = isSupabaseConfigured();
   // In production, redirect to console subdomain; in dev, use local console
@@ -25,6 +24,9 @@ function LoginForm() {
     ? 'https://console.lanonasis.com'
     : '/console';
   const redirectTo = searchParams.get('redirect') || defaultRedirect;
+  const queryError = searchParams.get('error');
+  const message = searchParams.get('message');
+  const error = formError ?? queryError;
 
   useEffect(() => {
     // In demo mode, redirect directly to dashboard
@@ -40,16 +42,6 @@ function LoginForm() {
       }
     });
 
-    // Check for messages from URL params
-    const errorParam = searchParams.get('error');
-    const messageParam = searchParams.get('message');
-
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-    }
-    if (messageParam) {
-      setMessage(decodeURIComponent(messageParam));
-    }
   }, [router, redirectTo, searchParams]);
 
   const handleOAuthLogin = async (provider: 'github' | 'google') => {
