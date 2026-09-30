@@ -2,10 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 import { z } from 'zod';
 
+function requireEnv(name: string, value: string | undefined): string {
+  if (!value) {
+    throw new Error(`${name} is required`);
+  }
+  return value;
+}
+
 // Environment configuration
-const supabaseUrl = process.env.SUPABASE_URL
-const supabaseKey = process.env.SUPABASE_SERVICE_KEY
-const encryptionKey = process.env.API_KEY_ENCRYPTION_KEY || process.env.JWT_SECRET
+const supabaseUrl = requireEnv('SUPABASE_URL', process.env.SUPABASE_URL)
+const supabaseKey = requireEnv('SUPABASE_SERVICE_KEY', process.env.SUPABASE_SERVICE_KEY)
+const encryptionKey = requireEnv(
+  'API_KEY_ENCRYPTION_KEY or JWT_SECRET',
+  process.env.API_KEY_ENCRYPTION_KEY || process.env.JWT_SECRET
+)
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 

@@ -41,7 +41,7 @@ router.get(
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
-    const key = req.params.key;
+    const key = String(req.params.key);
     try {
       const value = await secretService.getSecret(key);
       if (value === null) {

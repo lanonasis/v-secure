@@ -22,13 +22,12 @@ import type { User } from '@supabase/supabase-js';
 export default function ConsolePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isSupabaseConfigured());
 
   const isConfigured = isSupabaseConfigured();
 
   useEffect(() => {
     if (!isConfigured) {
-      setLoading(false);
       return;
     }
 

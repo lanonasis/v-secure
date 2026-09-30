@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInWithProvider } from '../../lib/supabase';
+import { signInWithProvider, signInWithPassword, signUpWithPassword } from '../../lib/supabase';
 import { Shield, Github, Mail, Chrome } from 'lucide-react';
 
 export function LoginPage() {
@@ -28,11 +28,17 @@ export function LoginPage() {
     e.preventDefault();
     try {
       setLoading('email');
-      // This would be implemented in supabase.ts
-      console.log('Email login:', { email, password, isSignUp });
+      if (isSignUp) {
+        await signUpWithPassword(email, password);
+      } else {
+        await signInWithPassword(email, password);
+      }
+      // No manual navigation needed: App.tsx's onAuthStateChange listener
+      // picks up the new session and re-renders into the logged-in view.
     } catch (error) {
       console.error('Email login failed:', error);
-      alert('Login failed. Please try again.');
+      const message = error instanceof Error ? error.message : 'Login failed. Please try again.';
+      alert(message);
     } finally {
       setLoading(null);
     }

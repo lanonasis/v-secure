@@ -231,3 +231,55 @@ describe('ApiKeyStorage - Error Handling', () => {
     });
   });
 });
+
+describe('ApiKeyStorage - unavailable keyring fallback', () => {
+  it('falls back silently and does not retry an unavailable keyring', async () => {
+    const storage = new ApiKeyStorage() as unknown as {
+      keytar: { getPassword: ReturnType<typeof vi.fn> } | null;
+      keytarLoadAttempted: boolean;
+      retrieveFromFile: ReturnType<typeof vi.fn>;
+      retrieve(): Promise<ApiKeyData | null>;
+    };
+    const keytar = {
+      getPassword: vi.fn().mockRejectedValue(new Error('Secret Service unavailable'))
+    };
+    storage.keytar = keytar;
+    storage.keytarLoadAttempted = true;
+    storage.retrieveFromFile = vi.fn().mockResolvedValue(null);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await expect(storage.retrieve()).resolves.toBeNull();
+    await expect(storage.retrieve()).resolves.toBeNull();
+
+    expect(keytar.getPassword).toHaveBeenCalledOnce();
+    expect(storage.retrieveFromFile).toHaveBeenCalledTimes(2);
+    expect(warn).not.toHaveBeenCalled();
+  });
+
+  it('reports keyring fallback only in explicit CLI debug mode', async () => {
+    const previousVerbose = process.env.CLI_VERBOSE;
+    process.env.CLI_VERBOSE = 'true';
+    const storage = new ApiKeyStorage() as unknown as {
+      keytar: { getPassword: ReturnType<typeof vi.fn> } | null;
+      keytarLoadAttempted: boolean;
+      retrieveFromFile: ReturnType<typeof vi.fn>;
+      retrieve(): Promise<ApiKeyData | null>;
+    };
+    const keytar = {
+      getPassword: vi.fn().mockRejectedValue(new Error('Secret Service unavailable'))
+    };
+    storage.keytar = keytar;
+    storage.keytarLoadAttempted = true;
+    storage.retrieveFromFile = vi.fn().mockResolvedValue(null);
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    await expect(storage.retrieve()).resolves.toBeNull();
+
+    expect(warn).toHaveBeenCalledOnce();
+    if (previousVerbose === undefined) {
+      delete process.env.CLI_VERBOSE;
+    } else {
+      process.env.CLI_VERBOSE = previousVerbose;
+    }
+  });
+});

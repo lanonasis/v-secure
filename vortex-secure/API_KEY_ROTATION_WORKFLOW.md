@@ -1,5 +1,19 @@
 # API Key Rotation Workflow
 
+> ## ⚠️ 2026-08-23 — this design was never implemented
+>
+> This document's endpoints (`/api/secrets/{id}/rotation`), table (`mcp_api_keys`), and CLI (`vortex
+> rotate`/`vortex schedule`) don't exist anywhere in this codebase — confirmed by search. It already
+> self-labels the rotation scheduler, health validation, and deployment steps as "Placeholder ...
+> coming soon" further down; treat the whole document as an unrealized design, not a spec to build
+> against or to expect live behavior from.
+>
+> The real, live MCP Router Keys backend (built 2026-08-23) is auth-gateway's `/api/v1/mcp/api-keys/*`
+> (create/list/get/update/revoke/reactivate/delete/rotate/scopes/validate), matching the published
+> `@vortex-secure/mcp-sdk` client contract (`packages/vortex-mcp-sdk/src/client/api-keys.ts`) — not
+> this document's shapes. It has a plain rotate endpoint (issue a new key, same id) but none of the
+> scheduling/overlap-window/webhook machinery described below.
+
 ## Overview
 
 Vortex Secure implements a comprehensive API key rotation system designed to maintain security while ensuring zero-downtime secret management. This document outlines the rotation workflow, implementation details, and placeholder configurations.
