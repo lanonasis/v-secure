@@ -71,14 +71,32 @@ export class ApiKeyStorage {
   private readonly webEncryptionKeyStorage = 'lanonasis_web_enc_key';
   private keytar: MinimalKeytar | null = null;
   private keytarLoadAttempted = false;
+  /**
+   * `keytar` can load successfully while its host keyring is unavailable (for
+   * example, a headless Linux host without a Secret Service). Once that has
+   * happened, retrying it only adds latency and duplicate diagnostics.
+   */
+  private keytarBackendUnavailable = false;
   private migrationCompleted = false;
+
+  private disableKeytarBackend(message: string, error?: unknown): void {
+    this.keytar = null;
+    this.keytarBackendUnavailable = true;
+
+    const isVerbose =
+      typeof process !== 'undefined' &&
+      (process.env.CLI_VERBOSE === 'true' || process.env.LANONASIS_OAUTH_DEBUG === 'true');
+    if (isVerbose) {
+      console.warn(message, error);
+    }
+  }
 
   private async getKeytar(): Promise<MinimalKeytar | null> {
     if (!this.isNode()) {
       return null;
     }
 
-    if (this.keytarLoadAttempted) {
+    if (this.keytarLoadAttempted || this.keytarBackendUnavailable) {
       return this.keytar;
     }
 
@@ -88,8 +106,7 @@ export class ApiKeyStorage {
       const keytarModule = await import('keytar');
       this.keytar = ((keytarModule as { default?: unknown }).default ?? keytarModule) as MinimalKeytar;
     } catch {
-      this.keytar = null;
-      console.warn('Keytar not available - falling back to encrypted file storage');
+      this.disableKeytarBackend('Keytar not available - falling back to encrypted file storage');
     }
 
     return this.keytar;
@@ -124,7 +141,7 @@ export class ApiKeyStorage {
           await keytar.setPassword('lanonasis-mcp', this.storageKey, keyString);
           return;
         } catch (error) {
-          console.warn('Keytar storage failed, falling back to file:', error);
+          this.disableKeytarBackend('Keytar storage failed, falling back to file:', error);
         }
       }
       
@@ -160,7 +177,7 @@ export class ApiKeyStorage {
           try {
             keyString = await keytar.getPassword('lanonasis-mcp', this.storageKey);
           } catch (error) {
-            console.warn('Keytar retrieval failed, trying file:', error);
+            this.disableKeytarBackend('Keytar retrieval failed, trying file:', error);
           }
         }
         
@@ -237,7 +254,7 @@ export class ApiKeyStorage {
         try {
           await keytar.deletePassword('lanonasis-mcp', this.storageKey);
         } catch (error) {
-          console.warn('Keytar deletion failed:', error);
+          this.disableKeytarBackend('Keytar deletion failed:', error);
         }
       }
       await this.deleteFile();
