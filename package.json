@@ -29,7 +29,7 @@
     "mcp",
     "enterprise"
   ],
-  "author": "Seye Derick",
+  "author": "Lan Onasis",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.90.1",
