@@ -16,8 +16,17 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  // Messages passed in the URL (e.g. ?error=... from an OAuth callback) seed
+  // the initial state instead of being copied in from an effect, which
+  // renders twice and trips react-hooks/set-state-in-effect.
+  const [error, setError] = useState<string | null>(() => {
+    const param = searchParams.get('error');
+    return param ? decodeURIComponent(param) : null;
+  });
+  const [message] = useState<string | null>(() => {
+    const param = searchParams.get('message');
+    return param ? decodeURIComponent(param) : null;
+  });
 
   const isConfigured = isSupabaseConfigured();
   // In production, redirect to console subdomain; in dev, use local console
@@ -39,18 +48,7 @@ function LoginForm() {
         router.push(redirectTo);
       }
     });
-
-    // Check for messages from URL params
-    const errorParam = searchParams.get('error');
-    const messageParam = searchParams.get('message');
-
-    if (errorParam) {
-      setError(decodeURIComponent(errorParam));
-    }
-    if (messageParam) {
-      setMessage(decodeURIComponent(messageParam));
-    }
-  }, [router, redirectTo, searchParams]);
+  }, [router, redirectTo]);
 
   const handleOAuthLogin = async (provider: 'github' | 'google') => {
     if (!isConfigured) {
