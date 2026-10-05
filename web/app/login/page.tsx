@@ -16,17 +16,11 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  // Messages passed in the URL (e.g. ?error=... from an OAuth callback) seed
-  // the initial state instead of being copied in from an effect, which
-  // renders twice and trips react-hooks/set-state-in-effect.
-  const [error, setError] = useState<string | null>(() => {
-    const param = searchParams.get('error');
-    return param ? decodeURIComponent(param) : null;
-  });
-  const [message] = useState<string | null>(() => {
-    const param = searchParams.get('message');
-    return param ? decodeURIComponent(param) : null;
-  });
+  const [error, setError] = useState<string | null>(null);
+  const errorParam = searchParams.get('error');
+  const messageParam = searchParams.get('message');
+  const urlError = errorParam ? decodeURIComponent(errorParam) : null;
+  const urlMessage = messageParam ? decodeURIComponent(messageParam) : null;
 
   const isConfigured = isSupabaseConfigured();
   // In production, redirect to console subdomain; in dev, use local console
@@ -118,17 +112,17 @@ function LoginForm() {
 
       <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8 shadow-xl backdrop-blur-sm">
         {/* Success Message */}
-        {message && (
+        {urlMessage && (
           <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg">
-            <p className="text-sm text-green-300">{message}</p>
+            <p className="text-sm text-green-300">{urlMessage}</p>
           </div>
         )}
 
         {/* Error Message */}
-        {error && (
+        {(error || urlError) && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-300">{error}</p>
+            <p className="text-sm text-red-300">{error || urlError}</p>
           </div>
         )}
 
