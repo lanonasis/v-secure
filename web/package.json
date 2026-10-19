@@ -29,7 +29,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "@vercel/microfrontends": "^2.4.0",
+    "@vercel/microfrontends": "^2.4.1",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.1",
     "@types/node": "^26.2.0",
