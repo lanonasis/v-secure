@@ -26,7 +26,7 @@
     "lucide-react": "^0.562.0",
     "next": "^16.4.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
     "@vercel/microfrontends": "^2.4.0",
@@ -34,7 +34,7 @@
     "@testing-library/react": "^16.3.1",
     "@types/node": "^26.2.0",
     "@types/react": "^18.3.27",
-    "@types/react-dom": "^18.3.7",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^4.3.4",
     "@vitest/coverage-v8": "^4.1.11",
     "@vitest/ui": "^5.0.3",
